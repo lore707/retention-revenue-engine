@@ -1,13 +1,21 @@
 # Retention Revenue Engine
 
-Applicazione interna per trasformare lo storico Shopify in una **coda operativa di opportunità commerciali spiegabili e monitorabili** per ogni cliente. Le decisioni commerciali devono essere deterministiche; il contatto resta manuale nella prima versione.
+Sistema operativo per identificare, monitorare e misurare opportunità di retention commerciale sui clienti Shopify.
 
-## Tre documenti guida
+## Stato
 
-- [AGENTS.md](AGENTS.md): come l'agente deve lavorare.
-- [project-docs/PRODUCT.md](project-docs/PRODUCT.md): cosa stiamo costruendo e perché.
-- `project-docs/ARCHITECTURE.md`: dove vive ogni responsabilità; verrà creato quando inizierà il codice e conterrà solo percorsi reali.
+Progetto in sviluppo. La V0 utilizzerà export CSV manuali da Shopify e logica deterministica.
 
-Stato attuale: documentazione iniziale completata. La prossima fase, da specificare separatamente, riguarda modello dati e import CSV Shopify.
+## Documentazione
 
-Gli eventuali export reali vanno tenuti in `local-data/`, esclusa da Git. La cartella verrà creata quando servirà.
+- [project-docs/PRODUCT.md](project-docs/PRODUCT.md) — visione, obiettivi e decisioni di prodotto.
+- `project-docs/ARCHITECTURE.md` — mappa delle responsabilità del codice; verrà creato con la prima implementazione.
+- [AGENTS.md](AGENTS.md) — regole vincolanti per modificare il repository.
+
+## Sviluppo
+
+Le istruzioni per installazione, avvio, test e build verranno aggiunte quando esisterà la prima implementazione funzionante.
+
+## Dati locali
+
+Gli export Shopify reali devono essere salvati in `local-data/` e non devono essere tracciati da Git.
