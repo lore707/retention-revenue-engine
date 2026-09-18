@@ -1,28 +1,11 @@
-# Istruzioni per chi modifica il repository
-
-## Principio
+# Istruzioni per modificare il repository
 
 **Git conserva il passato. Il repository descrive il prodotto presente.**
 
-Segui la richiesta dell'utente e la fase di lavoro indicata in `project-docs/START_HERE.md`. Non anticipare fasi successive e non inventare regole commerciali o dati sui prodotti Laifen.
-
-## Prima di modificare
-
-1. Leggi `project-docs/WHERE_TO_CHANGE_CODE.md` e i documenti pertinenti.
-2. Cerca se esiste già un file che svolge la funzione richiesta.
-3. Controlla i riferimenti alla logica che stai per cambiare.
-
-## Durante la modifica
-
-1. Modifica il punto responsabile della funzione. Crea un file o una cartella solo per una responsabilità nuova e concreta.
-2. Non lasciare due implementazioni della stessa funzione. Rimuovi codice sostituito, riferimenti inutilizzati e file rimasti senza scopo.
-3. Non creare copie `old`, `backup`, `v2`, `temp` o strutture riservate a funzionalità future.
-4. Usa nomi che descrivano ciò che il file o la funzione fa. Separa dati sui prodotti, regole commerciali, stato del cliente e risultati misurati.
-5. Mantieni separati i dati identificativi del cliente dai dati usati per l'analisi. Conserva eventuali export reali in `local-data/`, esclusa da Git; non aggiungere dati personali ai file tracciati.
-
-## Prima di concludere
-
-1. Verifica i casi rilevanti, comprese le esclusioni, quando cambi una decisione deterministica.
-2. Controlla i riferimenti dopo rimozioni o rinomini e rivedi i file modificati.
-3. Aggiorna `project-docs/WHERE_TO_CHANGE_CODE.md` se è cambiato il posto di una funzione; aggiorna `project-docs/PRODUCT_DECISIONS.md` se è stata presa una decisione di prodotto.
-4. Riporta cosa è cambiato, cosa è stato rimosso e come hai verificato il risultato.
+1. Rispetta la fase richiesta. Consulta `project-docs/PRODUCT.md` quando il lavoro riguarda significato del prodotto, dati, privacy o decisioni commerciali. Non inventare regole Laifen.
+2. Prima di creare un file, cerca quale file svolge già quella funzione. Dai a ogni responsabilità un posto riconoscibile; non creare strutture per funzioni future.
+3. Quando sostituisci una logica, elimina quella precedente e aggiorna i suoi riferimenti. Non conservare copie `old`, `backup`, `v2` o `temp`.
+4. Tieni separati i dati identificativi dall'analisi. Gli export reali vanno in `local-data/`, esclusa da Git; non tracciare dati personali o segreti.
+5. Per ogni decisione deterministica modificata, verifica almeno un caso ammesso e uno escluso. Controlla i riferimenti e i file modificati.
+6. Aggiorna la documentazione solo quando cambia una decisione o la posizione di una responsabilità. Quando esisterà codice, crea e mantieni una mappa «funzione → file» con soli percorsi reali.
+7. Nella risposta finale spiega cosa hai cambiato, cosa hai rimosso e come l'hai verificato.

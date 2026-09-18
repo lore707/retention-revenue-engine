@@ -1,11 +1,10 @@
 # Retention Revenue Engine
 
-Applicazione interna, in fase di definizione, per trasformare i dati storici di Shopify in opportunità di retention che un operatore possa valutare e lavorare manualmente.
+Applicazione interna per trasformare export CSV di Shopify in opportunità di retention spiegabili, da lavorare manualmente. Le decisioni commerciali devono essere deterministiche.
 
-Il sistema dovrà spiegare **cosa proporre, perché quel prodotto, perché ora, quale beneficio riceve il cliente e quali dati sostengono la decisione**. Le decisioni commerciali saranno deterministiche: a parità di dati e regole, il risultato sarà lo stesso.
+- [Prodotto, principi e fasi](project-docs/PRODUCT.md)
+- [Istruzioni per modificare il repository](AGENTS.md)
 
-Il progetto procede per fasi. La prima versione parte da export CSV manuali di Shopify; integrazioni automatiche e AI non fanno parte della fase attuale.
+Stato attuale: documentazione iniziale completata. La prossima fase, da specificare separatamente, riguarda modello dati e import CSV Shopify.
 
-Per orientarti, leggi [project-docs/START_HERE.md](project-docs/START_HERE.md).
-
-Eventuali export reali o dati locali vanno tenuti in `local-data/`, esclusa da Git. La cartella verrà creata solo quando servirà.
+Gli eventuali export reali vanno tenuti in `local-data/`, esclusa da Git. La cartella verrà creata quando servirà.
