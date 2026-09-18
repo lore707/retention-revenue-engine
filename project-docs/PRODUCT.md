@@ -2,7 +2,7 @@
 
 ## Obiettivo
 
-Retention Revenue Engine è un sistema operativo per decidere e monitorare azioni di retention commerciale. Lavora principalmente sui clienti già acquisiti, o comunque presenti in Shopify e contattabili secondo le regole di marketing applicabili.
+Retention Revenue Engine è un sistema operativo per decidere e monitorare azioni di retention commerciale su clienti già acquisiti o comunque presenti in Shopify e contattabili secondo le regole di marketing applicabili.
 
 Shopify rimane la fonte di riferimento per clienti, ordini e prodotti. Il software usa quello storico per aiutare un operatore a capire **chi contattare, quando, cosa proporre, perché, quanto vale l'opportunità e cosa è successo dopo il follow-up**.
 
@@ -37,7 +37,7 @@ Il sistema deve rendere verificabile anche il motivo di un'esclusione. I numeri 
 
 ## Monitoraggio delle opportunità
 
-Un cliente può avere una o più opportunità, ognuna collegata a una proposta e ai dati che la giustificano. Per ciascuna bisogna poter ricostruire se è ancora aperta, se è stata lavorata, quale follow-up è stato effettuato, se si è osservato il risultato definito e quale importo è stato attribuito.
+Un cliente può avere una o più opportunità nel tempo o contemporaneamente, purché non confliggano tra loro secondo le regole definite. Ognuna è collegata a una proposta e ai dati che la giustificano. Per ciascuna bisogna poter ricostruire se è ancora aperta, se è stata lavorata, quale follow-up è stato effettuato, se si è osservato il risultato definito e quale importo è stato attribuito.
 
 Esempio puramente illustrativo, senza validare la relazione commerciale citata: `CUST_00123` possiede SE Lite; viene valutata una proposta per il Diffusore SE Lite con valore nominale di €24,99. Il sistema registra la motivazione e lo stato dell'opportunità; dopo il contatto, un nuovo import permette di verificare gli ordini successivi secondo regole di attribuzione ancora da definire.
 
