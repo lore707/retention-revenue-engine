@@ -1,0 +1,7 @@
+# Export Shopify e altri dati locali potenzialmente identificativi.
+/local-data/
+
+# Segreti e configurazione personale.
+.env
+.env.*
+!.env.example
