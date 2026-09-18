@@ -5,7 +5,7 @@
 ## Prima di modificare
 
 1. **DEVI** limitarti al task e alla fase richiesti. **NON DEVI** creare funzionalità, integrazioni, cartelle, API, astrazioni o placeholder per fasi future.
-2. **DEVI** leggere `project-docs/ARCHITECTURE.md`, se esiste, i file coinvolti e i test correlati prima di modificare la logica. Cerca implementazioni equivalenti o sovrapposte prima di creare codice. Leggi `project-docs/PRODUCT.md` quando il task riguarda prodotto, clienti, privacy, opportunità, regole o misure economiche. Approfondisci altri file solo se servono.
+2. **DEVI** leggere `project-docs/ARCHITECTURE.md`, i file coinvolti e i test correlati prima di modificare la logica. Cerca implementazioni equivalenti o sovrapposte prima di creare codice. Leggi `project-docs/PRODUCT.md` quando il task riguarda prodotto, clienti, privacy, opportunità, regole o misure economiche. Approfondisci altri file solo se servono.
 3. **DEVI** individuare il file responsabile della funzione richiesta e modificarlo. Puoi creare un nuovo file solo se la responsabilità è nuova, non appartiene a un file esistente e il nuovo file rende più chiaro dove vive. **NON DEVI** creare una seconda implementazione della stessa responsabilità.
 
 ## Durante la modifica
@@ -21,6 +21,6 @@
 ## Dopo la modifica
 
 9. Per ogni decisione deterministica modificata **DEVI** verificare con test pertinenti almeno un caso ammesso e uno escluso. Stessi dati e stessa versione delle regole devono produrre lo stesso risultato. **NON DEVI** dichiarare completa una modifica alla logica commerciale senza questa verifica.
-10. Quando nasce il primo codice, **DEVI** creare `project-docs/ARCHITECTURE.md` come breve mappa «responsabilità → file canonico» con soli percorsi reali. In seguito aggiornala solo se nasce, si sposta o scompare una responsabilità. Aggiorna `project-docs/PRODUCT.md` solo se cambia una decisione di prodotto.
+10. Quando nasce il primo codice, **DEVI** aggiornare `project-docs/ARCHITECTURE.md` con una breve mappa «responsabilità → file canonico» di soli percorsi reali. In seguito aggiornala solo se nasce, si sposta o scompare una responsabilità. Aggiorna `project-docs/PRODUCT.md` solo se cambia una decisione di prodotto.
 11. Prima di concludere **DEVI** controllare il diff, implementazioni duplicate, riferimenti obsoleti, import e funzioni inutilizzati, file senza scopo, TODO e test non più coerenti. Rimuovi ciò che è diventato inutile. Esegui i controlli pertinenti disponibili, come test, typecheck o build; riporta i controlli falliti e non dichiarare eseguiti quelli non svolti.
 12. **DEVI** confrontare la comprensibilità del repository prima e dopo il task: per ogni responsabilità toccata deve restare evidente un solo punto canonico. Se la modifica aggiunge un secondo posto in cui cercare la stessa logica, o lascia file e concetti senza necessità attuale, **NON È CONCLUSA**: semplifica prima di chiudere. Nel resoconto finale riporta sinteticamente cosa hai cambiato, cosa hai rimosso, come l'hai verificato e quali decisioni restano aperte.

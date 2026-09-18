@@ -9,7 +9,7 @@ Progetto in sviluppo. La V0 utilizzerà export CSV manuali da Shopify e logica d
 ## Documentazione
 
 - [project-docs/PRODUCT.md](project-docs/PRODUCT.md) — visione, obiettivi e decisioni di prodotto.
-- `project-docs/ARCHITECTURE.md` — mappa delle responsabilità del codice; verrà creato con la prima implementazione.
+- [project-docs/ARCHITECTURE.md](project-docs/ARCHITECTURE.md) — mappa delle responsabilità del codice; oggi indica che non esiste ancora codice applicativo.
 - [AGENTS.md](AGENTS.md) — regole vincolanti per modificare il repository.
 
 ## Sviluppo
