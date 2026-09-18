@@ -11,6 +11,7 @@ Quando nascerà il primo codice, aggiungi soltanto voci nella forma:
 Regole della mappa:
 
 - Includi solo percorsi realmente esistenti.
+- Registra le responsabilità implementate, non un inventario di tutti i file.
 - Non documentare strutture o funzioni future.
 - Assegna a ogni responsabilità un solo owner canonico.
 - Aggiorna la mappa solo quando una responsabilità nasce, cambia owner o scompare.

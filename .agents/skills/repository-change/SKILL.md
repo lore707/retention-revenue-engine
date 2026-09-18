@@ -24,3 +24,9 @@ Segui `AGENTS.md` come fonte delle regole vincolanti; questo workflow indica l'o
 2. Controlla duplicati, riferimenti obsoleti e file senza scopo.
 3. Aggiorna `project-docs/ARCHITECTURE.md` solo se è cambiata la mappa delle responsabilità.
 4. Riporta cosa hai cambiato, rimosso e verificato, e le decisioni ancora aperte.
+
+## Come evolve questa skill
+
+- Dopo un task, se emerge una procedura non ovvia che potrebbe ripetersi, registrala come **candidata**, non come regola. Crea `references/workflow-candidates.md` solo alla prima candidata reale; annota in poche righe il trigger, il commit o task osservato e ciò che ha funzionato o fallito.
+- Quando lo stesso trigger ricompare, confronta le osservazioni. Promuovi la procedura in `SKILL.md` solo se i passi sono stabili, utili e non già coperti da `AGENTS.md`. Un rischio concreto per dati o correttezza può giustificare la promozione già alla prima occorrenza, motivandola.
+- Dopo la promozione, elimina la nota candidata; elimina anche le candidate diventate obsolete. Git conserva le osservazioni precedenti.
