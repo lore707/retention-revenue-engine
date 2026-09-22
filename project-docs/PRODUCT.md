@@ -50,52 +50,6 @@ Le strategie possibili comprendono cross-sell, replenishment, maintenance/replac
 
 Il sistema deve poter concludere che **oggi non esiste alcuna azione commerciale sensata**. Questa è una decisione valida, non un errore da riempire con una proposta generica.
 
-## Formalizzare catalogo, relazioni e attivazione
-
-La strategia parte dalla conoscenza complessiva del catalogo, prosegue prodotto per prodotto e collega ogni proposta alle condizioni del cliente che la rendono sensata. Ogni relazione viene studiata insieme a una bozza della sua regola di attivazione. La disponibilità delle prove necessarie deve poi essere verificata sugli export Shopify prima di considerare la regola implementabile.
-
-### Catalogo e schede dei prodotti
-
-Il censimento identifica categorie, prodotti principali, varianti/SKU, accessori, consumabili, confezioni e bundle. Include i prodotti storici quando compaiono negli acquisti dei clienti, distinguendoli da quelli attualmente proponibili. Ogni informazione riporta fonte, data di verifica e stato: verificata, ipotesi o da chiarire.
-
-La scheda di ciascun prodotto raccoglie identità e SKU, caratteristiche, casi d'uso, benefici, contenuto della confezione, quantità incluse, compatibilità e incompatibilità, consumabili, prezzo e disponibilità rilevati. Se dotazione o compatibilità sono cambiate nel tempo, occorre distinguere le versioni pertinenti agli acquisti storici. Un dato sconosciuto resta esplicitamente tale.
-
-### Tipi di relazione commerciale
-
-La tassonomia richiesta comprende otto tipi di opportunità. Le descrizioni seguenti sono convenzioni di lavoro da validare nella mappatura del catalogo; non assegnano ancora relazioni a prodotti Laifen. Comprendono anche riacquisto, sostituzione e upgrade, oltre al cross-sell.
-
-| Tipo | Significato operativo proposto |
-| --- | --- |
-| `ACCESSORY_ATTACH` | Aggiungere un accessorio compatibile che offre un beneficio al prodotto acquistato. |
-| `ACCESSORY_COMPLETION` | Completare una dotazione utile definita dal business con un accessorio compatibile mancante, verificando quanto era incluso nello SKU e gli acquisti successivi. |
-| `USE_CASE_COMPLEMENT` | Aggiungere un prodotto che completa un caso d'uso o una routine del cliente. |
-| `CATEGORY_EXPANSION` | Introdurre una categoria senza acquisti osservati per quel cliente, con un beneficio motivato. |
-| `REPLENISHMENT` | Riacquistare un consumabile sulla base delle quantità disponibili stimate e di ipotesi d'uso esplicite. |
-| `UPSELL` | Proporre un prodotto di livello superiore per un miglioramento concreto rispetto a quello acquistato. |
-| `REPLACEMENT` | Sostituire un prodotto o componente sulla base di un bisogno supportato da evidenze o da una regola approvata. |
-| `SECOND_UNIT` | Proporre un'unità aggiuntiva per un'esigenza distinta, senza presumere che l'unità precedente debba essere sostituita. |
-
-`ACCESSORY_COMPLETION` è un caso più specifico dell'aggiunta di un accessorio: prima dell'attivazione va stabilito il confine rispetto a `ACCESSORY_ATTACH`. Anche altri tipi possono sovrapporsi. La stessa proposta non deve diventare due opportunità conteggiate separatamente soltanto perché soddisfa più etichette; classificazione primaria e gestione dei conflitti saranno esplicite. La reactivation descrive il contesto di ricontatto del cliente e può accompagnare una relazione, senza sostituire la motivazione del prodotto proposto.
-
-### Dalla relazione alla regola del cliente
-
-Per ogni relazione si documentano prodotto/SKU di partenza e prodotto proposto, direzione della proposta, tipo, beneficio, prove di compatibilità ed eventuali esclusioni. Una relazione non è automaticamente reciproca. Una stessa relazione può richiedere condizioni diverse per clienti con storie diverse.
-
-La regola associata deve specificare:
-
-- **Identità e stato:** identificativo, versione, fonti, stato di bozza o approvata e decisioni ancora aperte.
-- **Prerequisiti:** acquisti e SKU interessati, quantità, dotazione inclusa, stato del cliente e dati necessari a provarli.
-- **Evento e timing:** che cosa fa rivalutare la proposta, da quale data si conta, quando si apre la finestra e quando termina; soglie da approvare, mai ricavate arbitrariamente.
-- **Esclusioni e rinvii:** acquisti successivi, resi o annullamenti, compatibilità, disponibilità del prodotto proposto, contattabilità e contatti precedenti, secondo criteri da definire per la regola.
-- **Dati mancanti:** quali informazioni impediscono la decisione e quali stime sono consentite, con ipotesi visibili.
-- **Conflitti e priorità:** proposte che possono coesistere, proposte alternative, precedenze e condizioni di riattivazione.
-- **Output ed evidenza:** cosa proporre, perché quel prodotto, perché ora, beneficio, valore nominale e dati che sostengono la decisione.
-- **Verifica e misurazione:** casi sintetici ammessi, esclusi e con dati insufficienti; risultato osservabile e criteri di attribuzione da definire prima del relativo calcolo.
-
-Il controllo di nuovi ordini e follow-up aggiorna la validità della proposta conservandone la storia. Un import ripetuto o una rivalutazione della stessa situazione non deve moltiplicare la medesima opportunità; il confine tra aggiornamento e nuova occasione commerciale va esplicitato per le regole ricorrenti.
-
-Una regola è pronta per lo sviluppo quando relazione e condizioni sono approvate, i dati richiesti sono disponibili o le loro assenze hanno un trattamento definito, e gli esempi hanno risultati attesi espliciti. Le regole incomplete restano bozze. I dati storici aiutano a valutare e correggere queste ipotesi secondo il processo di approvazione descritto sotto.
-
 ## Cosa deve spiegare un'opportunità
 
 - **Cosa proporre:** il prodotto e la relazione con quanto già acquistato.
@@ -147,16 +101,16 @@ Opportunità teorica, contatto registrato, ordine successivo e revenue attribuit
 
 ## Percorso e stato
 
-La struttura e i principi del repository sono definiti. Il percorso concordato parte ora dal catalogo; ogni fase produrrà un risultato verificabile prima della successiva:
+La fase 1, struttura e principi del repository, è completata. Le fasi successive saranno specificate separatamente:
 
-1. **Censimento generale del catalogo:** mappa dei prodotti, categorie, SKU, accessori, consumabili e bundle; fonti e lacune esplicite.
-2. **Analisi prodotto per prodotto:** schede con caratteristiche, benefici, dotazione e compatibilità verificate.
-3. **Relazioni e attivazioni in bozza:** mappa direzionale tra prodotti con gli otto tipi concordati e, per ciascuna relazione, condizioni del cliente, tempi e dati richiesti. L'analisi delle relazioni può procedere mentre si completano le schede.
-4. **Confronto con gli export reali:** verificare i campi disponibili, il collegamento agli SKU, la ricostruzione dello storico e la separazione delle identità; definire il modello dati e rivedere le regole non supportate dai dati.
-5. **Approvazione delle prime regole:** definire soglie, esclusioni, conflitti, priorità e casi attesi per un primo insieme circoscritto e completo.
-6. **Prima implementazione verificabile:** import CSV, stato del cliente e prime regole approvate fino a opportunità spiegate; poi estendere ai successivi casi approvati con lo stesso metodo.
-7. **Follow-up e misurazione:** registrazione delle azioni, nuovi import, risultati osservati e attribuzione secondo criteri espliciti.
-8. **Dashboard:** costruire la vista operativa sui dati e risultati già verificati.
+1. Modello dati e import CSV Shopify.
+2. Knowledge base dei prodotti Laifen.
+3. Regole commerciali deterministiche.
+4. Stato del cliente.
+5. Idoneità e generazione delle opportunità.
+6. Insight e spiegazioni.
+7. Follow-up e misurazione economica.
+8. Dashboard, dopo aver chiarito quali decisioni e risultati mostrare.
 
 Questo elenco non autorizza a costruire in anticipo le fasi successive.
 
