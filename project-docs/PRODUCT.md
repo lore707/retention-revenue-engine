@@ -43,6 +43,18 @@ Esempio puramente illustrativo, senza validare la relazione commerciale citata: 
 
 Le viste aggregate dovranno poter rispondere a domande concrete: quante opportunità sono state generate, quante restano aperte, quante sono state lavorate o non lavorate, quante hanno convertito, quale revenue è stata attribuita e quali prodotti, strategie e tempi hanno prodotto i risultati osservati.
 
+## Come il sistema interpreta e aggiorna le opportunità
+
+1. **Distinguere fatti, deduzioni e stime.** Un acquisto registrato è un fatto. Il possesso attuale di un prodotto e il possibile esaurimento di un consumabile sono deduzioni o stime. Le spiegazioni devono dichiarare su quali informazioni e ipotesi si basano. L'assenza di un acquisto nello storico disponibile non dimostra che il cliente non possieda quel prodotto.
+
+2. **Conservare le prove della decisione.** Ogni opportunità deve essere riconducibile ai dati importati, alle informazioni di prodotto e alla versione delle regole utilizzate. La valutazione deve avere una data di riferimento esplicita, così possiamo ricostruire perché una proposta era sensata in quel momento.
+
+3. **Aggiornare lo stato senza perdere la storia.** Nuovi acquisti, follow-up e trascorrere del tempo possono attivare, posticipare o rendere non più valide le opportunità. Il sistema deve conservare la storia delle opportunità già generate e delle azioni effettuate, per poter misurare i risultati.
+
+4. **Distinguere nessuna azione da informazioni insufficienti.** Il sistema deve poter indicare sia «non esiste un'opportunità valida» sia «non ci sono dati sufficienti per decidere». Sono esiti diversi e devono essere comprensibili all'operatore.
+
+5. **Usare i risultati per migliorare regole esplicite.** Lo storico e gli esiti dei follow-up possono suggerire modifiche a strategie e tempistiche. Nella V0, queste modifiche vengono valutate e approvate esplicitamente, mantenendo traccia della versione delle regole. Il motore non modifica autonomamente la propria logica commerciale.
+
 ## Misure economiche
 
 - **Opportunity Value:** valore nominale o stimato della proposta; non è una vendita già realizzata.
