@@ -4,7 +4,7 @@
 
 Retention Revenue Engine è un sistema operativo per decidere e monitorare azioni di retention commerciale su clienti già acquisiti o comunque presenti in Shopify e contattabili secondo le regole di marketing applicabili.
 
-Shopify rimane la fonte di riferimento per clienti, ordini e prodotti. Il software usa quello storico per aiutare un operatore a capire **chi contattare, quando, cosa proporre, perché, quanto vale l'opportunità e cosa è successo dopo il follow-up**.
+Shopify rimane la fonte di riferimento per clienti, ordini, prodotti, varianti e storico degli acquisti. Il software usa quello storico per aiutare un operatore a capire **chi contattare, quando, cosa proporre, perché, quanto vale l'opportunità e cosa è successo dopo il follow-up**.
 
 Il prodotto deve trasformare la storia di acquisto in una **coda operativa di opportunità commerciali spiegabili e monitorabili**:
 
@@ -17,6 +17,32 @@ Il monitoraggio avviene a livello del singolo cliente; le opportunità e i risul
 Export CSV manuale da Shopify → import → analisi dei clienti → regole deterministiche → opportunità spiegate → contatto manuale → follow-up registrato → nuovo import → verifica degli ordini successivi → misurazione.
 
 Il primo caso è Laifen Italia. Informazioni sui prodotti e regole commerciali saranno definite nelle rispettive fasi, senza supposizioni. Per ora non sono previsti Shopify API, invii automatici, n8n, infrastrutture cloud complesse, LLM o agenti autonomi.
+
+## Il cuore del prodotto
+
+Il sistema costruisce un'interpretazione commerciale dei fatti disponibili e la usa per creare e monitorare opportunità. Questa capacità si articola in tre responsabilità concettuali:
+
+- **Conoscenza commerciale dei prodotti (knowledge model).** Descrive il significato commerciale del catalogo: contenuto dei precisi SKU, compatibilità, consumabili, accessori, benefici e relazioni tra prodotti. Queste informazioni vengono definite e validate dal business; non si deducono automaticamente dal fatto che due prodotti siano stati acquistati insieme.
+- **Stato del cliente (state engine).** Ricostruisce lo stato attuale a partire dallo storico disponibile: acquisti, date, quantità, categorie acquistate, possesso dedotto, consumo stimato e contatti registrati. Viene rivalutato con i nuovi dati e alla data di riferimento della valutazione, secondo i principi della sezione «Come il sistema interpreta e aggiorna le opportunità».
+- **Decisione commerciale (decision engine).** Combina conoscenza dei prodotti, regole commerciali, stato del cliente, storico e tempi. Genera proposte candidate, poi applica idoneità al contatto, esclusioni, timing, conflitti e priorità. Restituisce opportunità lavorabili ordinate e motivate, oppure nessuna azione o informazioni insufficienti.
+
+Una relazione tra prodotti descrive una possibilità commerciale. Diventa un'opportunità per un cliente soltanto quando le condizioni della regola sono soddisfatte: compatibilità, dotazione già inclusa, acquisti successivi e tempi possono confermare o escludere la proposta. Le relazioni Laifen e le soglie degli esempi discussi devono ancora essere validate.
+
+### Confine dei dati
+
+Il sistema conserva i dati importati necessari a ricostruire le decisioni e produce informazioni proprie: stato derivato, opportunità, motivi di esclusione, follow-up e risultati attribuiti. Shopify resta autorevole per i fatti provenienti dallo store; il nostro sistema registra le azioni commerciali svolte al suo interno.
+
+I dati in ingresso vengono trasformati in un formato interno coerente per clienti, ordini e righe d'ordine. Le decisioni lavorano su questo formato, senza dipendere dal modo in cui i dati sono arrivati. I CSV sono il canale della V0; eventuali API o webhook futuri potranno alimentare lo stesso modello, mantenendo esplicite completezza e data di aggiornamento dei dati disponibili.
+
+### Dalla decisione al risultato
+
+Il flusso concettuale completo è:
+
+Shopify → import e dati normalizzati → stato del cliente + conoscenza commerciale + regole → proposte candidate → controlli e priorità → opportunità lavorabili → operatore e follow-up → nuovi ordini osservati → attribuzione e misurazione.
+
+La dashboard rende questo processo consultabile e operativo. Il valore del prodotto comprende l'intero percorso, dalla proposta al risultato per ogni cliente.
+
+La V0 lavora sulla retention dei clienti presenti nello store, principalmente dopo l'acquisto. Carrello, checkout e carrello abbandonato sono possibili estensioni da valutare in seguito, con dati e condizioni propri. La separazione tra ingresso dati e decisioni consente di valutarle senza costruire ora quei flussi.
 
 ## Focus commerciale
 
@@ -53,7 +79,7 @@ Le viste aggregate dovranno poter rispondere a domande concrete: quante opportun
 
 4. **Distinguere nessuna azione da informazioni insufficienti.** Il sistema deve poter indicare sia «non esiste un'opportunità valida» sia «non ci sono dati sufficienti per decidere». Sono esiti diversi e devono essere comprensibili all'operatore.
 
-5. **Usare i risultati per migliorare regole esplicite.** Lo storico e gli esiti dei follow-up possono suggerire modifiche a strategie e tempistiche. Nella V0, queste modifiche vengono valutate e approvate esplicitamente, mantenendo traccia della versione delle regole. Il motore non modifica autonomamente la propria logica commerciale.
+5. **Usare i risultati per migliorare regole esplicite.** La conoscenza del prodotto stabilisce quali proposte possono avere senso; lo storico mostra quali acquisti sono stati osservati, con quale frequenza, dopo quanto tempo e per quali clienti. Queste evidenze e gli esiti dei follow-up possono suggerire nuove relazioni o modifiche a strategie e tempistiche. Nella V0, queste modifiche vengono valutate e approvate esplicitamente, mantenendo traccia della versione delle regole. Il motore non modifica autonomamente la propria logica commerciale.
 
 ## Misure economiche
 
