@@ -1,0 +1,1004 @@
+{
+  "version": 28,
+  "scope": "Accessori, complementi, espansioni di categoria, ricambi e sostituzioni con consenso marketing e coordinamento per cliente.",
+  "customer_signals": {
+    "first_purchase_order_count": 1,
+    "recurring_minimum_orders": 2,
+    "recent_activity_minimum_orders": 3,
+    "recent_activity_calendar_days": 90,
+    "multicategory_minimum_categories": 2,
+    "main_categories": {
+      "hair_dryer": "Cura dei capelli",
+      "hair_styler": "Cura dei capelli",
+      "electric_toothbrush": "Igiene orale",
+      "electric_shaver": "Rasatura"
+    }
+  },
+  "operational_views": {
+    "targeted_rule_types": [
+      "ACCESSORY_COMPLETION",
+      "REPLENISHMENT"
+    ],
+    "test_rule_types": [
+      "USE_CASE_COMPLEMENT",
+      "CATEGORY_EXPANSION",
+      "REPLACEMENT"
+    ],
+    "approval": "Tre categorie esclusive: mirate attuabili, da testare attuabili senza mirate, nessuna azione immediata. I segnali cliente sono filtri indipendenti. Fra proposte mature mai contattate la mirata precede sempre il test, anche in promozione."
+  },
+  "shared_policies": {
+    "customer_interest_required": false,
+    "stock_availability": {
+      "checked_by": "operator",
+      "when": "before_proposal",
+      "engine_requires_stock_data": false,
+      "approval": "Confermato dall'utente per tutti i prodotti proposti."
+    },
+    "operator_checks": [
+      "Verificare disponibilità e prezzo aggiornati del prodotto proposto.",
+      "Verificare recapito e contattabilità commerciale su Shopify."
+    ],
+    "follow_up": {
+      "scope": "per_contact_plan",
+      "maximum_contacts": 2,
+      "retry_after_calendar_days": 15,
+      "retry_only_without_reply_or_purchase": true,
+      "automatic_reopening_without_new_purchase": false,
+      "replenishment_purchase_opens_new_cycle": true,
+      "secondary_opportunities_share_contacts": true,
+      "secondary_opportunities_do_not_reopen_separately": true
+    },
+    "missing_information": "Segnalare le lacune all’operatore; non presumere assenza di acquisti o contatti.",
+    "accessory_timing": {
+      "reference": "source_order_date",
+      "minimum_days_inclusive": 15,
+      "maximum_days": null,
+      "evaluation_date_required": true,
+      "use_import_date": false,
+      "include_purchases_before_system_launch": true,
+      "approval": "Confermato dall'utente: politica generale per qualunque accessorio, da 15 giorni in su.",
+      "evidence": "Soglia commerciale approvata per il test iniziale, non calibrata sui risultati.",
+      "day_count": "calendar_days",
+      "timezone": "Europe/Rome"
+    },
+    "cross_opportunity_coordination": {
+      "scope": "customer_across_all_opportunities",
+      "maximum_primary_contact_plans": 1,
+      "minimum_days_between_contacts": 15,
+      "keep_contacted_opportunity_primary_until_resolved": true,
+      "operator_response_blocks_other_proposals": true,
+      "queue_other_opportunities": true,
+      "promotion_precedes_uncontacted_prerequisites": true,
+      "contact_plan_grouping": [
+        "source_order_id",
+        "commercial_track",
+        "eligible_from_date"
+      ],
+      "secondary_presentation": "same_communication_as_primary",
+      "selection_order": [
+        "contacted_open_opportunity",
+        "ready_before_not_yet_ready",
+        "targeted_before_test_even_when_promoted",
+        "promotion_in_effect_first",
+        "seasonal_window_in_effect_first",
+        "nominal_value_desc",
+        "oldest_eligibility_across_contact_plans",
+        "plan_rank_desc",
+        "oldest_source_purchase",
+        "rule_id_asc"
+      ],
+      "approval": "Una sola raccomandazione per cliente. Piani già contattati e risposte mantengono precedenza; fra nuovi piani maturi mirate prima dei test anche in promozione, poi promozione, finestra stagionale e criteri economici esistenti. Le promozioni superano solo prerequisiti da testare mai contattati. Almeno 15 giorni tra contatti."
+    },
+    "marketing_consent": {
+      "required": true,
+      "scope": "selected_contact_channel",
+      "accepted_status": "subscribed",
+      "missing_or_unknown": "blocked",
+      "recheck": "before_every_contact"
+    }
+  },
+  "rules": [
+    {
+      "id": "magnetic_concentrator_completion",
+      "version": 6,
+      "status": "approved_for_manual_pilot",
+      "relationship_type": "ACCESSORY_COMPLETION",
+      "commercial_track": "hair_care",
+      "target_sku": "CP34473",
+      "rationale": "Aggiunge il concentratore compatibile, non incluso nelle configurazioni Neo 2 ugelli, Neo Special e Swift Premium.",
+      "benefit_product_key": "laifen_magnetic_concentrator",
+      "exclusions": {
+        "target_sku_in_purchase_history": true,
+        "target_component_in_known_purchased_configuration": "laifen_magnetic_concentrator"
+      },
+      "evidence": {
+        "compatibility": "business_confirmed",
+        "source_configuration_lacks_concentrator": "business_confirmed",
+        "customer_interest": "unknown",
+        "purchase_probability": "not_estimated"
+      },
+      "nominal_value": {
+        "source": "target_variant_observed_price",
+        "meaning": "Valore nominale della proposta; non revenue attribuita."
+      },
+      "source_order_selection": "earliest_valid_purchase_or_operator_review_if_unknown",
+      "opportunity_scope": "one_per_customer_and_rule",
+      "order_validity": {
+        "cancelled_or_fully_returned": "ignore",
+        "unknown_or_partial_refund": "operator_review"
+      },
+      "sources": [
+        {
+          "product": "laifen_neo",
+          "configuration": "two_nozzles"
+        },
+        {
+          "product": "laifen_neo_special",
+          "configuration": "nourishing_kit"
+        },
+        {
+          "product": "laifen_swift_premium",
+          "configuration": "standard_diffuser_case"
+        }
+      ],
+      "plan_rank": 300,
+      "plan_rank_reason": "Completamento funzionale specifico."
+    },
+    {
+      "id": "se_lite_diffuser_completion",
+      "version": 3,
+      "status": "approved_for_manual_pilot",
+      "relationship_type": "ACCESSORY_COMPLETION",
+      "commercial_track": "hair_care",
+      "target_sku": "CP34510",
+      "rationale": "Aggiunge il diffusore a incastro compatibile, non incluso in nessuna colorazione SE Lite.",
+      "benefit_product_key": "laifen_se_lite_diffuser",
+      "exclusions": {
+        "target_sku_in_purchase_history": true,
+        "target_component_in_known_purchased_configuration": "se_lite_diffuser"
+      },
+      "evidence": {
+        "compatibility": "business_confirmed",
+        "customer_interest": "unknown",
+        "purchase_probability": "not_estimated",
+        "source_configuration_lacks_diffuser": "business_confirmed"
+      },
+      "nominal_value": {
+        "source": "target_variant_observed_price",
+        "meaning": "Valore nominale della proposta; non revenue attribuita."
+      },
+      "source_order_selection": "earliest_valid_purchase_or_operator_review_if_unknown",
+      "opportunity_scope": "one_per_customer_and_rule",
+      "order_validity": {
+        "cancelled_or_fully_returned": "ignore",
+        "unknown_or_partial_refund": "operator_review"
+      },
+      "sources": [
+        {
+          "product": "laifen_se_lite",
+          "configuration": "standard_nozzle"
+        }
+      ],
+      "plan_rank": 300,
+      "plan_rank_reason": "Completamento funzionale specifico."
+    },
+    {
+      "id": "mini_wall_mount_completion",
+      "version": 3,
+      "status": "approved_for_manual_pilot",
+      "relationship_type": "ACCESSORY_COMPLETION",
+      "commercial_track": "hair_care",
+      "target_sku": "CP34501",
+      "rationale": "Aggiunge il supporto magnetico da parete compatibile, non incluso in nessuna colorazione Mini.",
+      "benefit_product_key": "laifen_mini_wall_mount",
+      "exclusions": {
+        "target_sku_in_purchase_history": true,
+        "target_component_in_known_purchased_configuration": "mini_magnetic_wall_mount"
+      },
+      "evidence": {
+        "compatibility": "business_confirmed",
+        "customer_interest": "unknown",
+        "purchase_probability": "not_estimated",
+        "source_configuration_lacks_wall_mount": "business_confirmed"
+      },
+      "nominal_value": {
+        "source": "target_variant_observed_price",
+        "meaning": "Valore nominale della proposta; non revenue attribuita."
+      },
+      "source_order_selection": "earliest_valid_purchase_or_operator_review_if_unknown",
+      "opportunity_scope": "one_per_customer_and_rule",
+      "order_validity": {
+        "cancelled_or_fully_returned": "ignore",
+        "unknown_or_partial_refund": "operator_review"
+      },
+      "sources": [
+        {
+          "product": "laifen_mini",
+          "configuration": "standard_nozzle_case"
+        }
+      ],
+      "plan_rank": 200,
+      "plan_rank_reason": "Accessorio organizzativo specifico."
+    },
+    {
+      "id": "neo_wall_mount_completion",
+      "version": 3,
+      "status": "approved_for_manual_pilot",
+      "relationship_type": "ACCESSORY_COMPLETION",
+      "commercial_track": "hair_care",
+      "target_sku": "30101-000092",
+      "rationale": "Aggiunge il supporto magnetico da parete compatibile, non incluso nelle configurazioni Neo.",
+      "benefit_product_key": "laifen_magnetic_wall_mount",
+      "exclusions": {
+        "target_sku_in_purchase_history": true,
+        "target_component_in_known_purchased_configuration": "laifen_magnetic_wall_mount"
+      },
+      "evidence": {
+        "compatibility": "business_confirmed_for_neo",
+        "customer_interest": "unknown",
+        "purchase_probability": "not_estimated",
+        "source_configuration_lacks_wall_mount": "business_confirmed"
+      },
+      "nominal_value": {
+        "source": "target_variant_observed_price",
+        "meaning": "Valore nominale della proposta; non revenue attribuita."
+      },
+      "source_order_selection": "earliest_valid_purchase_or_operator_review_if_unknown",
+      "opportunity_scope": "one_per_customer_and_rule",
+      "order_validity": {
+        "cancelled_or_fully_returned": "ignore",
+        "unknown_or_partial_refund": "operator_review"
+      },
+      "sources": [
+        {
+          "product": "laifen_neo",
+          "configuration": "two_nozzles"
+        },
+        {
+          "product": "laifen_neo",
+          "configuration": "three_nozzles"
+        }
+      ],
+      "plan_rank": 200,
+      "plan_rank_reason": "Accessorio organizzativo specifico."
+    },
+    {
+      "id": "autocurl_cross_sell",
+      "version": 5,
+      "status": "approved_for_manual_pilot",
+      "relationship_type": "USE_CASE_COMPLEMENT",
+      "commercial_track": "category_expansion",
+      "target_skus": [
+        "1HC51-P-EU-BL-001",
+        "1HC51-P-EU-WH-002"
+      ],
+      "target_selection": "customer_choice_among_both_colors",
+      "rationale": "Aggiunge uno strumento automatico per creare ricci e onde alla routine di chi ha acquistato un asciugacapelli Laifen.",
+      "benefit_product_key": "laifen_autocurl",
+      "exclusions": {
+        "target_sku_in_purchase_history": true,
+        "target_component_in_known_purchased_configuration": "laifen_autocurl"
+      },
+      "evidence": {
+        "applicability_to_all_laifen_hair_dryers": "business_confirmed",
+        "suitability_for_multiple_hair_types": "official_product_page_confirmed",
+        "customer_interest": "unknown",
+        "purchase_probability": "not_estimated"
+      },
+      "nominal_value": {
+        "source": "minimum_target_variant_observed_price",
+        "meaning": "Valore nominale prudenziale dell'AutoCurl scelto; non revenue attribuita."
+      },
+      "source_order_selection": "earliest_valid_purchase_or_operator_review_if_unknown",
+      "opportunity_scope": "one_per_customer_and_rule",
+      "operator_checks": [],
+      "order_validity": {
+        "cancelled_or_fully_returned": "ignore",
+        "unknown_or_partial_refund": "operator_review"
+      },
+      "sources": [
+        {
+          "product": "laifen_neo",
+          "configuration": "two_nozzles"
+        },
+        {
+          "product": "laifen_neo",
+          "configuration": "three_nozzles"
+        },
+        {
+          "product": "laifen_se_lite",
+          "configuration": "standard_nozzle"
+        },
+        {
+          "product": "laifen_neo_special",
+          "configuration": "nourishing_kit"
+        },
+        {
+          "product": "laifen_swift_premium",
+          "configuration": "standard_diffuser_case"
+        },
+        {
+          "product": "laifen_gift_edition",
+          "configuration": "concentrator_diffuser"
+        },
+        {
+          "product": "laifen_se_special",
+          "configuration": "standard_concentrator_diffuser"
+        },
+        {
+          "product": "laifen_mini",
+          "configuration": "standard_nozzle_case"
+        },
+        {
+          "product": "laifen_air",
+          "configuration": "standard_nozzle_manual"
+        }
+      ],
+      "plan_rank": 100,
+      "plan_rank_reason": "Complemento di styling ad alto valore nominale.",
+      "approval": "Confermato dal business: AutoCurl resta complemento da testare dal giorno 45, in una mail dedicata separata dalle espansioni del giorno 75. Attende i piani accessori applicabili dello stesso ordine; restano precedenze, promozioni e almeno 15 giorni fra contatti.",
+      "timing": {
+        "reference": "source_hair_dryer_purchase_date",
+        "minimum_days_inclusive": 45,
+        "maximum_days": null,
+        "day_count": "calendar_days",
+        "timezone": "Europe/Rome"
+      },
+      "wait_for_rules": [
+        "magnetic_concentrator_completion",
+        "se_lite_diffuser_completion",
+        "mini_wall_mount_completion",
+        "neo_wall_mount_completion",
+        "storage_pouch_cross_sell",
+        "brush_complement"
+      ]
+    },
+    {
+      "id": "mini_travel_cross_sell",
+      "version": 3,
+      "status": "approved_for_manual_pilot",
+      "relationship_type": "USE_CASE_COMPLEMENT",
+      "commercial_track": "seasonal_travel",
+      "target_skus": [
+        "CP34448",
+        "CP34447",
+        "CP34500",
+        "CR05263"
+      ],
+      "target_selection": "customer_choice_among_all_mini_colors",
+      "rationale": "Propone Mini come secondo asciugacapelli compatto per viaggi, palestra o seconda casa.",
+      "benefit_product_key": "laifen_mini",
+      "exclusions": {
+        "target_sku_in_purchase_history": true,
+        "target_component_in_known_purchased_configuration": "laifen_mini"
+      },
+      "evidence": {
+        "travel_use_case": "business_confirmed",
+        "customer_interest": "unknown",
+        "purchase_probability": "not_estimated"
+      },
+      "nominal_value": {
+        "source": "minimum_target_variant_observed_price",
+        "meaning": "Valore nominale del Mini scelto; non revenue attribuita."
+      },
+      "timing": {
+        "reference": "source_hair_dryer_purchase_date_and_annual_travel_windows",
+        "annual_windows": [
+          {
+            "opens": "05-15",
+            "closes": "09-05"
+          },
+          {
+            "opens": "12-15",
+            "closes": "01-15"
+          }
+        ],
+        "timezone": "Europe/Rome"
+      },
+      "source_order_selection": "earliest_valid_purchase_or_operator_review_if_unknown",
+      "opportunity_scope": "one_per_customer_and_rule",
+      "operator_checks": [],
+      "order_validity": {
+        "cancelled_or_fully_returned": "ignore",
+        "unknown_or_partial_refund": "operator_review"
+      },
+      "sources": [
+        {
+          "product": "laifen_neo",
+          "configuration": "two_nozzles"
+        },
+        {
+          "product": "laifen_neo",
+          "configuration": "three_nozzles"
+        },
+        {
+          "product": "laifen_se_lite",
+          "configuration": "standard_nozzle"
+        },
+        {
+          "product": "laifen_neo_special",
+          "configuration": "nourishing_kit"
+        },
+        {
+          "product": "laifen_swift_premium",
+          "configuration": "standard_diffuser_case"
+        },
+        {
+          "product": "laifen_gift_edition",
+          "configuration": "concentrator_diffuser"
+        },
+        {
+          "product": "laifen_se_special",
+          "configuration": "standard_concentrator_diffuser"
+        },
+        {
+          "product": "laifen_air",
+          "configuration": "standard_nozzle_manual"
+        }
+      ],
+      "plan_rank": 100,
+      "plan_rank_reason": "Secondo dispositivo per un caso d'uso specifico.",
+      "approval": "Confermato: Mini proattivo solo dal 15 maggio al 5 settembre e dal 15 dicembre al 15 gennaio di ogni anno, senza attesa di 180 giorni; escluso chi possiede Mini."
+    },
+    {
+      "id": "hair_dryer_to_wave_pro_category_expansion",
+      "version": 4,
+      "status": "approved_for_manual_pilot",
+      "relationship_type": "CATEGORY_EXPANSION",
+      "commercial_track": "category_expansion",
+      "target_skus": [
+        "CR95008",
+        "CR95009",
+        "CR95024",
+        "CR95017",
+        "CR95041",
+        "CR95016"
+      ],
+      "target_selection": "customer_choice_among_all_wave_pro_variants",
+      "rationale": "Espande la relazione commerciale dall'asciugatura dei capelli all'igiene orale proponendo Wave Pro.",
+      "benefit_product_key": "laifen_wave_pro",
+      "exclusions": {
+        "target_sku_in_purchase_history": true,
+        "target_component_in_known_purchased_configuration": "laifen_wave_pro",
+        "target_category_in_purchase_history": "electric_toothbrush"
+      },
+      "evidence": {
+        "category_absence": "complete_purchase_history_required",
+        "customer_interest": "unknown",
+        "purchase_probability": "not_estimated"
+      },
+      "nominal_value": {
+        "source": "minimum_target_variant_observed_price",
+        "meaning": "Valore nominale prudenziale della variante Wave Pro; non revenue attribuita."
+      },
+      "timing": {
+        "reference": "source_hair_dryer_purchase_date",
+        "minimum_days_inclusive": 75,
+        "maximum_days": null,
+        "day_count": "calendar_days",
+        "timezone": "Europe/Rome"
+      },
+      "source_order_selection": "earliest_valid_purchase_or_operator_review_if_unknown",
+      "opportunity_scope": "one_per_customer_and_rule",
+      "operator_checks": [],
+      "order_validity": {
+        "cancelled_or_fully_returned": "ignore",
+        "unknown_or_partial_refund": "operator_review"
+      },
+      "sources": [
+        {
+          "product": "laifen_neo",
+          "configuration": "two_nozzles"
+        },
+        {
+          "product": "laifen_neo",
+          "configuration": "three_nozzles"
+        },
+        {
+          "product": "laifen_se_lite",
+          "configuration": "standard_nozzle"
+        },
+        {
+          "product": "laifen_neo_special",
+          "configuration": "nourishing_kit"
+        },
+        {
+          "product": "laifen_swift_premium",
+          "configuration": "standard_diffuser_case"
+        },
+        {
+          "product": "laifen_gift_edition",
+          "configuration": "concentrator_diffuser"
+        },
+        {
+          "product": "laifen_se_special",
+          "configuration": "standard_concentrator_diffuser"
+        },
+        {
+          "product": "laifen_mini",
+          "configuration": "standard_nozzle_case"
+        },
+        {
+          "product": "laifen_air",
+          "configuration": "standard_nozzle_manual"
+        }
+      ],
+      "plan_rank": 100,
+      "plan_rank_reason": "Espansione verso una categoria Laifen non ancora posseduta.",
+      "approval": "Confermato dal business: dal giorno 75 dopo il phon, Wave Pro e rasoi condividono una mail di espansione. Esclusioni di categoria indipendenti; P3 Pro e P3 sono alternative. AutoCurl appartiene al piano separato del giorno 45. Ordine interno secondo priorità del motore, senza imporre Wave Pro come primo."
+    },
+    {
+      "id": "hair_dryer_to_shavers_category_expansion",
+      "version": 3,
+      "status": "approved_for_manual_pilot",
+      "relationship_type": "CATEGORY_EXPANSION",
+      "commercial_track": "category_expansion",
+      "target_skus": [
+        "CP96308",
+        "CP96436",
+        "1ER91-P-XX-BL-002",
+        "1ER91-P-XX-WH-002"
+      ],
+      "target_selection": "p3_pro_featured_p3_alternative",
+      "rationale": "Scoprire la rasatura Laifen: P3 Pro in evidenza, P3 come alternativa.",
+      "benefit_product_key": "laifen_p3_pro",
+      "exclusions": {
+        "target_sku_in_purchase_history": true,
+        "target_component_in_known_purchased_configuration": "laifen_p3_pro",
+        "target_category_in_purchase_history": "electric_shaver"
+      },
+      "evidence": {
+        "category_absence": "complete_purchase_history_required",
+        "customer_interest": "unknown",
+        "purchase_probability": "not_estimated"
+      },
+      "nominal_value": {
+        "source": "minimum_target_variant_observed_price",
+        "meaning": "Prezzo minimo delle alternative P3/P3 Pro, non somma dei prezzi e non revenue attribuita."
+      },
+      "timing": {
+        "reference": "source_hair_dryer_purchase_date",
+        "minimum_days_inclusive": 75,
+        "maximum_days": null,
+        "day_count": "calendar_days",
+        "timezone": "Europe/Rome"
+      },
+      "source_order_selection": "earliest_valid_purchase_or_operator_review_if_unknown",
+      "opportunity_scope": "one_per_customer_and_rule",
+      "operator_checks": [],
+      "order_validity": {
+        "cancelled_or_fully_returned": "ignore",
+        "unknown_or_partial_refund": "operator_review"
+      },
+      "sources": [
+        {
+          "product": "laifen_neo",
+          "configuration": "two_nozzles"
+        },
+        {
+          "product": "laifen_neo",
+          "configuration": "three_nozzles"
+        },
+        {
+          "product": "laifen_se_lite",
+          "configuration": "standard_nozzle"
+        },
+        {
+          "product": "laifen_neo_special",
+          "configuration": "nourishing_kit"
+        },
+        {
+          "product": "laifen_swift_premium",
+          "configuration": "standard_diffuser_case"
+        },
+        {
+          "product": "laifen_gift_edition",
+          "configuration": "concentrator_diffuser"
+        },
+        {
+          "product": "laifen_se_special",
+          "configuration": "standard_concentrator_diffuser"
+        },
+        {
+          "product": "laifen_mini",
+          "configuration": "standard_nozzle_case"
+        },
+        {
+          "product": "laifen_air",
+          "configuration": "standard_nozzle_manual"
+        }
+      ],
+      "plan_rank": 100,
+      "plan_rank_reason": "Espansione verso una categoria Laifen non ancora posseduta.",
+      "approval": "Confermato dal business: dal giorno 75 dopo il phon, Wave Pro e rasoi condividono una mail di espansione. Esclusioni di categoria indipendenti; P3 Pro e P3 sono alternative. AutoCurl appartiene al piano separato del giorno 45. Ordine interno secondo priorità del motore, senza imporre Wave Pro come primo."
+    },
+    {
+      "id": "toothbrush_to_neo_category_expansion",
+      "version": 2,
+      "status": "approved_for_manual_pilot",
+      "relationship_type": "CATEGORY_EXPANSION",
+      "commercial_track": "category_expansion",
+      "target_skus": [
+        "CQ15839",
+        "CQ15841",
+        "CQ15840",
+        "CR05272",
+        "CR05186",
+        "CR05227"
+      ],
+      "target_selection": "highlight_three_nozzle_configuration_and_allow_customer_choice_among_all_neo_variants",
+      "rationale": "Espande la relazione commerciale dall'igiene orale alla cura dei capelli proponendo la gamma Neo.",
+      "benefit_product_key": "laifen_neo",
+      "exclusions": {
+        "target_sku_in_purchase_history": true,
+        "target_component_in_known_purchased_configuration": "laifen_neo",
+        "target_category_in_purchase_history": "hair_dryer"
+      },
+      "evidence": {
+        "category_absence": "complete_purchase_history_required",
+        "customer_interest": "unknown",
+        "purchase_probability": "not_estimated"
+      },
+      "nominal_value": {
+        "source": "minimum_target_variant_observed_price",
+        "meaning": "Valore nominale prudenziale della variante Neo; non revenue attribuita."
+      },
+      "timing": {
+        "reference": "source_toothbrush_purchase_date",
+        "minimum_days_inclusive": 90,
+        "maximum_days": null,
+        "day_count": "calendar_days",
+        "timezone": "Europe/Rome"
+      },
+      "source_order_selection": "earliest_valid_purchase_or_operator_review_if_unknown",
+      "opportunity_scope": "one_per_customer_and_rule",
+      "operator_checks": [],
+      "order_validity": {
+        "cancelled_or_fully_returned": "ignore",
+        "unknown_or_partial_refund": "operator_review"
+      },
+      "sources": [
+        {
+          "product": "laifen_wave_legacy",
+          "configuration": "travel_box_three_heads"
+        },
+        {
+          "product": "laifen_wave_pro",
+          "configuration": "two_heads_case_wireless_charger"
+        }
+      ],
+      "plan_rank": 100,
+      "plan_rank_reason": "Espansione verso una categoria Laifen non ancora posseduta.",
+      "approval": "Confermato dall'utente: dopo Wave o Wave Pro, proporre Neo a 90 giorni se il cliente non possiede già un asciugacapelli; evidenziare la configurazione a tre ugelli e lasciare disponibili tutte le varianti Neo."
+    },
+    {
+      "id": "storage_pouch_cross_sell",
+      "version": 1,
+      "status": "approved_for_manual_pilot",
+      "relationship_type": "USE_CASE_COMPLEMENT",
+      "commercial_track": "hair_care",
+      "target_sku": "CL51809",
+      "rationale": "Aggiunge una pochette per organizzare e trasportare l'asciugacapelli e i suoi accessori quando non è già inclusa nella confezione.",
+      "benefit_product_key": "laifen_storage_pouch",
+      "exclusions": {
+        "target_sku_in_purchase_history": true,
+        "target_component_in_known_purchased_configuration": "laifen_storage_pouch"
+      },
+      "evidence": {
+        "applicability_to_all_hair_dryers_except_swift_premium": "business_confirmed",
+        "swift_premium_already_includes_target": "business_confirmed",
+        "customer_interest": "unknown",
+        "purchase_probability": "not_estimated"
+      },
+      "nominal_value": {
+        "source": "target_variant_observed_price",
+        "meaning": "Valore nominale della proposta; non revenue attribuita."
+      },
+      "source_order_selection": "earliest_valid_purchase_or_operator_review_if_unknown",
+      "opportunity_scope": "one_per_customer_and_rule",
+      "order_validity": {
+        "cancelled_or_fully_returned": "ignore",
+        "unknown_or_partial_refund": "operator_review"
+      },
+      "sources": [
+        {
+          "product": "laifen_neo",
+          "configuration": "two_nozzles"
+        },
+        {
+          "product": "laifen_neo",
+          "configuration": "three_nozzles"
+        },
+        {
+          "product": "laifen_se_lite",
+          "configuration": "standard_nozzle"
+        },
+        {
+          "product": "laifen_neo_special",
+          "configuration": "nourishing_kit"
+        },
+        {
+          "product": "laifen_gift_edition",
+          "configuration": "concentrator_diffuser"
+        },
+        {
+          "product": "laifen_se_special",
+          "configuration": "standard_concentrator_diffuser"
+        },
+        {
+          "product": "laifen_mini",
+          "configuration": "standard_nozzle_case"
+        },
+        {
+          "product": "laifen_air",
+          "configuration": "standard_nozzle_manual"
+        }
+      ],
+      "plan_rank": 200,
+      "plan_rank_reason": "Accessorio organizzativo generale ad alto valore nominale.",
+      "approval": "Confermato dall'utente: inclusa con Swift Premium e cross-sellabile dopo 15 giorni per tutti gli altri asciugacapelli Laifen."
+    },
+    {
+      "id": "brush_complement",
+      "version": 2,
+      "status": "approved_for_manual_pilot",
+      "relationship_type": "USE_CASE_COMPLEMENT",
+      "commercial_track": "hair_care",
+      "target_sku": "30101-000041",
+      "rationale": "Aggiunge una spazzola portatile alla routine di chi ha acquistato un asciugacapelli Laifen.",
+      "benefit_product_key": "laifen_brush",
+      "exclusions": {
+        "target_sku_in_purchase_history": true,
+        "target_component_in_known_purchased_configuration": "laifen_brush"
+      },
+      "evidence": {
+        "applicability_to_all_laifen_hair_dryers": "business_confirmed",
+        "customer_interest": "unknown",
+        "purchase_probability": "not_estimated"
+      },
+      "nominal_value": {
+        "source": "target_variant_observed_price",
+        "meaning": "Valore nominale della proposta; non revenue attribuita."
+      },
+      "source_order_selection": "earliest_valid_purchase_or_operator_review_if_unknown",
+      "opportunity_scope": "one_per_customer_and_rule",
+      "order_validity": {
+        "cancelled_or_fully_returned": "ignore",
+        "unknown_or_partial_refund": "operator_review"
+      },
+      "sources": [
+        {
+          "product": "laifen_neo",
+          "configuration": "two_nozzles"
+        },
+        {
+          "product": "laifen_neo",
+          "configuration": "three_nozzles"
+        },
+        {
+          "product": "laifen_se_lite",
+          "configuration": "standard_nozzle"
+        },
+        {
+          "product": "laifen_neo_special",
+          "configuration": "nourishing_kit"
+        },
+        {
+          "product": "laifen_swift_premium",
+          "configuration": "standard_diffuser_case"
+        },
+        {
+          "product": "laifen_gift_edition",
+          "configuration": "concentrator_diffuser"
+        },
+        {
+          "product": "laifen_se_special",
+          "configuration": "standard_concentrator_diffuser"
+        },
+        {
+          "product": "laifen_mini",
+          "configuration": "standard_nozzle_case"
+        },
+        {
+          "product": "laifen_air",
+          "configuration": "standard_nozzle_manual"
+        }
+      ],
+      "plan_rank": 100,
+      "plan_rank_reason": "Complemento generico della routine capelli."
+    },
+    {
+      "id": "p3_travel_case_cross_sell",
+      "version": 1,
+      "status": "approved_for_manual_pilot",
+      "relationship_type": "USE_CASE_COMPLEMENT",
+      "commercial_track": "shaving",
+      "target_skus": [
+        "30103-000019",
+        "30103-000021"
+      ],
+      "target_selection": "customer_choice_among_both_colors",
+      "rationale": "Aggiunge un astuccio da viaggio compatibile per proteggere e trasportare P3 o P3 Pro.",
+      "benefit_product_key": "laifen_p3_travel_case",
+      "exclusions": {
+        "target_sku_in_purchase_history": true,
+        "target_component_in_known_purchased_configuration": "p3_travel_case"
+      },
+      "evidence": {
+        "p3_pro_compatibility": "shopify_product_confirmed",
+        "p3_compatibility": "business_confirmed",
+        "customer_interest": "unknown",
+        "purchase_probability": "not_estimated"
+      },
+      "nominal_value": {
+        "source": "minimum_target_variant_observed_price",
+        "meaning": "Valore nominale prudenziale dell'astuccio scelto; non revenue attribuita."
+      },
+      "source_order_selection": "earliest_valid_purchase_or_operator_review_if_unknown",
+      "opportunity_scope": "one_per_customer_and_rule",
+      "order_validity": {
+        "cancelled_or_fully_returned": "ignore",
+        "unknown_or_partial_refund": "operator_review"
+      },
+      "sources": [
+        {
+          "product": "laifen_p3",
+          "configuration": "head_case_cable_manual"
+        },
+        {
+          "product": "laifen_p3_pro",
+          "configuration": "case_cable_manual"
+        }
+      ],
+      "plan_rank": 200,
+      "plan_rank_reason": "Accessorio organizzativo specifico.",
+      "approval": "Confermato dall'utente: l'astuccio è compatibile con P3 e P3 Pro; si applica la politica generale degli accessori dopo 15 giorni."
+    },
+    {
+      "id": "p3_pro_head_replenishment",
+      "version": 1,
+      "status": "approved_for_manual_pilot",
+      "relationship_type": "REPLENISHMENT",
+      "commercial_track": "shaving",
+      "target_skus": [
+        "30103-000046",
+        "30103-000047"
+      ],
+      "initial_preferred_target_by_source_sku": {
+        "CP96308": "30103-000046",
+        "CP96436": "30103-000047"
+      },
+      "rationale": "Ricorda il ricambio della testina P3 Pro e propone per prima la finitura coerente con il rasoio acquistato.",
+      "benefit_product_key": "laifen_p3_pro_replacement_head",
+      "evidence": {
+        "p3_pro_compatibility": "official_product_page_confirmed",
+        "p3_incompatibility": "official_product_page_confirmed",
+        "replacement_interval": "business_approved_from_official_planning_benchmark"
+      },
+      "nominal_value": {
+        "source": "target_variants_observed_price",
+        "meaning": "Valore nominale di una testina scelta; non revenue attribuita."
+      },
+      "timing": {
+        "initial_reference": "p3_pro_purchase_date",
+        "initial_after_calendar_days": 180,
+        "repeat_reference": "latest_replacement_head_purchase_date",
+        "repeat_after_calendar_days": 180,
+        "follow_up_after_calendar_days": 15
+      },
+      "target_selection": {
+        "first_cycle": "prefer_matching_source_finish_and_keep_both_variants_available",
+        "repeat_cycle": "prefer_latest_purchased_variant_and_keep_both_variants_available"
+      },
+      "source_order_selection": "earliest_valid_p3_pro_purchase_or_operator_review_if_unknown",
+      "opportunity_scope": "one_per_customer_rule_and_replenishment_cycle",
+      "order_validity": {
+        "cancelled_or_fully_returned": "ignore",
+        "unknown_or_partial_refund": "operator_review"
+      },
+      "sources": [
+        {
+          "product": "laifen_p3_pro",
+          "configuration": "case_cable_manual"
+        }
+      ],
+      "plan_rank": 400,
+      "plan_rank_reason": "Ricambio funzionale periodico ad alto valore nominale.",
+      "approval": "Confermato dall'utente: prima proposta dopo 180 giorni, secondo tentativo dopo 15 giorni e nuovo ciclo 180 giorni dopo ogni testina acquistata; P3 escluso per incompatibilità ufficiale."
+    },
+    {
+      "id": "wave_legacy_to_wave_pro_replacement",
+      "version": 1,
+      "status": "approved_for_manual_pilot",
+      "relationship_type": "REPLACEMENT",
+      "commercial_track": "oral_care",
+      "target_product": "laifen_wave_pro",
+      "rationale": "Propone il modello Wave Pro a chi possiede il precedente Wave, non più vendibile e non destinato al riassortimento.",
+      "benefit": "Passare al modello Wave Pro attualmente commercializzato, scegliendo tra le varianti disponibili.",
+      "evidence": {
+        "source_model_discontinued": "business_confirmed",
+        "source_model_no_restock": "business_confirmed",
+        "replacement_timing": "business_approved_pilot",
+        "purchase_probability": "not_estimated"
+      },
+      "nominal_value": {
+        "source": "minimum_target_variant_observed_price",
+        "meaning": "Valore nominale prudenziale della proposta; le varianti più costose restano disponibili. Non è revenue attribuita."
+      },
+      "timing": {
+        "reference": "legacy_wave_purchase_date",
+        "after_calendar_days": 180,
+        "maximum_days": null
+      },
+      "target_selection": "customer_choice_among_all_wave_pro_variants",
+      "source_order_selection": "earliest_valid_legacy_wave_purchase_or_operator_review_if_unknown",
+      "opportunity_scope": "one_per_customer_and_rule",
+      "order_validity": {
+        "cancelled_or_fully_returned": "ignore",
+        "unknown_or_partial_refund": "operator_review"
+      },
+      "exclusions": {
+        "any_wave_pro_variant_in_purchase_history": true
+      },
+      "sources": [
+        {
+          "product": "laifen_wave_legacy",
+          "configuration": "travel_box_three_heads"
+        }
+      ],
+      "plan_rank": 450,
+      "plan_rank_reason": "Sostituzione ad alto valore potenziale di un modello non più commercializzato.",
+      "approval": "Confermato dall'utente: proposta dopo 180 giorni, senza scadenza massima, con esclusione di chi possiede già Wave Pro e priorità economica generale."
+    },
+    {
+      "id": "wave_pro_heads_replenishment",
+      "version": 2,
+      "status": "approved_for_manual_pilot",
+      "relationship_type": "REPLENISHMENT",
+      "commercial_track": "oral_care",
+      "target_skus": [
+        "CR95042",
+        "CR95032",
+        "6976973852011",
+        "CR94994"
+      ],
+      "rationale": "Ricorda il ricambio delle testine Wave Pro, raggruppate senza distinguere i tipi.",
+      "benefit_product_key": "laifen_wave_pro_replacement_heads",
+      "evidence": {
+        "compatibility": "business_confirmed_wave_and_wave_pro",
+        "replacement_interval": "business_approved_after_official_guidance",
+        "initial_box_contains_two_heads": "shopify_product_confirmed"
+      },
+      "nominal_value": {
+        "source": "target_variants_observed_price",
+        "meaning": "Valore nominale di una confezione scelta; non revenue attribuita."
+      },
+      "timing": {
+        "initial_reference": "wave_pro_purchase_date",
+        "initial_after_calendar_days": 150,
+        "repeat_reference": "latest_replacement_pack_purchase_date",
+        "repeat_after_calendar_days": 240,
+        "follow_up_after_calendar_days": 15
+      },
+      "target_selection": {
+        "first_cycle": "customer_choice_among_all_variants",
+        "repeat_cycle": "prefer_latest_purchased_variant_and_keep_all_variants_available"
+      },
+      "source_order_selection": "earliest_valid_wave_pro_purchase_or_operator_review_if_unknown",
+      "opportunity_scope": "one_per_customer_rule_and_replenishment_cycle",
+      "order_validity": {
+        "cancelled_or_fully_returned": "ignore",
+        "unknown_or_partial_refund": "operator_review"
+      },
+      "sources": [
+        {
+          "product": "laifen_wave_pro",
+          "configuration": "two_heads_case_wireless_charger"
+        }
+      ],
+      "plan_rank": 400,
+      "plan_rank_reason": "Ricambio maturo necessario a mantenere la routine del prodotto.",
+      "approval": "Confermato dall'utente: prima proposta a 150 giorni con scelta tra quattro varianti; dopo un acquisto, nuova proposta a 240 giorni con preferenza per la variante già scelta. Conferma 16 ottobre 2026: gli acquisti di tutti i codici testine del contenitore aggiornano il ciclo Wave Pro; i nuovi codici privi di prezzo confermato sono riconosciuti nello storico, senza essere aggiunti alle destinazioni proposte. Nessuna soglia di ricambio approvata per il precedente Wave."
+    }
+  ]
+}

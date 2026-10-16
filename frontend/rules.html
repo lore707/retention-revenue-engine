@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Regole · Retention Revenue Engine</title>
+  <link rel="stylesheet" href="/overview.css"><link rel="stylesheet" href="/rules.css">
+  <script src="/ui.js" defer></script><script src="/rules.js" defer></script>
+</head>
+<body data-page="rules">
+  <aside class="sidebar">
+    <a class="brand" href="/"><span class="brand-mark">R</span><span>Retention<br>Revenue Engine</span></a>
+    <div class="workspace-label">WORKSPACE</div>
+    <nav aria-label="Navigazione principale">
+      <a class="nav-item" href="/"><img src="/assets/dashboard-inactive.svg" alt="">Overview</a>
+      <a class="nav-item" href="/retention"><img src="/assets/retention-active.svg" alt="">Retention</a>
+      <button class="nav-item" disabled><img src="/assets/followup.svg" alt="">Follow-up</button>
+      <button class="nav-item" disabled><img src="/assets/results.svg" alt="">Risultati</button>
+      <a class="nav-item selected" href="/rules" aria-current="page"><img src="/assets/rules.svg" alt="">Regole</a>
+    </nav>
+    <div class="workspace-footer"><span id="workspace-mode">Laifen · Workspace locale</span><small id="data-scope">Storico ordini disponibile</small><small class="deterministic">Motore deterministico</small></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><span>Workspace / Regole</span><div class="context"><span class="badge" id="mode">Caricamento…</span><time id="evaluation-date"></time><span class="avatar">OP</span></div></header>
+    <main class="rules-main">
+      <div class="page-heading"><div><h1>Regole</h1><p>Prodotti, tempi e contatti. Tutta la logica commerciale, in chiaro.</p></div><span class="rules-readonly">Sola consultazione</span></div>
+      <p id="notice" role="status">Caricamento delle regole…</p>
+      <div id="rule-stats" class="rules-stats" aria-label="Riepilogo delle regole"></div>
+      <nav class="rules-index" aria-label="Indice delle regole"><a href="#commercial-rules">Flussi di retention</a><a href="#common-rules">Regole comuni</a></nav>
+      <section id="commercial-rules" class="rules-section" aria-labelledby="commercial-title">
+        <div class="rules-section-heading"><div><span class="rules-eyebrow">01 · DALL'ACQUISTO ALLA PROPOSTA</span><h2 id="commercial-title">Scegli il prodotto di partenza</h2><p>Segui il percorso del dispositivo acquistato: prima opportunità, proposte successive e ricambi.</p></div></div>
+        <div id="rule-flow-tabs" class="rules-flow-tabs" role="group" aria-label="Famiglia del prodotto iniziale"></div>
+        <div class="card rules-flow-intro"><span class="rules-eyebrow">ACQUISTO INIZIALE</span><h3 id="flow-title"></h3><p id="flow-models"></p><p id="flow-limit" class="rules-flow-limit" hidden></p></div>
+        <p class="rules-path-note"><strong>Le date sono soglie dall'acquisto, non invii programmati.</strong> Il contatto resta soggetto a consenso, priorità, dipendenze e distanza dagli altri contatti. Un nuovo acquisto fa rivalutare il profilo, senza azzerare i tentativi.</p>
+        <details class="rules-advanced"><summary>Filtra le regole del percorso</summary><form id="rule-filters" class="card rule-filters"><div><label id="rule-strategy-label" for="rule-strategy">Strategia</label><select id="rule-strategy"><option value="">Tutte le strategie</option></select></div><div><label id="rule-source-label" for="rule-source">Acquisto iniziale</label><select id="rule-source"><option value="">Tutti i prodotti</option></select></div><div><label id="rule-target-label" for="rule-target">Prodotto proposto</label><select id="rule-target"><option value="">Tutti i prodotti</option></select></div><button type="reset" class="button rules-reset">Azzera</button></form></details>
+        <span id="rule-count" class="rules-count" role="status"></span>
+        <div id="rule-list" class="rule-list rules-flow-timeline" aria-live="polite" aria-labelledby="flow-title"></div>
+      </section>
+      <section id="common-rules" class="rules-section" aria-labelledby="common-rules-title"><div class="rules-section-heading"><div><span class="rules-eyebrow">02 · VALIDO PER OGNI PERCORSO</span><h2 id="common-rules-title">Regole comuni</h2><p>Come il sistema seleziona i clienti, ordina le proposte e gestisce i contatti.</p></div></div>
+      <section id="retention-guide" class="rules-section" aria-labelledby="retention-guide-title"><div class="rules-section-heading"><div><h3 id="retention-guide-title">Filtri e categorie in Retention</h3><p>Il filtro cerca le corrispondenze. La raccomandazione principale resta quella scelta dal motore.</p></div></div><div id="retention-tables" class="rules-guide-tables"></div></section>
+      <section id="plans-guide" class="rules-section" aria-labelledby="plans-guide-title"><div class="rules-section-heading"><div><h3 id="plans-guide-title">Piani e priorità</h3><p>Una relazione genera un'opportunità. Il piano unisce le proposte; la priorità decide da quale partire.</p></div></div><div id="plans-tables" class="rules-guide-tables"></div></section>
+      <section id="contacts-guide" class="rules-section" aria-labelledby="contacts-guide-title"><div class="rules-section-heading"><div><h3 id="contacts-guide-title">Contatti, follow-up ed esiti</h3><p>L'email viene inviata fuori dal sistema. Qui registri il contatto e ciò che accade dopo.</p></div></div><div id="contacts-tables" class="rules-guide-tables"></div></section>
+      </section>
+    </main>
+  </div>
+</body></html>

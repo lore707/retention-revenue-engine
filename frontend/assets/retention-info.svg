@@ -1,0 +1,15 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Informazione &#194;&#183; cerchio pieno" clip-path="url(#clip0_0_292)">
+<path id="Vector" d="M11 21.0833C16.5689 21.0833 21.0833 16.5689 21.0833 11C21.0833 5.43113 16.5689 0.916666 11 0.916666C5.43113 0.916666 0.916666 5.43113 0.916666 11C0.916666 16.5689 5.43113 21.0833 11 21.0833Z" fill="#006BE6"/>
+<g id="Vector_2">
+<path d="M11 9.16667V15.5833Z" fill="black"/>
+<path d="M11 9.16667V15.5833" stroke="white" stroke-width="1.83333" stroke-linecap="round"/>
+</g>
+<path id="Vector_3" d="M11 7.425C11.5569 7.425 12.0083 6.97355 12.0083 6.41667C12.0083 5.85978 11.5569 5.40833 11 5.40833C10.4431 5.40833 9.99167 5.85978 9.99167 6.41667C9.99167 6.97355 10.4431 7.425 11 7.425Z" fill="white"/>
+</g>
+<defs>
+<clipPath id="clip0_0_292">
+<rect width="22" height="22" fill="white"/>
+</clipPath>
+</defs>
+</svg>

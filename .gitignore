@@ -1,7 +1,17 @@
 # Export Shopify e altri dati locali potenzialmente identificativi.
 /local-data/
+*.csv
+*.tsv
+*.xls
+*.xlsx
+*.sqlite*
+*.db*
 
 # Segreti e configurazione personale.
 .env
 .env.*
 !.env.example
+
+# Cache Python.
+__pycache__/
+*.py[cod]

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Retention · Retention Revenue Engine</title>
+  <link rel="stylesheet" href="/overview.css"><link rel="stylesheet" href="/retention.css">
+  <script src="/ui.js" defer></script><script src="/retention.js" defer></script>
+</head>
+<body data-page="retention">
+  <aside class="sidebar">
+    <a class="brand" href="/"><span class="brand-mark">R</span><span>Retention<br>Revenue Engine</span></a>
+    <div class="workspace-label">WORKSPACE</div>
+    <nav aria-label="Navigazione principale">
+      <a class="nav-item" href="/"><img src="/assets/dashboard-inactive.svg" alt="">Overview</a>
+      <a class="nav-item selected" href="/retention" aria-current="page"><img src="/assets/retention-active.svg" alt="">Retention</a>
+      <button class="nav-item" disabled><img src="/assets/followup.svg" alt="">Follow-up</button>
+      <button class="nav-item" disabled><img src="/assets/results.svg" alt="">Risultati</button>
+      <a class="nav-item" href="/rules"><img src="/assets/rules.svg" alt="">Regole</a>
+    </nav>
+    <div class="workspace-footer"><span id="workspace-mode">Laifen · Workspace locale</span><small id="data-scope">Storico ordini disponibile</small><small class="deterministic">Motore deterministico</small></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><span>Workspace / Retention</span><div class="context"><span class="badge" id="mode">Caricamento…</span><time id="evaluation-date"></time><span class="avatar">OP</span></div></header>
+    <main class="retention-main">
+      <div class="page-heading"><div><h1>Retention</h1><p>Scegli chi contattare, con quale proposta e perché.</p><p id="customer-scope" class="small" role="status"></p></div></div>
+      <p id="notice" role="status">Caricamento dello storico e valutazione delle opportunità in corso…</p>
+      <section id="retention-panel" aria-label="Clienti e opportunità">
+        <form class="card retention-filters" id="filters" aria-labelledby="filters-title">
+          <h2 id="filters-title" class="sr-only">Filtri di ricerca</h2>
+          <div class="retention-filter-fields">
+            <div class="retention-filter-field"><label id="operational-filter-label" class="retention-filter-label" for="operational-filter"><img src="/assets/retention-category.svg" alt="">Categoria commerciale</label><select id="operational-filter"><option value="">Tutti i clienti</option></select></div>
+            <div class="retention-filter-field"><label id="state-filter-label" class="retention-filter-label" for="state-filter"><img src="/assets/retention-state.svg" alt="">Stato del piano</label><select id="state-filter"><option value="">Tutti gli stati</option><option value="open">Aperti — da lavorare</option><option value="in_progress">In corso</option><option value="closed">Chiusi</option><option value="suspended">In attesa / sospesi</option></select></div>
+            <div class="retention-filter-field"><label id="strategy-label" class="retention-filter-label" for="strategy"><img src="/assets/retention-strategy.svg" alt="">Strategia commerciale</label><select id="strategy"><option value="">Tutte le strategie</option><option value="completion">Completamenti funzionali</option><option value="complement">Complementi d’uso</option><option value="expansion">Espansione di categoria</option><option value="replenishment">Ricambi</option><option value="replacement">Sostituzioni / upgrade</option></select></div>
+            <div class="retention-filter-field"><label id="profile-filter-label" class="retention-filter-label" for="profile-filter"><img src="/assets/retention-profile.svg" alt="">Profilo cliente</label><select id="profile-filter"><option value="">Tutti i profili</option><option value="first_purchase">Primo acquisto</option><option value="recurring">Ricorrenti</option><option value="recent_activity">Alta attività recente</option><option value="multicategory">Multicategoria</option><option value="possible_b2b" disabled>Possibile B2B — non valutabile</option><option value="high_historical_value" disabled>Alto valore — non valutabile</option></select></div>
+          </div>
+          <div class="retention-search-row">
+            <label class="retention-search"><img src="/assets/retention-search.svg" alt=""><span><span class="sr-only">Ricerca cliente, ordine o prodotto</span><input id="search" type="search" placeholder="Cerca cliente, ordine o prodotto…" autocomplete="off"></span><kbd aria-hidden="true">Ctrl K</kbd></label>
+            <button class="button retention-reset" type="reset"><span class="retention-icon-slot"><img src="/assets/retention-reset.svg" alt=""></span>Azzera filtri</button>
+          </div>
+          <div id="filter-chips" class="retention-filter-chips" aria-label="Filtri applicati" hidden></div>
+        </form>
+        <div class="filter-context" role="status"><img src="/assets/retention-info.svg" alt=""><div><p id="active-filters"></p><p id="view-description"></p></div></div>
+        <section class="card retention-queue">
+          <div class="table-heading"><span class="retention-list-icon"><img src="/assets/retention-customers.svg" alt=""></span><h2 id="queue-title">Clienti da valutare</h2><span class="retention-sort"><img src="/assets/retention-sort.svg" alt="">Ordina per: Categoria → valore nominale</span></div>
+          <div class="table-scroll"><table class="qualified-table" role="table"><thead><tr id="columns"></tr></thead><tbody id="customers"></tbody></table></div>
+          <div class="pagination"><button class="button subtle" id="previous">Precedenti</button><small id="page-label"></small><button class="button subtle" id="next">Successivi</button></div>
+        </section>
+        <details class="retention-scope"><summary>Come leggere la lista</summary><p>La ricerca non cambia la raccomandazione principale. Strategia e stato devono corrispondere allo stesso piano. Consultare un’alternativa non ne autorizza il contatto.</p><small id="freshness"></small></details>
+      </section>
+      <aside id="quick-detail" class="card quick-detail" aria-labelledby="quick-title" hidden>
+        <button id="quick-close" class="button quick-close" type="button" aria-label="Chiudi dettaglio rapido">×</button>
+        <div id="quick-content"></div>
+      </aside>
+    </main>
+    <section id="detail" class="customer-page" aria-labelledby="detail-title" hidden><button id="detail-back" class="button customer-link" type="button">← Retention</button><h2 id="detail-title" hidden>Dettaglio cliente</h2><div id="detail-content"></div></section>
+  </div>
+  <dialog id="outcome-dialog" aria-labelledby="outcome-title"><form method="dialog" class="dialog-heading"><h2 id="outcome-title">Aggiorna esito</h2><button class="button" aria-label="Chiudi">×</button></form><div id="outcome-content"></div></dialog>
+</body>
+</html>

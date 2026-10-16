@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Overview · Retention Revenue Engine</title>
+  <link rel="stylesheet" href="/overview.css">
+  <script src="/ui.js" defer></script><script src="/overview.js" defer></script>
+</head>
+<body data-page="overview">
+  <aside class="sidebar">
+    <a class="brand" href="/"><span class="brand-mark">R</span><span>Retention<br>Revenue Engine</span></a>
+    <div class="workspace-label">WORKSPACE</div>
+    <nav aria-label="Navigazione principale">
+      <a class="nav-item selected" href="/" aria-current="page"><img src="/assets/dashboard.svg" alt="">Overview</a>
+      <a class="nav-item" href="/retention"><img src="/assets/retention.svg" alt="">Retention</a>
+      <button class="nav-item" disabled><img src="/assets/followup.svg" alt="">Follow-up</button>
+      <button class="nav-item" disabled><img src="/assets/results.svg" alt="">Risultati</button>
+      <a class="nav-item" href="/rules"><img src="/assets/rules.svg" alt="">Regole</a>
+    </nav>
+    <div class="workspace-footer"><span id="workspace-mode">Laifen · Workspace locale</span><small id="data-scope">Storico ordini disponibile</small><small class="deterministic">Motore deterministico</small></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><span>Workspace / Overview</span><div class="context"><span class="badge" id="mode">Caricamento…</span><time id="evaluation-date"></time><span class="avatar">OP</span></div></header>
+    <main class="overview-main">
+      <div class="page-heading"><div><h1>Overview</h1><p>Opportunità, contatti e risultati della tua retention.</p></div><button class="button primary" id="upload"><img src="/assets/customer-document.svg" alt="">Carica CSV</button></div>
+      <p role="status" id="notice" hidden></p>
+      <section class="metrics" aria-label="Indicatori principali">
+        <article class="card metric"><div class="overview-metric-heading" data-icon="users" data-tone="blue"><h2>Clienti da contattare oggi</h2></div><strong id="ready-count">—</strong><p>Consenso email valido · pronti oggi</p></article>
+        <article class="card metric"><div class="overview-metric-heading" data-icon="box" data-tone="amber"><h2>Valore potenziale</h2></div><strong id="potential">—</strong><p id="potential-note">Proposte principali · non ricavi</p></article>
+        <article class="card metric"><div class="overview-metric-heading" data-icon="repeat" data-tone="purple"><h2>Follow-up registrati</h2></div><strong id="contacts">—</strong><p>Contatti inseriti dall’operatore</p></article>
+        <article class="card metric"><div class="overview-metric-heading" data-icon="bars" data-tone="green"><h2>Revenue attribuita</h2></div><strong class="green" id="revenue">—</strong><p id="verified-note">Ordini verificati in Shopify</p></article>
+      </section>
+      <section class="card revenue-chart" aria-labelledby="chart-title">
+        <div class="chart-heading"><div class="overview-section-title"><span id="chart-heading-icon" aria-hidden="true"></span><div><h2 id="chart-title">Ricavi da retention</h2><p class="small">Acquisti verificati nel periodo selezionato.</p></div></div><div class="overview-period-field"><label id="period-filter-label" class="sr-only" for="period-filter">Periodo del grafico</label><select id="period-filter"><option value="30d">30 giorni</option><option value="90d">90 giorni</option><option value="6m">6 mesi</option><option value="12m">12 mesi</option></select></div></div>
+        <div class="chart-summary"><div><strong class="green" id="chart-total">—</strong><p class="small">Totale attribuito nel periodo</p></div><span id="chart-range"></span></div>
+        <div class="plot" tabindex="0" role="region" aria-label="Grafico dei ricavi, scorribile orizzontalmente su smartphone"><svg id="chart" viewBox="0 0 1120 130" role="img" aria-label="Ricavi verificati nel periodo"></svg><div id="chart-tooltip" role="status" hidden></div></div>
+        <p class="small" id="chart-caption">Ricavi giornalieri · solo acquisti verificati</p>
+      </section>
+      <section class="operational-section" aria-labelledby="operational-title">
+        <h2 id="operational-title">Dove concentrare il lavoro commerciale</h2>
+        <div class="operational-cards" id="operational-views"></div>
+        <p class="small" id="operational-note"></p>
+      </section>
+      <section class="card queue" aria-labelledby="queue-title">
+        <div class="table-heading"><div class="overview-section-title"><img src="/assets/retention-customers.svg" alt=""><h2 id="queue-title">Da contattare oggi</h2></div><button class="button subtle" id="show-all">Vedi tutti</button></div>
+        <div class="table-scroll"><table class="qualified-table" role="table"><thead><tr><th>Cliente</th><th>Profilo e comportamento</th><th>Acquisto fonte</th><th>Proposta principale</th><th>Strategia</th><th>Perché ora</th><th class="numeric">Valore</th><th class="action">Azione</th></tr></thead><tbody id="customers"></tbody></table></div>
+        <p class="small" id="table-summary"></p>
+      </section>
+      <footer class="freshness"><span id="freshness"></span><span id="privacy-label">Dati locali · storico disponibile</span></footer>
+    </main>
+    <section id="detail" class="customer-page" aria-labelledby="detail-title" hidden><button id="detail-back" class="button customer-link" type="button">← Overview</button><h2 id="detail-title" hidden>Dettaglio cliente</h2><div id="detail-content"></div></section>
+  </div>
+  <dialog id="outcome-dialog" aria-labelledby="outcome-title"><form method="dialog" class="dialog-heading"><h2 id="outcome-title">Aggiorna esito</h2><button class="button" aria-label="Chiudi">×</button></form><div id="outcome-content"></div></dialog>
+  <dialog id="import-dialog"><form method="dialog" class="dialog-heading"><h2>Carica export Shopify</h2><button class="button" aria-label="Chiudi">×</button></form><p id="import-help">I CSV vengono ridotti localmente e uniti allo storico esistente.</p><form id="import-form"><label for="csv-files">Export CSV</label><input type="file" id="csv-files" name="files" accept=".csv" multiple required><button class="button primary" id="import-submit">Importa ordini</button></form><p role="status" id="import-status"></p></dialog>
+</body>
+</html>

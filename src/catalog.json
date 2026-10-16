@@ -1,0 +1,1975 @@
+{
+  "version": 38,
+  "sources": {
+    "neo_shopify_screenshots": "Schermate Shopify fornite in conversazione: identità, varianti, SKU, EAN, prezzi e descrizione Neo.",
+    "neo_business_confirmation": "Conferma utente: dispositivo identico nelle due configurazioni; entrambe includono ugello classico e diffusore, solo la versione 3 ugelli include il concentratore.",
+    "concentrator_shopify_screenshots": "Schermate Shopify fornite in conversazione: identità, SKU, EAN, prezzo, funzione e compatibilità dichiarate del concentratore.",
+    "concentrator_business_confirmation": "Conferma utente: il concentratore CP34473 è compatibile anche con Neo.",
+    "diffuser_shopify_screenshots": "Schermate Shopify fornite in conversazione: diffusore magnetico Premium Blu/Pink e diffusore a incastro Light Gray; identità, SKU, EAN, prezzi, benefici e compatibilità dichiarate.",
+    "diffuser_business_confirmation": "Conferma utente: per Neo non esistono diffusori compatibili vendibili separatamente; Dark Gray è disattivato e non va inserito.",
+    "se_lite_shopify_screenshots": "Schermate Shopify fornite in conversazione: caratteristiche SE Lite, cinque colorazioni, SKU, EAN e prezzi osservati.",
+    "se_lite_business_confirmation": "Conferma utente: tutte le colorazioni includono solo l'ugello classico a scatto, senza diffusore. Gamma precedente senza riassortimento; solo Green è attualmente vendibile, fino a esaurimento. Le altre varianti servono a riconoscere gli acquisti storici.",
+    "neo_special_shopify_screenshots": "Schermate Shopify fornite in conversazione: varianti, SKU, EAN, prezzi, caratteristiche e contenuto della confezione Neo Special.",
+    "neo_special_business_confirmation": "Conferma utente: stessa dotazione per tutti i colori; concentratore CP34473 compatibile con Neo Special e non incluso. Ugello nutriente e capsule non sono venduti separatamente.",
+    "swift_premium_shopify_screenshots": "Schermate Shopify fornite in conversazione: caratteristiche, tre varianti, SKU, EAN, prezzi e contenuto della confezione Swift Premium.",
+    "swift_premium_business_confirmation": "Conferma utente: Golden Pink è vendibile fino a esaurimento; Golden White e Golden Blue servono a riconoscere lo storico. Il modello è in dismissione senza riassortimento. La confezione include ugello standard magnetico, diffusore magnetico e custodia, ma non il concentratore.",
+    "gift_edition_shopify_screenshots": "Schermate Shopify fornite in conversazione: caratteristiche, quattro varianti, SKU, EAN, prezzi e contenuto della confezione Gift Edition LF01.",
+    "gift_edition_business_confirmation": "Conferma utente: White e Red sono vendibili fino a esaurimento; Green e Black servono a riconoscere lo storico. Il modello è in dismissione senza riassortimento e tutte le varianti includono concentratore magnetico e diffusore magnetico.",
+    "se_special_shopify_screenshots": "Schermate Shopify fornite in conversazione: caratteristiche, quattro varianti, SKU, EAN, prezzi e contenuto della confezione SE Special.",
+    "se_special_business_confirmation": "Conferma utente: Matte Pink è vendibile fino a esaurimento; Matte White, Matte Blue e Matte Purple servono a riconoscere lo storico. Il modello è in dismissione senza riassortimento.",
+    "mini_shopify_screenshots": "Schermate Shopify fornite in conversazione: caratteristiche, quattro varianti, SKU, EAN, prezzi e contenuto della confezione Mini.",
+    "mini_business_confirmation": "Conferma utente: tutte le colorazioni sono prodotti correnti destinati al riassortimento e non esistono diffusori compatibili con Mini.",
+    "mini_wall_mount_shopify_screenshots": "Schermate Shopify fornite in conversazione: identità, SKU, EAN, prezzo, funzione e compatibilità del supporto magnetico da parete Mini.",
+    "air_shopify_screenshots": "Schermate Shopify fornite in conversazione: caratteristiche, tre varianti, SKU, EAN, prezzi e contenuto della confezione Air.",
+    "air_business_confirmation": "Conferma utente: Air è una gamma corrente destinata al riassortimento. La compatibilità con il concentratore venduto separatamente non è ancora confermata.",
+    "magnetic_wall_mount_shopify_screenshots": "Schermate Shopify fornite in conversazione: identità, variante, SKU, EAN, prezzo e funzione del supporto magnetico da parete Laifen.",
+    "magnetic_wall_mount_business_confirmation": "Conferma utente: il supporto è compatibile con Laifen Neo. La compatibilità con gli altri modelli resta da verificare.",
+    "brush_shopify_screenshots": "Schermate Shopify fornite in conversazione: identità, descrizione, due varianti, SKU, EAN e prezzi della Spazzola Laifen.",
+    "brush_business_confirmation": "Conferma utente: entrambe le varianti sono correnti e riassortibili; la spazzola può essere proposta a chi ha acquistato qualsiasi asciugacapelli Laifen.",
+    "wave_pro_shopify_screenshots": "Schermate Shopify fornite in conversazione: descrizione, contenuto della confezione e sei varianti Wave Pro con materiali, colori, SKU, EAN e prezzi.",
+    "wave_pro_replacement_heads_shopify_screenshots": "Schermate Shopify fornite in conversazione: descrizione e quattro confezioni da tre testine di ricambio Wave Pro con tipo, versione, SKU, EAN e prezzo.",
+    "wave_legacy_shopify_screenshots": "Schermate Shopify fornite in conversazione: descrizione, Travel Box e sette varianti del precedente modello Wave con materiali, colori, SKU, codici a barre e prezzi.",
+    "wave_legacy_business_confirmation": "Conferma utente: il precedente modello Wave non è più vendibile, non verrà riassortito e serve esclusivamente a riconoscere gli acquisti storici.",
+    "wave_legacy_charging_cable_shopify_screenshot": "Schermata Shopify fornita in conversazione: cavo di ricarica magnetico per Laifen Wave ABS e Alluminio, SKU, codice a barre, prezzo e compatibilità dichiarata.",
+    "wave_pro_charging_base_shopify_screenshots": "Schermate Shopify fornite in conversazione: base di ricarica Wave Pro nelle varianti ABS e Alluminio, con SKU, codici a barre, prezzo, funzione e compatibilità.",
+    "wave_charging_accessories_business_confirmation": "Conferma utente: cavo magnetico del precedente Wave e base Wave Pro restano senza relazione commerciale e non devono essere proposti dal sistema.",
+    "wave_legacy_travel_box_shopify_screenshot": "Schermata Shopify fornita in conversazione: Travel Box del precedente Wave, due modelli dichiarati, variante ABS con SKU, codice a barre e prezzo.",
+    "wave_legacy_travel_box_business_confirmation": "Conferma utente: la Travel Box è compatibile con il precedente Wave, non è compatibile con Wave Pro e resta senza relazione commerciale; il sistema si limita alle opportunità di cross-sell e non propone ricambi o sostituzioni di accessori inclusi.",
+    "storage_pouch_shopify_screenshot": "Schermata Shopify fornita in conversazione: Pochette Portaoggetti Laifen, descrizione, SKU, codice a barre, prezzo e disponibilità osservata.",
+    "storage_pouch_business_confirmation": "Conferma utente: la pochette è inclusa con Swift Premium ed è cross-sellabile per tutti gli altri asciugacapelli Laifen.",
+    "p3_shopify_screenshots": "Schermate Shopify fornite in conversazione: descrizione, contenuto della confezione e due varianti P3 con colori, SKU, EAN e prezzi.",
+    "p3_pro_shopify_screenshots": "Schermate Shopify fornite in conversazione: descrizione, contenuto della confezione e due varianti P3 Pro con finiture, SKU, EAN e prezzi.",
+    "p3_family_business_confirmation": "Conferma utente: P3 è il modello più nuovo e più economico, con corpo in materiale composito; P3 Pro ha corpo in alluminio. Non è stata definita alcuna relazione commerciale tra i due modelli.",
+    "p3_pro_replacement_head_shopify_screenshots": "Schermate Shopify fornite in conversazione: testina di ricambio P3 Pro, descrizione e due varianti con colori, SKU, EAN e prezzi.",
+    "p3_travel_case_shopify_screenshots": "Schermate Shopify fornite in conversazione: astuccio da viaggio P3 Pro, descrizione e due varianti con colori, SKU, EAN e prezzi.",
+    "p3_accessories_business_confirmation": "Conferma utente: l'astuccio da viaggio è compatibile anche con P3; la testina P3 Pro va proposta dopo 180 giorni e ogni acquisto del ricambio apre un nuovo ciclo di 180 giorni.",
+    "p3_pro_replacement_head_official_product_page": "Pagina prodotto ufficiale Laifen: la testina è compatibile con P3 Pro e P3 Pro Set e non è compatibile con P3.",
+    "autocurl_shopify_screenshots": "Schermate Shopify fornite in conversazione: descrizione AutoCurl e due varianti con colori, SKU, EAN e prezzi.",
+    "autocurl_official_product_page": "Pagina ufficiale Laifen AutoCurl: prodotto per creare ricci, tre temperature per capelli fini, normali e spessi e indicazione di utilizzo per ogni tipo di capello.",
+    "autocurl_business_confirmation": "Conferma utente: AutoCurl è un cross sell importante da proporre dopo la vendita di qualsiasi asciugacapelli Laifen.",
+    "magnetic_wall_mount_public_variants": "https://laifen.it/products/supporto-magnetico-da-parete-laifen.json - read 2026-10-14: Gray and Star Light SKU/EAN/price. Silver historical SKU retained.",
+    "t1_pro_public_catalog": "https://laifen.it/products/laifen-t1-pro.json - identity, SKU, EAN and price read 2026-10-14. No commercial relations added.",
+    "business_product_photos_official_originals": "Original images matching the business attachments, retrieved 2026-10-14 from the official Laifen catalog: https://laifen.it/products/concentratore-laifen.json, https://laifen.it/products/laifen-gift-edition.json, https://laifen.it/products/laifen-se-special.json, https://laifen.it/products/laifen-wave-travel-box.json, https://laifen.it/products/pochette-portaoggetti-laifen.json, https://laifen.it/products/spazzola-laifen.json, https://laifen.it/products/ugello-diffusore-laifen-se-lite.json. SE Special White uses the image assigned to CL50966; Gift White uses GIFT-GRIGIO assigned to CK8063.",
+    "wave_heads_and_travel_box_business_confirmation": "Conferma business 16 ottobre 2026: CP38422, CP38423, CP38472 e CP38474 sono testine compatibili con Wave e Wave Pro, da raggruppare senza distinzione di tipo. CM61971 è Travel Box in ABS per Wave ABS; CM61972 è Travel Box in ABS per Wave Alluminio. EAN, quantità per confezione e prezzi dei nuovi codici non forniti."
+  },
+  "products": [
+    {
+      "key": "laifen_neo",
+      "name": "Laifen Neo",
+      "brand": "Laifen",
+      "category": "hair_dryer",
+      "same_device_across_configurations": true,
+      "sources": [
+        "neo_shopify_screenshots",
+        "neo_business_confirmation"
+      ],
+      "declared_features": [
+        "Motore digitale V-Max con 13 pale in lega di alluminio aeronautico",
+        "Controllo termico intelligente",
+        "Generatore di ioni negativi",
+        "Indicatori LED a tre colori",
+        "Memoria dell'ultima selezione",
+        "Child Mode con limitazione di temperatura e potenza dell'aria"
+      ],
+      "declared_benefits": [
+        "Asciugatura rapida",
+        "Riduzione dell'elettricità statica e del crespo",
+        "Lucentezza dei capelli",
+        "Leggerezza",
+        "Silenziosità"
+      ],
+      "configurations": [
+        {
+          "key": "two_nozzles",
+          "label": "2 Ugelli",
+          "included_components": [
+            {
+              "key": "neo_standard_nozzle",
+              "quantity": 1
+            },
+            {
+              "key": "neo_diffuser",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "key": "three_nozzles",
+          "label": "3 Ugelli",
+          "included_components": [
+            {
+              "key": "neo_standard_nozzle",
+              "quantity": 1
+            },
+            {
+              "key": "neo_diffuser",
+              "quantity": 1
+            },
+            {
+              "key": "laifen_magnetic_concentrator",
+              "quantity": 1
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "sku": "CQ15839",
+          "ean": "6976973859539",
+          "color": "Shadow Black",
+          "configuration": "three_nozzles",
+          "observed_price_minor": 14999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-neo-black.jpg",
+            "alt": "Laifen Neo - Shadow Black (foto configurazione 3 ugelli)"
+          }
+        },
+        {
+          "sku": "CQ15841",
+          "ean": "6976973859522",
+          "color": "Mist White",
+          "configuration": "three_nozzles",
+          "observed_price_minor": 14999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-neo-white.jpg",
+            "alt": "Laifen Neo - Mist White (foto configurazione 3 ugelli)"
+          }
+        },
+        {
+          "sku": "CQ15840",
+          "ean": "6976973859584",
+          "color": "Pastel Purple",
+          "configuration": "three_nozzles",
+          "observed_price_minor": 14999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-neo-purple.jpg",
+            "alt": "Laifen Neo - Pastel Purple (foto configurazione 3 ugelli)"
+          }
+        },
+        {
+          "sku": "CR05272",
+          "ean": "6976973859515",
+          "color": "Shadow Black",
+          "configuration": "two_nozzles",
+          "observed_price_minor": 13499,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-neo-black.jpg",
+            "alt": "Laifen Neo - Shadow Black (foto configurazione 3 ugelli)"
+          }
+        },
+        {
+          "sku": "CR05186",
+          "ean": "6976973859508",
+          "color": "Mist White",
+          "configuration": "two_nozzles",
+          "observed_price_minor": 13499,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-neo-white.jpg",
+            "alt": "Laifen Neo - Mist White (foto configurazione 3 ugelli)"
+          }
+        },
+        {
+          "sku": "CR05227",
+          "ean": "6976973859577",
+          "color": "Pastel Purple",
+          "configuration": "two_nozzles",
+          "observed_price_minor": 13499,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-neo-purple.jpg",
+            "alt": "Laifen Neo - Pastel Purple (foto configurazione 3 ugelli)"
+          }
+        }
+      ],
+      "declared_benefit": "Asciugare rapidamente i capelli riducendo elettricità statica e crespo, con una configurazione di ugelli adatta alle proprie esigenze."
+    },
+    {
+      "key": "laifen_magnetic_concentrator",
+      "name": "Ugello Concentratore Magnetico Laifen",
+      "brand": "Laifen",
+      "category": "hair_dryer_accessory",
+      "sources": [
+        "concentrator_shopify_screenshots",
+        "concentrator_business_confirmation",
+        "neo_special_business_confirmation",
+        "business_product_photos_official_originals"
+      ],
+      "declared_function": "Concentra maggiormente il flusso d'aria rispetto all'ugello classico.",
+      "declared_benefit": "Maggiore precisione nello styling con spazzola e nella piega liscia.",
+      "provides_component": "laifen_magnetic_concentrator",
+      "variants": [
+        {
+          "sku": "CP34473",
+          "ean": "6973833031005",
+          "observed_price_minor": 2499,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-magnetic-concentrator.jpg",
+            "alt": "Ugello Concentratore Magnetico Laifen"
+          }
+        }
+      ],
+      "compatibility": [
+        {
+          "model": "Neo",
+          "compatible": true,
+          "source": "concentrator_business_confirmation"
+        },
+        {
+          "model": "SE Special",
+          "compatible": true,
+          "source": "concentrator_shopify_screenshots"
+        },
+        {
+          "model": "Gift Edition",
+          "compatible": true,
+          "source": "concentrator_shopify_screenshots"
+        },
+        {
+          "model": "Swift Premium",
+          "compatible": true,
+          "source": "concentrator_shopify_screenshots"
+        },
+        {
+          "model": "Retro",
+          "compatible": false,
+          "source": "concentrator_shopify_screenshots"
+        },
+        {
+          "model": "SE Lite",
+          "compatible": false,
+          "source": "concentrator_shopify_screenshots"
+        },
+        {
+          "model": "Mini",
+          "compatible": false,
+          "source": "concentrator_shopify_screenshots"
+        },
+        {
+          "model": "Neo Special",
+          "compatible": true,
+          "source": "neo_special_business_confirmation"
+        }
+      ]
+    },
+    {
+      "key": "laifen_magnetic_diffuser",
+      "name": "Ugello Diffusore Magnetico Laifen",
+      "brand": "Laifen",
+      "category": "hair_dryer_accessory",
+      "attachment": "magnetic",
+      "sources": [
+        "diffuser_shopify_screenshots",
+        "diffuser_business_confirmation"
+      ],
+      "declared_function": "Distribuisce uniformemente il calore; le dita lunghe e ventilate favoriscono lo styling dei capelli ricci, mossi o ondulati.",
+      "declared_benefit": "Favorire definizione di ricci e onde, volume alle radici e riduzione del crespo.",
+      "variants": [
+        {
+          "sku": "CP34520",
+          "ean": "6973833031371",
+          "color": "Premium Blu",
+          "observed_price_minor": 2499,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-magnetic-diffuser-blue.jpg",
+            "alt": "Ugello Diffusore Magnetico Laifen - Premium Blu"
+          }
+        },
+        {
+          "sku": "CP34449",
+          "ean": "6973833031388",
+          "color": "Premium Pink",
+          "observed_price_minor": 2499,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-magnetic-diffuser-pink.jpg",
+            "alt": "Ugello Diffusore Magnetico Laifen - Premium Pink"
+          }
+        }
+      ],
+      "compatibility": [
+        {
+          "model": "SE Special",
+          "compatible": true,
+          "source": "diffuser_shopify_screenshots"
+        },
+        {
+          "model": "Gift Edition",
+          "compatible": true,
+          "source": "diffuser_shopify_screenshots"
+        },
+        {
+          "model": "Swift Premium",
+          "compatible": true,
+          "source": "diffuser_shopify_screenshots"
+        },
+        {
+          "model": "Retro",
+          "compatible": false,
+          "source": "diffuser_shopify_screenshots"
+        },
+        {
+          "model": "SE Lite",
+          "compatible": false,
+          "source": "diffuser_shopify_screenshots"
+        },
+        {
+          "model": "Neo",
+          "compatible": false,
+          "source": "diffuser_shopify_screenshots"
+        },
+        {
+          "model": "Mini",
+          "compatible": false,
+          "source": "mini_business_confirmation"
+        }
+      ],
+      "provides_component": "laifen_magnetic_diffuser"
+    },
+    {
+      "key": "laifen_se_lite_diffuser",
+      "name": "Ugello Diffusore per Laifen SE Lite",
+      "brand": "Laifen",
+      "category": "hair_dryer_accessory",
+      "attachment": "snap_on",
+      "sources": [
+        "diffuser_shopify_screenshots",
+        "diffuser_business_confirmation",
+        "business_product_photos_official_originals"
+      ],
+      "declared_function": "Distribuisce uniformemente il calore; le dita ventilate favoriscono lo styling dei capelli ricci, mossi o ondulati.",
+      "declared_benefit": "Favorire definizione di ricci e onde, volume alle radici e riduzione del crespo.",
+      "variants": [
+        {
+          "sku": "CP34510",
+          "ean": "6976973854916",
+          "color": "Light Gray",
+          "observed_price_minor": 2499,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-se-lite-diffuser-grey.jpg",
+            "alt": "Ugello Diffusore per Laifen SE Lite - Light Gray"
+          }
+        }
+      ],
+      "compatibility": [
+        {
+          "model": "Retro",
+          "compatible": true,
+          "source": "diffuser_shopify_screenshots"
+        },
+        {
+          "model": "SE Lite",
+          "compatible": true,
+          "source": "diffuser_shopify_screenshots"
+        },
+        {
+          "model": "Neo",
+          "compatible": false,
+          "source": "diffuser_business_confirmation"
+        }
+      ],
+      "provides_component": "se_lite_diffuser"
+    },
+    {
+      "key": "laifen_se_lite",
+      "name": "Laifen SE Lite",
+      "brand": "Laifen",
+      "category": "hair_dryer",
+      "lifecycle": "phase_out_no_restock",
+      "sources": [
+        "se_lite_shopify_screenshots",
+        "se_lite_business_confirmation"
+      ],
+      "declared_features": [
+        "Motore brushless da 100.000 giri/min",
+        "Peso di 345 g",
+        "Tecnologia a ioni negativi",
+        "Rumorosità dichiarata minore o uguale a 62 dB",
+        "Protezione intelligente dal calore"
+      ],
+      "configurations": [
+        {
+          "key": "standard_nozzle",
+          "label": "Ugello classico a scatto, senza diffusore",
+          "included_components": [
+            {
+              "key": "se_lite_standard_nozzle",
+              "quantity": 1
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "sku": "CQ62986",
+          "ean": "6976973850895",
+          "color": "Glossy Green",
+          "configuration": "standard_nozzle",
+          "observed_price_minor": 6999,
+          "currency": "EUR",
+          "commercial_status": "sell_until_exhausted",
+          "image": {
+            "src": "/assets/laifen-se-lite-green.jpg",
+            "alt": "Laifen SE Lite - Glossy Green"
+          }
+        },
+        {
+          "sku": "CL50959",
+          "ean": "6976973850888",
+          "color": "Glossy Purple",
+          "configuration": "standard_nozzle",
+          "observed_price_minor": 6999,
+          "currency": "EUR",
+          "commercial_status": "historical_only",
+          "image": {
+            "src": "/assets/laifen-se-lite-purple.jpg",
+            "alt": "Laifen SE Lite - Glossy Purple"
+          }
+        },
+        {
+          "sku": "CL50963",
+          "ean": "6976973850093",
+          "color": "Glossy Milk Tea",
+          "configuration": "standard_nozzle",
+          "observed_price_minor": 6999,
+          "currency": "EUR",
+          "commercial_status": "historical_only",
+          "image": {
+            "src": "/assets/laifen-se-lite-milk-tea.jpg",
+            "alt": "Laifen SE Lite - Glossy Milk Tea"
+          }
+        },
+        {
+          "sku": "CL50964",
+          "ean": "6976973850079",
+          "color": "Glossy White",
+          "configuration": "standard_nozzle",
+          "observed_price_minor": 6999,
+          "currency": "EUR",
+          "commercial_status": "historical_only"
+        },
+        {
+          "sku": "CL50962",
+          "ean": "6976973850901",
+          "color": "Glossy Pink",
+          "configuration": "standard_nozzle",
+          "observed_price_minor": 6999,
+          "currency": "EUR",
+          "commercial_status": "historical_only",
+          "image": {
+            "src": "/assets/laifen-se-lite-pink.jpg",
+            "alt": "Laifen SE Lite - Glossy Pink"
+          }
+        }
+      ]
+    },
+    {
+      "key": "laifen_neo_special",
+      "name": "Laifen Neo Special",
+      "brand": "Laifen",
+      "category": "hair_dryer",
+      "sources": [
+        "neo_special_shopify_screenshots",
+        "neo_special_business_confirmation"
+      ],
+      "declared_features": [
+        "Motore brushless da 110.000 RPM",
+        "Flusso di aria da 22 m/s",
+        "Controllo termico 100 volte al secondo",
+        "Nourishing Mode a 58 °C",
+        "200 milioni di ioni negativi",
+        "Rumorosità dichiarata di 59 dB",
+        "Cinque temperature con LED e due velocità",
+        "Filtro magnetico",
+        "Finitura Metallic color-blocked"
+      ],
+      "declared_benefit": "Asciugatura e trattamento con oli tramite ugello nutriente e capsule vuote ricaricabili; interesse del cliente da verificare.",
+      "configurations": [
+        {
+          "key": "nourishing_kit",
+          "label": "Ugello standard, diffusore, ugello nutriente e tre capsule",
+          "included_components": [
+            {
+              "key": "neo_special_standard_nozzle",
+              "quantity": 1
+            },
+            {
+              "key": "neo_special_diffuser",
+              "quantity": 1
+            },
+            {
+              "key": "neo_special_nourishing_nozzle",
+              "quantity": 1,
+              "sold_separately": false
+            },
+            {
+              "key": "neo_special_refillable_empty_pod",
+              "quantity": 3,
+              "sold_separately": false
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "sku": "CR68941",
+          "ean": "6942590700080",
+          "color": "Starlight",
+          "configuration": "nourishing_kit",
+          "observed_price_minor": 16999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-neo-special-starlight.jpg",
+            "alt": "Laifen Neo Special - Starlight"
+          }
+        },
+        {
+          "sku": "CR68943",
+          "ean": "6942590700097",
+          "color": "Black",
+          "configuration": "nourishing_kit",
+          "observed_price_minor": 16999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-neo-special-black.jpg",
+            "alt": "Laifen Neo Special - Black"
+          }
+        },
+        {
+          "sku": "CR68942",
+          "ean": "6942590700103",
+          "color": "Blue",
+          "configuration": "nourishing_kit",
+          "observed_price_minor": 16999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-neo-special-blue.jpg",
+            "alt": "Laifen Neo Special - Blue"
+          }
+        }
+      ]
+    },
+    {
+      "key": "laifen_swift_premium",
+      "name": "Laifen Swift Premium",
+      "brand": "Laifen",
+      "category": "hair_dryer",
+      "lifecycle": "phase_out_no_restock",
+      "sources": [
+        "swift_premium_shopify_screenshots",
+        "swift_premium_business_confirmation"
+      ],
+      "declared_features": [
+        "Motore brushless da 110.000 giri/min",
+        "Flusso d'aria da 22 m/s",
+        "200 milioni di ioni negativi",
+        "Controllo della temperatura 100 volte al secondo",
+        "Rumorosità dichiarata di 59 dB",
+        "Peso dichiarato di 407 g",
+        "Ugelli magnetici orientabili a 360 gradi"
+      ],
+      "configurations": [
+        {
+          "key": "standard_diffuser_case",
+          "label": "Ugello standard magnetico, diffusore magnetico e custodia da viaggio",
+          "included_components": [
+            {
+              "key": "swift_premium_standard_nozzle",
+              "quantity": 1
+            },
+            {
+              "key": "swift_premium_magnetic_diffuser",
+              "quantity": 1
+            },
+            {
+              "key": "laifen_storage_pouch",
+              "quantity": 1
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "sku": "CP38476",
+          "ean": "6973833031203",
+          "color": "Golden White",
+          "configuration": "standard_diffuser_case",
+          "observed_price_minor": 13999,
+          "currency": "EUR",
+          "commercial_status": "historical_only",
+          "image": {
+            "src": "/assets/laifen-swift-premium-white.jpg",
+            "alt": "Laifen Swift Premium - Golden White"
+          }
+        },
+        {
+          "sku": "CP38473",
+          "ean": "6976973851731",
+          "color": "Golden Blue",
+          "configuration": "standard_diffuser_case",
+          "observed_price_minor": 13999,
+          "currency": "EUR",
+          "commercial_status": "historical_only",
+          "image": {
+            "src": "/assets/laifen-swift-premium-blue.jpg",
+            "alt": "Laifen Swift Premium - Golden Blue"
+          }
+        },
+        {
+          "sku": "CP38475",
+          "ean": "6976973851748",
+          "color": "Golden Pink",
+          "configuration": "standard_diffuser_case",
+          "observed_price_minor": 13999,
+          "currency": "EUR",
+          "commercial_status": "sell_until_exhausted",
+          "image": {
+            "src": "/assets/laifen-swift-premium-pink.jpg",
+            "alt": "Laifen Swift Premium - Golden Pink"
+          }
+        }
+      ]
+    },
+    {
+      "key": "laifen_gift_edition",
+      "name": "Laifen Gift Edition",
+      "brand": "Laifen",
+      "category": "hair_dryer",
+      "lifecycle": "phase_out_no_restock",
+      "sources": [
+        "gift_edition_shopify_screenshots",
+        "gift_edition_business_confirmation",
+        "business_product_photos_official_originals"
+      ],
+      "declared_features": [
+        "Motore brushless da 110.000 giri/min",
+        "Flusso d'aria da 21 m/s",
+        "Un miliardo di ioni negativi"
+      ],
+      "configurations": [
+        {
+          "key": "concentrator_diffuser",
+          "label": "Concentratore magnetico e diffusore magnetico",
+          "included_components": [
+            {
+              "key": "laifen_magnetic_concentrator",
+              "quantity": 1
+            },
+            {
+              "key": "laifen_magnetic_diffuser",
+              "quantity": 1
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "sku": "CK8063",
+          "ean": "8050191000831",
+          "color": "LF01 White",
+          "configuration": "concentrator_diffuser",
+          "observed_price_minor": 11999,
+          "currency": "EUR",
+          "commercial_status": "sell_until_exhausted",
+          "image": {
+            "src": "/assets/laifen-gift-edition-white.jpg",
+            "alt": "Laifen Gift Edition - LF01 White"
+          }
+        },
+        {
+          "sku": "CK80633",
+          "ean": "8050191000817",
+          "color": "LF01 Red",
+          "configuration": "concentrator_diffuser",
+          "observed_price_minor": 11999,
+          "currency": "EUR",
+          "commercial_status": "sell_until_exhausted",
+          "image": {
+            "src": "/assets/laifen-gift-edition-red.jpg",
+            "alt": "Laifen Gift Edition - LF01 Red"
+          }
+        },
+        {
+          "sku": "CK80632",
+          "ean": "8050191000824",
+          "color": "LF01 Green",
+          "configuration": "concentrator_diffuser",
+          "observed_price_minor": 11999,
+          "currency": "EUR",
+          "commercial_status": "historical_only",
+          "image": {
+            "src": "/assets/laifen-gift-edition-green.jpg",
+            "alt": "Laifen Gift Edition - LF01 Green"
+          }
+        },
+        {
+          "sku": "CK80631",
+          "ean": "8050191000800",
+          "color": "LF01 Black",
+          "configuration": "concentrator_diffuser",
+          "observed_price_minor": 11999,
+          "currency": "EUR",
+          "commercial_status": "historical_only",
+          "image": {
+            "src": "/assets/laifen-gift-edition-black.jpg",
+            "alt": "Laifen Gift Edition - LF01 Black"
+          }
+        }
+      ]
+    },
+    {
+      "key": "laifen_se_special",
+      "name": "Laifen SE Special",
+      "brand": "Laifen",
+      "category": "hair_dryer",
+      "lifecycle": "phase_out_no_restock",
+      "sources": [
+        "se_special_shopify_screenshots",
+        "se_special_business_confirmation",
+        "business_product_photos_official_originals"
+      ],
+      "declared_features": [
+        "Motore brushless da 105.000 giri/min",
+        "Flusso d'aria fino a 21 m/s",
+        "200 milioni di ioni negativi/cm3",
+        "Controllo della temperatura 50 volte al secondo"
+      ],
+      "configurations": [
+        {
+          "key": "standard_concentrator_diffuser",
+          "label": "Ugello standard, concentratore e diffusore magnetici",
+          "included_components": [
+            {
+              "key": "se_special_standard_nozzle",
+              "quantity": 1
+            },
+            {
+              "key": "laifen_magnetic_concentrator",
+              "quantity": 1
+            },
+            {
+              "key": "laifen_magnetic_diffuser",
+              "quantity": 1
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "sku": "CL50966",
+          "ean": "6976973853445",
+          "color": "Matte White",
+          "configuration": "standard_concentrator_diffuser",
+          "observed_price_minor": 9999,
+          "currency": "EUR",
+          "commercial_status": "historical_only",
+          "image": {
+            "src": "/assets/laifen-se-special-white.png",
+            "alt": "Laifen SE Special - Matte White"
+          }
+        },
+        {
+          "sku": "CL50970",
+          "ean": "6976973853476",
+          "color": "Matte Blue",
+          "configuration": "standard_concentrator_diffuser",
+          "observed_price_minor": 9999,
+          "currency": "EUR",
+          "commercial_status": "historical_only",
+          "image": {
+            "src": "/assets/laifen-se-special-blue.jpg",
+            "alt": "Laifen SE Special - Matte Blue"
+          }
+        },
+        {
+          "sku": "CL50961",
+          "ean": "6976973853469",
+          "color": "Matte Pink",
+          "configuration": "standard_concentrator_diffuser",
+          "observed_price_minor": 9999,
+          "currency": "EUR",
+          "commercial_status": "sell_until_exhausted",
+          "image": {
+            "src": "/assets/laifen-se-special-pink.jpg",
+            "alt": "Laifen SE Special - Matte Pink"
+          }
+        },
+        {
+          "sku": "CL50968",
+          "ean": "6976973853452",
+          "color": "Matte Purple",
+          "configuration": "standard_concentrator_diffuser",
+          "observed_price_minor": 9999,
+          "currency": "EUR",
+          "commercial_status": "historical_only",
+          "image": {
+            "src": "/assets/laifen-se-special-purple.jpg",
+            "alt": "Laifen SE Special - Matte Purple"
+          }
+        }
+      ]
+    },
+    {
+      "key": "laifen_mini",
+      "name": "Laifen Mini",
+      "brand": "Laifen",
+      "category": "hair_dryer",
+      "sources": [
+        "mini_shopify_screenshots",
+        "mini_business_confirmation"
+      ],
+      "declared_features": [
+        "Peso dichiarato di 299 g",
+        "Volume ridotto del 33% rispetto al modello SE",
+        "Impugnatura con spessore inferiore a 5 cm",
+        "Modalità bambini con flusso d'aria a bassa temperatura"
+      ],
+      "declared_benefit": "Avere un asciugacapelli compatto e leggero da portare in viaggio, in palestra o in una seconda casa.",
+      "configurations": [
+        {
+          "key": "standard_nozzle_case",
+          "label": "Ugello standard magnetico e custodia da viaggio",
+          "included_components": [
+            {
+              "key": "mini_standard_magnetic_nozzle",
+              "quantity": 1
+            },
+            {
+              "key": "mini_travel_case",
+              "quantity": 1
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "sku": "CP34448",
+          "ean": "6976973850222",
+          "color": "Jungle Green",
+          "configuration": "standard_nozzle_case",
+          "observed_price_minor": 7999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-mini-green.jpg",
+            "alt": "Laifen Mini - Jungle Green"
+          }
+        },
+        {
+          "sku": "CP34447",
+          "ean": "6976973850215",
+          "color": "Glacier Blue",
+          "configuration": "standard_nozzle_case",
+          "observed_price_minor": 7999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-mini-blue.jpg",
+            "alt": "Laifen Mini - Glacier Blue"
+          }
+        },
+        {
+          "sku": "CP34500",
+          "ean": "6976973850208",
+          "color": "Coral Pink",
+          "configuration": "standard_nozzle_case",
+          "observed_price_minor": 7999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-mini-pink.jpg",
+            "alt": "Laifen Mini - Coral Pink"
+          }
+        },
+        {
+          "sku": "CR05263",
+          "ean": "6976973857689",
+          "color": "Sand Gold",
+          "configuration": "standard_nozzle_case",
+          "observed_price_minor": 7999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-mini-sand-gold.jpg",
+            "alt": "Laifen Mini - Sand Gold"
+          }
+        }
+      ]
+    },
+    {
+      "key": "laifen_mini_wall_mount",
+      "name": "Supporto magnetico da parete Laifen Mini",
+      "brand": "Laifen",
+      "category": "hair_dryer_accessory",
+      "sources": [
+        "mini_wall_mount_shopify_screenshots",
+        "mini_business_confirmation"
+      ],
+      "declared_function": "Mantiene Laifen Mini fissato e accessibile a parete; il montaggio dichiarato non richiede chiodi.",
+      "declared_benefit": "Organizzare lo spazio e tenere Laifen Mini ordinato, sicuro e facilmente accessibile.",
+      "provides_component": "mini_magnetic_wall_mount",
+      "variants": [
+        {
+          "sku": "CP34501",
+          "ean": "6976973852646",
+          "observed_price_minor": 1499,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-mini-wall-mount.jpg",
+            "alt": "Supporto magnetico da parete Laifen Mini"
+          }
+        }
+      ],
+      "compatibility": [
+        {
+          "model": "Mini",
+          "compatible": true,
+          "source": "mini_wall_mount_shopify_screenshots"
+        }
+      ]
+    },
+    {
+      "key": "laifen_air",
+      "name": "Laifen Air",
+      "brand": "Laifen",
+      "category": "hair_dryer",
+      "sources": [
+        "air_shopify_screenshots",
+        "air_business_confirmation"
+      ],
+      "declared_features": [
+        "Motore brushless da 110.000 RPM",
+        "Flusso d'aria fino a 19 m/s",
+        "Controllo della temperatura 100 volte al secondo",
+        "Peso dichiarato di 280 g",
+        "Dimensioni dichiarate di 218 x 61 x 76 mm",
+        "200 milioni di ioni negativi",
+        "Cinque modalità di temperatura e due velocità del flusso d'aria",
+        "Rumorosità dichiarata inferiore a 60 dB",
+        "Filtro a maglia fine alla base dell'impugnatura"
+      ],
+      "configurations": [
+        {
+          "key": "standard_nozzle_manual",
+          "label": "Ugello standard magnetico e manuale utente",
+          "included_components": [
+            {
+              "key": "air_standard_magnetic_nozzle",
+              "quantity": 1
+            },
+            {
+              "key": "air_user_manual",
+              "quantity": 1
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "sku": "1HD20-S-EU-PU-001",
+          "ean": "6942590702688",
+          "color": "Purple",
+          "configuration": "standard_nozzle_manual",
+          "observed_price_minor": 5999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-air-purple.jpg",
+            "alt": "Laifen Air - Purple"
+          }
+        },
+        {
+          "sku": "1HD20-S-EU-WH-001",
+          "ean": "6942590702695",
+          "color": "White",
+          "configuration": "standard_nozzle_manual",
+          "observed_price_minor": 5999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-air-white.jpg",
+            "alt": "Laifen Air - White"
+          }
+        },
+        {
+          "sku": "1HD20-S-EU-PK-001",
+          "ean": "6942590702671",
+          "color": "Pink",
+          "configuration": "standard_nozzle_manual",
+          "observed_price_minor": 5999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-air-pink.jpg",
+            "alt": "Laifen Air - Pink"
+          }
+        }
+      ]
+    },
+    {
+      "key": "laifen_magnetic_wall_mount",
+      "name": "Supporto magnetico da parete Laifen",
+      "brand": "Laifen",
+      "category": "hair_dryer_accessory",
+      "sources": [
+        "magnetic_wall_mount_shopify_screenshots",
+        "magnetic_wall_mount_business_confirmation",
+        "magnetic_wall_mount_public_variants"
+      ],
+      "declared_function": "Mantiene l'asciugacapelli Laifen fissato e facilmente accessibile a parete.",
+      "declared_benefit": "Organizzare lo spazio e tenere l'asciugacapelli ordinato, stabile e accessibile.",
+      "provides_component": "laifen_magnetic_wall_mount",
+      "variants": [
+        {
+          "sku": "30101-000092",
+          "ean": "6976973859829",
+          "color": "Silver",
+          "observed_price_minor": 1799,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-neo-wall-mount-silver.jpg",
+            "alt": "Supporto magnetico da parete Laifen - Silver"
+          }
+        },
+        {
+          "sku": "30101-000249",
+          "ean": "6976973859843",
+          "color": "Gray",
+          "observed_price_minor": 1799,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-neo-wall-mount-grey.jpg",
+            "alt": "Supporto magnetico da parete Laifen - Gray"
+          }
+        },
+        {
+          "sku": "30101-000248",
+          "ean": "6976973859836",
+          "color": "Star Light",
+          "observed_price_minor": 1799,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-neo-wall-mount-star-light.jpg",
+            "alt": "Supporto magnetico da parete Laifen - Star Light"
+          }
+        }
+      ],
+      "compatibility": [
+        {
+          "model": "Neo",
+          "compatible": true,
+          "source": "magnetic_wall_mount_business_confirmation"
+        }
+      ]
+    },
+    {
+      "key": "laifen_autocurl",
+      "name": "Laifen AutoCurl - Arricciacapelli Automatico",
+      "brand": "Laifen",
+      "category": "hair_styler",
+      "sources": [
+        "autocurl_shopify_screenshots",
+        "autocurl_official_product_page",
+        "autocurl_business_confirmation"
+      ],
+      "declared_features": [
+        "Sensori d-ToF con rilevamento della ciocca in 0,5 secondi",
+        "Doppia camera intelligente per scegliere la direzione del riccio",
+        "Adaptive Servo System con controllo PID",
+        "Riscaldamento ceramico Dual PTC",
+        "Tre temperature: 160 °C, 180 °C e 200 °C",
+        "Auto Mode e Manual Mode",
+        "200 milioni di ioni negativi",
+        "Camera protettiva a 360 gradi",
+        "Doppio voltaggio 110-240 V"
+      ],
+      "declared_function": "Crea automaticamente ricci e onde con direzione e temperatura selezionabili.",
+      "declared_benefit": "Realizzare ricci e onde definiti con uno styling automatico e controllato.",
+      "provides_component": "laifen_autocurl",
+      "suitability": {
+        "hair_types": [
+          "fine",
+          "normal",
+          "thick"
+        ],
+        "source": "autocurl_official_product_page",
+        "commercial_filter": "customer_interest_in_creating_curls_or_waves"
+      },
+      "variants": [
+        {
+          "sku": "1HC51-P-EU-BL-001",
+          "ean": "6942590703456",
+          "color": "Black",
+          "observed_price_minor": 9999,
+          "currency": "EUR"
+        },
+        {
+          "sku": "1HC51-P-EU-WH-002",
+          "ean": "6942590703463",
+          "color": "White",
+          "observed_price_minor": 9999,
+          "currency": "EUR"
+        }
+      ],
+      "image": {
+        "src": "/assets/laifen-autocurl.jpg",
+        "alt": "Laifen AutoCurl - Arricciacapelli Automatico"
+      }
+    },
+    {
+      "key": "laifen_storage_pouch",
+      "name": "Pochette Portaoggetti Laifen",
+      "brand": "Laifen",
+      "category": "hair_dryer_accessory",
+      "sources": [
+        "storage_pouch_shopify_screenshot",
+        "storage_pouch_business_confirmation",
+        "business_product_photos_official_originals"
+      ],
+      "declared_function": "Custodisce e trasporta un asciugacapelli Laifen e i relativi accessori.",
+      "declared_benefit": "Tenere asciugacapelli e accessori organizzati e protetti durante il viaggio.",
+      "provides_component": "laifen_storage_pouch",
+      "variants": [
+        {
+          "sku": "CL51809",
+          "ean": "6973833031012",
+          "observed_price_minor": 2999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-storage-pouch.jpg",
+            "alt": "Pochette Portaoggetti Laifen"
+          }
+        }
+      ]
+    },
+    {
+      "key": "laifen_brush",
+      "name": "Spazzola Laifen",
+      "brand": "Laifen",
+      "category": "hair_care_accessory",
+      "sources": [
+        "brush_shopify_screenshots",
+        "brush_business_confirmation",
+        "business_product_photos_official_originals"
+      ],
+      "declared_function": "Districa delicatamente i capelli con un formato portatile e compatto.",
+      "declared_benefit": "Ridurre il crespo e mantenere i capelli morbidi, lucenti e ordinati durante la giornata.",
+      "provides_component": "laifen_brush",
+      "variants": [
+        {
+          "sku": "30101-000041",
+          "ean": "6973833031081",
+          "color": "Silver",
+          "observed_price_minor": 1299,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-brush-silver.jpg",
+            "alt": "Spazzola Laifen - Silver"
+          }
+        },
+        {
+          "sku": "CL51811",
+          "ean": "6973833031074",
+          "color": "Pink",
+          "observed_price_minor": 1299,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-brush-pink.jpg",
+            "alt": "Spazzola Laifen - Pink"
+          }
+        }
+      ]
+    },
+    {
+      "key": "laifen_wave_legacy",
+      "name": "Laifen Wave - Spazzolino Elettrico con Travel Box",
+      "brand": "Laifen",
+      "category": "electric_toothbrush",
+      "lifecycle": "discontinued_no_restock",
+      "sources": [
+        "wave_legacy_shopify_screenshots",
+        "wave_legacy_business_confirmation"
+      ],
+      "declared_features": [
+        "Oscillazione meccanica fino a 60 gradi",
+        "Vibrazioni soniche fino a 66.000 al minuto",
+        "Servosistema con magneti permanenti",
+        "Tre profili e dieci livelli di intensità personalizzabili tramite app Laifen",
+        "Timer regolabile con promemoria ogni 30 secondi",
+        "Autonomia dichiarata fino a 30 giorni",
+        "Ricarica USB-C con attacco magnetico",
+        "Impermeabilità IPX7"
+      ],
+      "configurations": [
+        {
+          "key": "travel_box_three_heads",
+          "label": "Travel Box e tre testine specializzate",
+          "included_components": [
+            {
+              "key": "wave_legacy_travel_box",
+              "quantity": 1
+            },
+            {
+              "key": "wave_legacy_gum_care_head",
+              "quantity": 1
+            },
+            {
+              "key": "wave_legacy_super_clean_head",
+              "quantity": 1
+            },
+            {
+              "key": "wave_legacy_ultra_whitening_head",
+              "quantity": 1
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "sku": "CL97510",
+          "ean": "6973833032231",
+          "material": "ABS",
+          "color": "Bianco Lucido",
+          "configuration": "travel_box_three_heads",
+          "observed_price_minor": 5999,
+          "currency": "EUR",
+          "commercial_status": "historical_only",
+          "image": {
+            "src": "/assets/laifen-wave-abs-white.jpg",
+            "alt": "Laifen Wave - Spazzolino Elettrico con Travel Box - ABS Bianco Lucido"
+          }
+        },
+        {
+          "sku": "CL97511",
+          "ean": "6973833033160",
+          "material": "ABS",
+          "color": "Rosa Lucido",
+          "configuration": "travel_box_three_heads",
+          "observed_price_minor": 5999,
+          "currency": "EUR",
+          "commercial_status": "historical_only"
+        },
+        {
+          "sku": "CL97508X",
+          "ean": "6976973853650X",
+          "identifier_note": "SKU e codice a barre riportati come mostrati nella schermata Shopify, incluso il suffisso X.",
+          "material": "ABS",
+          "color": "Blu Lucido",
+          "configuration": "travel_box_three_heads",
+          "observed_price_minor": 5999,
+          "currency": "EUR",
+          "commercial_status": "historical_only"
+        },
+        {
+          "sku": "CP34472X",
+          "ean": "6976973853674X",
+          "identifier_note": "SKU e codice a barre riportati come mostrati nella schermata Shopify, incluso il suffisso X.",
+          "material": "ABS",
+          "color": "Viola Lucido",
+          "configuration": "travel_box_three_heads",
+          "observed_price_minor": 5999,
+          "currency": "EUR",
+          "commercial_status": "historical_only"
+        },
+        {
+          "sku": "CL97509",
+          "ean": "6973833032248",
+          "material": "Alluminio",
+          "color": "Grigio Satinato",
+          "configuration": "travel_box_three_heads",
+          "observed_price_minor": 6999,
+          "currency": "EUR",
+          "commercial_status": "historical_only"
+        },
+        {
+          "sku": "C027164",
+          "ean": "6976973853704",
+          "material": "Alluminio",
+          "color": "Rosa Satinato",
+          "configuration": "travel_box_three_heads",
+          "observed_price_minor": 6999,
+          "currency": "EUR",
+          "commercial_status": "historical_only"
+        },
+        {
+          "sku": "C027165",
+          "ean": "6976973853698",
+          "material": "Alluminio",
+          "color": "Blu Satinato",
+          "configuration": "travel_box_three_heads",
+          "observed_price_minor": 6999,
+          "currency": "EUR",
+          "commercial_status": "historical_only"
+        }
+      ]
+    },
+    {
+      "key": "laifen_wave_legacy_travel_box",
+      "name": "Laifen Wave Travel Box",
+      "brand": "Laifen",
+      "category": "electric_toothbrush_accessory",
+      "observed_variant_count": 2,
+      "sources": [
+        "wave_legacy_travel_box_shopify_screenshot",
+        "wave_legacy_travel_box_business_confirmation",
+        "business_product_photos_official_originals",
+        "wave_heads_and_travel_box_business_confirmation"
+      ],
+      "declared_function": "Custodia da viaggio in ABS per il precedente Wave; il codice distingue il modello di spazzolino contenuto, ABS o Alluminio.",
+      "declared_benefit": "Proteggere e trasportare il precedente Wave.",
+      "provides_component": "wave_legacy_travel_box",
+      "compatibility": [
+        {
+          "model": "Wave",
+          "compatible": true,
+          "source": "wave_legacy_travel_box_business_confirmation"
+        },
+        {
+          "model": "Wave Pro",
+          "compatible": false,
+          "source": "wave_legacy_travel_box_business_confirmation"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "CM61971",
+          "ean": "6976973854572",
+          "model": "ABS",
+          "observed_price_minor": 1999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-wave-travel-box-abs.jpg",
+            "alt": "Laifen Wave Travel Box - ABS"
+          },
+          "material": "ABS",
+          "contained_toothbrush_material": "ABS"
+        },
+        {
+          "sku": "CM61972",
+          "ean": null,
+          "material": "ABS",
+          "model": "Alluminio",
+          "contained_toothbrush_material": "Alluminio",
+          "purchase_recognition_only": true
+        }
+      ]
+    },
+    {
+      "key": "laifen_wave_legacy_magnetic_charging_cable",
+      "name": "Cavo di ricarica magnetico Laifen Wave",
+      "brand": "Laifen",
+      "category": "electric_toothbrush_accessory",
+      "sources": [
+        "wave_legacy_charging_cable_shopify_screenshot",
+        "wave_charging_accessories_business_confirmation"
+      ],
+      "declared_function": "Ricarica il precedente Laifen Wave tramite connessione magnetica e alimentazione USB-C.",
+      "declared_benefit": "Disporre di un cavo di ricarica compatibile a casa o in viaggio.",
+      "provides_component": "wave_legacy_magnetic_charging_cable",
+      "compatibility": [
+        {
+          "model": "Wave",
+          "compatible": true,
+          "compatible_materials": [
+            "ABS",
+            "Alluminio"
+          ],
+          "source": "wave_legacy_charging_cable_shopify_screenshot"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "6973833031630",
+          "ean": "6973833031630",
+          "observed_price_minor": 999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-wave-magnetic-charging-cable.jpg",
+            "alt": "Cavo di ricarica magnetico Laifen Wave"
+          }
+        }
+      ]
+    },
+    {
+      "key": "laifen_wave_pro",
+      "name": "Laifen Wave Pro - Spazzolino Elettrico",
+      "brand": "Laifen",
+      "category": "electric_toothbrush",
+      "sources": [
+        "wave_pro_shopify_screenshots"
+      ],
+      "declared_features": [
+        "Oscillazione fino a 60 gradi",
+        "Vibrazioni soniche fino a 66.000 al minuto",
+        "Sensore di pressione intelligente con riduzione automatica della velocità in caso di pressione eccessiva",
+        "Dieci livelli di intensità personalizzabili tramite app Laifen",
+        "Pulizia quotidiana e pulizia profonda con tre livelli di potenza preimpostati",
+        "Autonomia dichiarata fino a 70 giorni",
+        "Ricarica wireless",
+        "Impermeabilità IPX8"
+      ],
+      "configurations": [
+        {
+          "key": "two_heads_case_wireless_charger",
+          "label": "Due testine, custodia da viaggio e caricatore wireless",
+          "included_components": [
+            {
+              "key": "wave_pro_whitening_head",
+              "quantity": 1
+            },
+            {
+              "key": "wave_pro_antiplaque_head",
+              "quantity": 1
+            },
+            {
+              "key": "wave_pro_travel_case",
+              "quantity": 1
+            },
+            {
+              "key": "wave_pro_wireless_charger",
+              "quantity": 1
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "sku": "CR95008",
+          "ean": "6942590701018",
+          "material": "ABS",
+          "color": "Bianco",
+          "configuration": "two_heads_case_wireless_charger",
+          "observed_price_minor": 9999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-wave-pro-abs-white.jpg",
+            "alt": "Laifen Wave Pro - Spazzolino Elettrico - ABS - Bianco"
+          }
+        },
+        {
+          "sku": "CR95009",
+          "ean": "6942590701049",
+          "material": "ABS",
+          "color": "Nero",
+          "configuration": "two_heads_case_wireless_charger",
+          "observed_price_minor": 9999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-wave-pro-abs-black.jpg",
+            "alt": "Laifen Wave Pro - Spazzolino Elettrico - ABS - Nero"
+          }
+        },
+        {
+          "sku": "CR95024",
+          "ean": "6942590701025",
+          "material": "ABS",
+          "color": "Rosa",
+          "configuration": "two_heads_case_wireless_charger",
+          "observed_price_minor": 9999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-wave-pro-abs-pink.jpg",
+            "alt": "Laifen Wave Pro - Spazzolino Elettrico - ABS - Rosa"
+          }
+        },
+        {
+          "sku": "CR95017",
+          "ean": "6942590701056",
+          "material": "Alluminio",
+          "color": "Argento Satinato",
+          "configuration": "two_heads_case_wireless_charger",
+          "observed_price_minor": 11999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-wave-pro-aluminium-silver.jpg",
+            "alt": "Laifen Wave Pro - Spazzolino Elettrico - Alluminio - Argento Satinato"
+          }
+        },
+        {
+          "sku": "CR95041",
+          "ean": "6942590701063",
+          "material": "Alluminio",
+          "color": "Grigio Satinato",
+          "configuration": "two_heads_case_wireless_charger",
+          "observed_price_minor": 11999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-wave-pro-aluminium-grey.jpg",
+            "alt": "Laifen Wave Pro - Spazzolino Elettrico - Alluminio - Grigio Satinato"
+          }
+        },
+        {
+          "sku": "CR95016",
+          "ean": "6942590701100",
+          "material": "Transparent",
+          "color": "Nero Trasparente",
+          "configuration": "two_heads_case_wireless_charger",
+          "observed_price_minor": 13999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-wave-pro-transparent.jpg",
+            "alt": "Laifen Wave Pro - Spazzolino Elettrico - Transparent - Nero Trasparente"
+          }
+        }
+      ],
+      "declared_benefit": "Personalizzare la pulizia orale con controllo della pressione, autonomia prolungata e accessori per l'uso quotidiano e in viaggio."
+    },
+    {
+      "key": "laifen_wave_pro_charging_base",
+      "name": "Base di Ricarica Laifen Wave Pro",
+      "brand": "Laifen",
+      "category": "electric_toothbrush_accessory",
+      "sources": [
+        "wave_pro_charging_base_shopify_screenshots",
+        "wave_charging_accessories_business_confirmation"
+      ],
+      "declared_function": "Ricarica Wave Pro tramite una base wireless con aggancio magnetico e alimentazione USB-C.",
+      "declared_benefit": "Avere una base stabile e compatta per la ricarica quotidiana o in viaggio.",
+      "provides_component": "wave_pro_wireless_charger",
+      "compatibility": [
+        {
+          "model": "Wave Pro",
+          "compatible": true,
+          "source": "wave_pro_charging_base_shopify_screenshots"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "30102-000170",
+          "ean": "6942590701155",
+          "material": "ABS",
+          "observed_price_minor": 2999,
+          "currency": "EUR"
+        },
+        {
+          "sku": "30102-000171",
+          "ean": "6942590701162",
+          "material": "Alluminio",
+          "observed_price_minor": 2999,
+          "currency": "EUR"
+        }
+      ],
+      "image": {
+        "src": "/assets/laifen-wave-pro-charging-base.jpg",
+        "alt": "Base di Ricarica Laifen Wave Pro"
+      }
+    },
+    {
+      "key": "laifen_wave_pro_replacement_heads",
+      "name": "Testine di Ricambio Laifen Wave / Wave Pro",
+      "brand": "Laifen",
+      "category": "electric_toothbrush_accessory",
+      "sources": [
+        "wave_pro_replacement_heads_shopify_screenshots",
+        "wave_heads_and_travel_box_business_confirmation"
+      ],
+      "declared_function": "Testine di ricambio compatibili con Wave e Wave Pro, raggruppate senza distinzione commerciale di tipo.",
+      "declared_benefit": "Mantenere la routine di pulizia orale sostituendo le testine.",
+      "compatibility": [
+        {
+          "model": "Wave",
+          "compatible": true,
+          "source": "wave_heads_and_travel_box_business_confirmation"
+        },
+        {
+          "model": "Wave Pro",
+          "compatible": true,
+          "source": "wave_heads_and_travel_box_business_confirmation"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "CR95042",
+          "ean": "6976973851991",
+          "type": "Pro Whitening",
+          "pack_quantity": 3,
+          "version": "Trasparente",
+          "observed_price_minor": 1999,
+          "currency": "EUR"
+        },
+        {
+          "sku": "CR95032",
+          "ean": "6976973852004",
+          "type": "Pro Plaque Removal",
+          "pack_quantity": 3,
+          "version": "Trasparente",
+          "observed_price_minor": 1999,
+          "currency": "EUR"
+        },
+        {
+          "sku": "6976973852011",
+          "ean": "6976973852011",
+          "type": "Pro Gum Care",
+          "pack_quantity": 3,
+          "version": "Trasparente",
+          "observed_price_minor": 1999,
+          "currency": "EUR"
+        },
+        {
+          "sku": "CR94994",
+          "ean": "6976973851984",
+          "type": "Pro Max Brush",
+          "pack_quantity": 3,
+          "version": "Trasparente",
+          "observed_price_minor": 1999,
+          "currency": "EUR"
+        },
+        {
+          "sku": "CP38422",
+          "ean": null,
+          "purchase_recognition_only": true
+        },
+        {
+          "sku": "CP38423",
+          "ean": null,
+          "purchase_recognition_only": true
+        },
+        {
+          "sku": "CP38472",
+          "ean": null,
+          "purchase_recognition_only": true
+        },
+        {
+          "sku": "CP38474",
+          "ean": null,
+          "purchase_recognition_only": true
+        }
+      ],
+      "image": {
+        "src": "/assets/laifen-wave-pro-replacement-heads.jpg",
+        "alt": "Testine di Ricambio Laifen Wave Pro"
+      }
+    },
+    {
+      "key": "laifen_p3",
+      "name": "Laifen P3 - Rasoio Elettrico a 3 Lame",
+      "brand": "Laifen",
+      "category": "electric_shaver",
+      "lifecycle": "current",
+      "relative_positioning": "Modello più nuovo e più economico della famiglia P3, con corpo in materiale composito ad alta resistenza.",
+      "sources": [
+        "p3_shopify_screenshots",
+        "p3_family_business_confirmation"
+      ],
+      "declared_features": [
+        "Corpo leggero ed ergonomico in materiale composito ad alta resistenza",
+        "Due motori lineari da 12.000 CPM ciascuno e 24.000 tagli sincronizzati al minuto",
+        "Sistema Triple-Blade a tre lame",
+        "Certificazione IPX7",
+        "Autonomia dichiarata fino a 100 minuti",
+        "Ricarica rapida USB-C con 7 minuti di utilizzo dopo 3 minuti di ricarica"
+      ],
+      "configurations": [
+        {
+          "key": "head_case_cable_manual",
+          "label": "Testina, custodia lama, cavo USB-C e manuale",
+          "included_components": [
+            {
+              "key": "p3_shaving_head",
+              "quantity": 1
+            },
+            {
+              "key": "p3_blade_protective_case",
+              "quantity": 1
+            },
+            {
+              "key": "usb_c_charging_cable",
+              "quantity": 1
+            },
+            {
+              "key": "user_manual",
+              "quantity": 1
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "sku": "1ER91-P-XX-BL-002",
+          "ean": "6942590702466",
+          "color": "Black",
+          "material": "Composito ad alta resistenza",
+          "configuration": "head_case_cable_manual",
+          "observed_price_minor": 16999,
+          "currency": "EUR"
+        },
+        {
+          "sku": "1ER91-P-XX-WH-002",
+          "ean": "6942590702473",
+          "color": "White",
+          "material": "Composito ad alta resistenza",
+          "configuration": "head_case_cable_manual",
+          "observed_price_minor": 16999,
+          "currency": "EUR"
+        }
+      ],
+      "declared_benefit": "Rasatura del viso con sistema a tre lame e ricarica USB-C.",
+      "image": {
+        "src": "/assets/laifen-p3.jpg",
+        "alt": "Laifen P3 - Rasoio Elettrico a 3 Lame"
+      }
+    },
+    {
+      "key": "laifen_p3_pro",
+      "name": "Laifen P3 Pro - Rasoio Elettrico a 3 Lame",
+      "brand": "Laifen",
+      "category": "electric_shaver",
+      "lifecycle": "current",
+      "relative_positioning": "Modello della famiglia P3 con corpo in alluminio CNC.",
+      "sources": [
+        "p3_pro_shopify_screenshots",
+        "p3_family_business_confirmation"
+      ],
+      "declared_features": [
+        "Corpo compatto e robusto in alluminio CNC",
+        "Sistema a tre lame e due motori ad alta velocità",
+        "Autonomia dichiarata fino a 100 minuti",
+        "Ricarica rapida USB-C"
+      ],
+      "configurations": [
+        {
+          "key": "case_cable_manual",
+          "label": "Custodia lama, cavo USB-C e manuale",
+          "included_components": [
+            {
+              "key": "p3_pro_blade_protective_case",
+              "quantity": 1
+            },
+            {
+              "key": "usb_c_charging_cable",
+              "quantity": 1
+            },
+            {
+              "key": "user_manual",
+              "quantity": 1
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "sku": "CP96308",
+          "ean": "6976973858235",
+          "color": "Original Aluminium Alloy",
+          "material": "Alluminio CNC",
+          "configuration": "case_cable_manual",
+          "observed_price_minor": 19999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-p3-pro-silver.jpg",
+            "alt": "Laifen P3 Pro - Rasoio Elettrico a 3 Lame - Original Aluminium Alloy"
+          }
+        },
+        {
+          "sku": "CP96436",
+          "ean": "6976973858242",
+          "color": "Space Gray Aluminium Alloy",
+          "material": "Alluminio CNC",
+          "configuration": "case_cable_manual",
+          "observed_price_minor": 19999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-p3-pro-grey.jpg",
+            "alt": "Laifen P3 Pro - Rasoio Elettrico a 3 Lame - Space Gray Aluminium Alloy"
+          }
+        }
+      ],
+      "declared_benefit": "Rasatura del viso con sistema a tre lame e ricarica USB-C."
+    },
+    {
+      "key": "laifen_p3_pro_replacement_head",
+      "name": "Testina di Ricambio per Laifen P3 Pro",
+      "brand": "Laifen",
+      "category": "electric_shaver_accessory",
+      "sources": [
+        "p3_pro_replacement_head_shopify_screenshots",
+        "p3_accessories_business_confirmation",
+        "p3_pro_replacement_head_official_product_page"
+      ],
+      "declared_function": "Sostituisce la testina del rasoio P3 Pro quando lame e componenti interni perdono efficienza.",
+      "declared_benefit": "Mantenere una rasatura profonda, uniforme e delicata nel tempo.",
+      "provides_component": "p3_pro_replacement_head",
+      "compatibility": [
+        {
+          "model": "P3 Pro",
+          "compatible": true,
+          "source": "p3_pro_replacement_head_shopify_screenshots"
+        },
+        {
+          "model": "P3",
+          "compatible": false,
+          "source": "p3_pro_replacement_head_official_product_page"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "30103-000046",
+          "ean": "6976973859362",
+          "color": "Original Aluminium Alloy",
+          "observed_price_minor": 4499,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-p3-pro-head-silver.jpg",
+            "alt": "Testina di Ricambio per Laifen P3 Pro - Original Aluminium Alloy"
+          }
+        },
+        {
+          "sku": "30103-000047",
+          "ean": "6976973859379",
+          "color": "Space Gray Aluminium Alloy",
+          "observed_price_minor": 4499,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-p3-pro-head-grey.jpg",
+            "alt": "Testina di Ricambio per Laifen P3 Pro - Space Gray Aluminium Alloy"
+          }
+        }
+      ]
+    },
+    {
+      "key": "laifen_p3_travel_case",
+      "name": "Astuccio da Viaggio per Laifen P3 Pro",
+      "brand": "Laifen",
+      "category": "electric_shaver_accessory",
+      "sources": [
+        "p3_travel_case_shopify_screenshots",
+        "p3_accessories_business_confirmation"
+      ],
+      "declared_function": "Custodisce e trasporta il rasoio mantenendolo pulito e protetto.",
+      "declared_benefit": "Proteggere il rasoio durante i viaggi e conservarlo ordinatamente a casa.",
+      "provides_component": "p3_travel_case",
+      "compatibility": [
+        {
+          "model": "P3 Pro",
+          "compatible": true,
+          "source": "p3_travel_case_shopify_screenshots"
+        },
+        {
+          "model": "P3",
+          "compatible": true,
+          "source": "p3_accessories_business_confirmation"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "30103-000019",
+          "ean": "6976973858778",
+          "color": "White",
+          "observed_price_minor": 2999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-p3-travel-case-white.jpg",
+            "alt": "Astuccio da Viaggio per Laifen P3 Pro - White"
+          }
+        },
+        {
+          "sku": "30103-000021",
+          "ean": "6976973858792",
+          "color": "Gray",
+          "observed_price_minor": 2999,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-p3-travel-case-grey.jpg",
+            "alt": "Astuccio da Viaggio per Laifen P3 Pro - Gray"
+          }
+        }
+      ]
+    },
+    {
+      "key": "laifen_t1_pro",
+      "name": "Laifen T1 Pro - Rasoio Elettrico a 1 Lama",
+      "brand": "Laifen",
+      "category": "electric_shaver",
+      "sources": [
+        "t1_pro_public_catalog"
+      ],
+      "variants": [
+        {
+          "sku": "CP96306",
+          "ean": "6976973858112",
+          "color": "Silver",
+          "observed_price_minor": 12799,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-t1-pro-silver.jpg",
+            "alt": "Laifen T1 Pro - Rasoio Elettrico a 1 Lama - Silver"
+          }
+        },
+        {
+          "sku": "CP96307",
+          "ean": "6976973858129",
+          "color": "Gray",
+          "observed_price_minor": 12799,
+          "currency": "EUR",
+          "image": {
+            "src": "/assets/laifen-t1-pro-grey.jpg",
+            "alt": "Laifen T1 Pro - Rasoio Elettrico a 1 Lama - Gray"
+          }
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Prezzi osservati nelle schermate, non prezzi storici degli ordini né prezzi aggiornati in tempo reale.",
+    "Le caratteristiche e i benefici dichiarati non provano un bisogno del singolo cliente.",
+    "Le chiavi dei componenti descrivono la dotazione e non sono SKU commerciali.",
+    "Compatibilità di modelli non elencati e cambiamenti storici delle dotazioni non ancora verificati.",
+    "Il diffusore incluso in Neo è distinto dai diffusori venduti separatamente: nessun diffusore separato compatibile con Neo è attualmente disponibile nel catalogo, secondo conferma del business."
+  ],
+  "standby_checks": [
+    {
+      "id": "wave_legacy_travel_box_aluminum_identifiers",
+      "status": "standby",
+      "kind": "identifiers",
+      "subject_product": "laifen_wave_legacy_travel_box",
+      "question": "Recuperare il codice a barre della Travel Box CM61972, in ABS per Wave Alluminio.",
+      "commercial_effect": "Lo SKU CM61972 è riconosciuto negli acquisti; EAN e prezzo specifico non sono confermati. Nessuna regola commerciale attiva per la Travel Box."
+    },
+    {
+      "id": "neo_special_magnetic_diffuser_compatibility",
+      "status": "standby",
+      "kind": "compatibility",
+      "subject_product": "laifen_neo_special",
+      "accessory_product": "laifen_magnetic_diffuser",
+      "question": "Confermare se il diffusore magnetico venduto separatamente sia compatibile con Neo Special.",
+      "commercial_effect": "Nessuna opportunità diffusore per Neo Special finché la compatibilità non è confermata."
+    },
+    {
+      "id": "air_magnetic_concentrator_compatibility",
+      "status": "standby",
+      "kind": "compatibility",
+      "subject_product": "laifen_air",
+      "accessory_product": "laifen_magnetic_concentrator",
+      "question": "Confermare se il concentratore magnetico CP34473 sia compatibile con Air.",
+      "commercial_effect": "Nessuna opportunità concentratore per Air finché la compatibilità non è confermata."
+    },
+    {
+      "id": "air_magnetic_diffuser_compatibility",
+      "status": "standby",
+      "kind": "compatibility",
+      "subject_product": "laifen_air",
+      "accessory_product": "laifen_magnetic_diffuser",
+      "question": "Confermare se il diffusore magnetico venduto separatamente sia compatibile con Air.",
+      "commercial_effect": "Nessuna opportunità diffusore per Air finché la compatibilità non è confermata."
+    },
+    {
+      "id": "magnetic_wall_mount_other_models_compatibility",
+      "status": "standby",
+      "kind": "compatibility",
+      "accessory_product": "laifen_magnetic_wall_mount",
+      "confirmed_compatible_models": [
+        "laifen_neo"
+      ],
+      "question": "Confermare quali modelli Laifen diversi da Neo siano compatibili con il supporto 30101-000092.",
+      "commercial_effect": "La regola del supporto resta attiva solo per Neo fino a nuove conferme."
+    },
+    {
+      "id": "se_lite_dark_gray_diffuser_identifiers",
+      "status": "standby",
+      "kind": "catalog_identifiers",
+      "subject_product": "laifen_se_lite_diffuser",
+      "question": "Recuperare SKU ed EAN della variante storica Dark Gray disattivata.",
+      "commercial_effect": "Gli acquisti storici Dark Gray non possono essere riconosciuti automaticamente finché mancano gli identificativi."
+    }
+  ]
+}

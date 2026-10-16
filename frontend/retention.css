@@ -1,0 +1,122 @@
+.retention-main {--ink:#10173f;--secondary:#657796;--blue:#006be6;--blue-dark:#006be6;--blue-soft:#e6f4fe;--border:#e3ebf4;--canvas:#f5f8fc;--retention-band:#edf7ff;padding:24px 28px 24px 30px;gap:18px;background:var(--canvas)}
+.retention-main .page-heading {display:block;min-height:122px;padding:0 12px 8px}
+.retention-main .page-heading h1 {font-size:36px;line-height:44px;font-weight:700}
+.retention-main .page-heading p {font-size:20px;line-height:28px;margin-top:4px}
+.retention-main .page-heading #customer-scope {font-size:14px;line-height:20px;margin-top:18px}
+#retention-panel {display:flex;flex-direction:column;gap:18px;min-width:0}
+.retention-main .card {border-radius:18px;box-shadow:0 3px 16px #0d1a3d09}
+body[data-page="retention"] .workspace {min-width:0}
+.retention-main .retention-filters {display:flex;flex-direction:column;gap:20px;padding:24px 22px;background:linear-gradient(115deg,#f0f7ffcc,#f8fbff);border-color:#e1ebf6;box-shadow:0 2px 8px #172a4804}
+.retention-filter-fields {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+.retention-filter-field {display:flex;flex-direction:column;gap:10px;min-width:0}
+.retention-filter-label {display:flex;align-items:center;gap:10px;min-height:22px;color:var(--ink);font-weight:600;font-size:14px;line-height:20px}
+.retention-filter-fields select {width:100%;height:48px;border:1px solid var(--border);border-radius:12px;background:white;color:var(--ink);padding:8px 12px;font:14px/20px Inter,Arial,sans-serif}
+.retention-filter-fields select:focus-visible {outline:3px solid #56b9ed;outline-offset:2px}
+.retention-main img:not(.product-thumbnail) {flex:none}
+.retention-search-row {display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:48px}
+.retention-search {display:flex;flex:1;align-items:center;gap:12px;min-width:0;min-height:48px;padding:10px 16px;border:1px solid #d7e2ef;border-radius:12px;background:#ffffffdb}
+.retention-search>img {width:20px;height:20px}
+.retention-search>span {flex:1;min-width:0}
+.retention-search input {display:block;border:0;border-radius:0;padding:0;outline:none;width:100%;height:20px;color:var(--ink);background:transparent;font:14px/20px Inter,Arial,sans-serif}
+.retention-search input::placeholder {color:var(--secondary);opacity:1}
+.retention-search:focus-within {outline:3px solid #387be633;outline-offset:2px;border-color:#91b9eb}
+.retention-search kbd {padding:2px 6px;border:1px solid #e6edf6;border-radius:5px;background:#f1f5fa;color:#667892;white-space:nowrap;font:11px/18px Inter,Arial,sans-serif}
+.retention-main .retention-reset {display:flex;align-items:center;justify-content:center;gap:10px;flex:none;min-height:48px;border:0;border-radius:10px;background:transparent;color:var(--blue);font-size:14px;line-height:20px;font-weight:500}
+.retention-filter-chips {display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;padding-top:2px}
+.filter-chips-label {font-size:13px;font-weight:500;margin-right:4px}
+.retention-filter-chip {display:inline-flex;align-items:center;gap:8px;max-width:100%;min-height:34px;padding:6px 10px;border:1px solid var(--filter-border);border-radius:10px;background:var(--filter-soft);color:var(--filter-color);text-align:left;font-size:12px;line-height:18px;transition:filter 160ms}
+.retention-filter-chip>span:not(.filter-option-icon) {overflow-wrap:anywhere}
+.retention-filter-chip .filter-option-icon {width:20px;height:20px;border-radius:0;background:transparent}
+.retention-filter-chip svg {width:17px;height:17px}
+.filter-chip-remove {font-size:18px;line-height:16px;padding-left:4px}
+.retention-filter-chip:hover {filter:brightness(.97)}
+.retention-clear-all {padding:7px 8px;border:0;border-radius:8px;background:transparent;color:var(--blue);font-size:12px;font-weight:500}
+.retention-clear-all:hover {background:#e8f1ff}
+.retention-icon-slot {display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;flex:none}
+.filter-context {display:flex;align-items:flex-start;gap:18px;min-height:74px;padding:14px;border:1px solid var(--blue-soft);border-radius:16px;background:var(--retention-band)}
+.filter-context>div {display:grid;gap:4px;min-width:0}
+#active-filters {color:var(--blue);font-size:14px;line-height:20px;font-weight:600}
+#view-description {color:var(--secondary);font-size:13px;line-height:20px}
+.retention-queue {padding:16px 12px 12px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.retention-queue .table-heading {height:auto;min-height:36px;gap:12px;padding:0 8px 0 12px}
+.retention-queue .table-heading h2 {flex:1;min-width:0;font-size:20px;line-height:28px}
+.retention-list-icon {display:flex;align-items:center;justify-content:center;width:32px;height:32px;flex:none;border-radius:10px;background:var(--retention-band)}
+.retention-sort {display:flex;align-items:center;gap:8px;color:var(--secondary);font-size:12px;line-height:18px}
+.retention-queue .qualified-table {min-width:1104px}
+.retention-queue .qualified-table th {height:56px;border-radius:0;padding:8px 8px 8px 0;font-size:13px;line-height:20px;font-weight:500;background:var(--canvas);white-space:normal}
+.retention-queue .qualified-table th:first-child {width:12.65%;padding-left:20px;border-radius:10px 0 0 10px}
+.retention-queue .qualified-table th:nth-child(2) {width:14.3%}
+.retention-queue .qualified-table th:nth-child(3) {width:12.74%}
+.retention-queue .qualified-table th:nth-child(4) {width:16.81%}
+.retention-queue .qualified-table th:nth-child(5) {width:10%}
+.retention-queue .qualified-table th:nth-child(6) {width:17.56%}
+.retention-queue .qualified-table th:nth-child(7) {width:8.32%}
+.retention-queue .qualified-table th:last-child {width:7.62%;border-radius:0 10px 10px 0}
+.retention-queue .qualified-table td {height:98px;padding:12px 8px 12px 0;font-size:14px;line-height:20px;font-weight:400}
+.retention-queue .qualified-table td:first-child {padding-left:20px}
+.retention-queue .qualified-table td:nth-child(5) {padding-right:0}
+.retention-queue td:first-child .primary-text {font-weight:600}
+.retention-queue td:nth-child(3) .primary-text {font-weight:500}
+.retention-queue td .primary-text {white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:normal}
+.retention-queue td small {font-size:14px;line-height:20px;color:var(--secondary);white-space:normal;overflow:visible;text-overflow:clip}
+.retention-queue td .tone-blue {color:var(--blue)}
+.retention-queue td .tone-purple {color:var(--purple)}
+.retention-queue td .tone-amber {color:var(--amber)}
+.retention-queue td:nth-child(6) .primary-text {font-size:13px;-webkit-line-clamp:3}
+.retention-queue .qualified-table .strategy-badge {display:inline-block;max-width:100%;padding:5px;border-radius:8px;font-size:13px;line-height:20px;font-weight:500;white-space:normal;overflow-wrap:normal}
+.retention-queue .strategy-completion {background:var(--retention-band);color:var(--blue)}
+.retention-queue .product-with-image {gap:10px}
+.retention-queue .product-thumbnail {width:48px;height:48px;flex-basis:48px;border-radius:8px}
+.retention-queue .profile-badge {font-weight:500;line-height:18px}
+.retention-queue .numeric {text-align:center}
+.retention-queue .numeric .primary-text {font-weight:600}
+.retention-queue tbody tr:last-child td {border-bottom:0}
+.retention-queue .open-button {display:inline-flex;align-items:center;justify-content:center;gap:6px;width:80px;min-height:38px;padding:8px 10px 8px 12px;border:0;border-radius:8px;background:var(--blue);color:white;font-size:14px;line-height:20px;font-weight:500}
+.retention-queue .open-button:hover {background:#005bca}
+.retention-main .retention-reset:hover {background:#dbeeff}
+.retention-plans {display:block;padding:0;margin-top:4px;border:0;background:transparent;text-align:left;color:var(--secondary);font-size:14px;line-height:20px;font-weight:400}
+.retention-plans:hover {color:var(--blue);text-decoration:underline}
+.pagination {display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:32px}
+.pagination {border-top:1px solid var(--border);padding-top:12px}
+.retention-scope {font-size:12px;line-height:18px;color:var(--secondary)}
+.retention-scope summary {cursor:pointer;padding:4px 0}
+.retention-scope p {margin:8px 0}
+.retention-queue .empty {height:160px}
+@media(max-width:1199px) {.retention-filter-fields {grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.retention-queue .table-heading {flex-wrap:wrap}.retention-sort {flex-basis:100%;margin-left:44px}}
+@media(max-width:760px) {.retention-main {padding:20px 14px}.retention-main .retention-filters {padding:18px 14px}.retention-filter-fields {grid-template-columns:minmax(0,1fr)}.retention-search-row {flex-wrap:wrap;gap:8px}.retention-search {flex-basis:100%}.retention-search kbd {display:none}.floating-filter-trigger {min-height:56px}.retention-main .page-heading {padding:0}.retention-main .page-heading h1 {font-size:30px}.retention-main .page-heading p {font-size:16px;line-height:24px}.retention-filter-label {gap:6px}}
+@media(prefers-reduced-motion:reduce) {.retention-filter-chip {transition:none}}
+.selected-row {background:var(--blue-soft);outline:1px solid var(--blue);outline-offset:-1px}
+.quick-detail {position:fixed;right:24px;top:92px;bottom:24px;width:392px;padding:24px;z-index:20;overflow-y:auto;box-shadow:0 12px 40px #10182824}
+.quick-close {position:absolute;right:12px;top:10px;font-size:24px;padding:0 8px}
+#quick-content {display:grid;gap:16px}
+#quick-title {font-size:24px;line-height:32px;padding-right:24px;overflow-wrap:anywhere}
+.quick-profile,.quick-action,.quick-product {display:grid;gap:8px}
+.quick-profile h2 {font-size:16px}
+.quick-action {background:var(--blue-soft);padding:16px;border-radius:12px}
+.quick-action h3,.quick-action>p:not(.small) {color:var(--blue-dark)}
+.quick-action h3,.quick-product h4 {font-size:12px;line-height:18px;font-weight:600;margin:0}
+.quick-action .button {width:100%}
+.quick-product {background:var(--canvas);border-radius:8px;padding:12px}
+#quick-content>h3 {font-size:16px;line-height:24px;margin:0}
+@media(min-width:1760px) {body[data-page="retention"] main:has(#quick-detail:not([hidden])) {padding-right:440px}.quick-detail {box-shadow:none}}
+
+@media(max-width:700px) {
+  .retention-main .page-heading {min-height:0}
+  .retention-main .retention-filters {gap:16px}
+  .retention-main .retention-reset {width:100%;min-height:44px}
+  .retention-filter-chip,.retention-clear-all {min-height:44px}
+  .retention-filter-chips {gap:8px}
+  .filter-chips-label {flex-basis:100%}
+  .filter-context {gap:10px;padding:12px}
+  .retention-queue {padding:14px}
+  .retention-queue .table-heading {padding:0;gap:8px}
+  .retention-queue .table-heading h2 {font-size:18px;line-height:26px}
+  .retention-sort {margin-left:0}
+  .retention-plans {min-height:44px;white-space:normal}
+  .pagination {flex-wrap:wrap;gap:8px}
+  #page-label {order:-1;flex-basis:100%;text-align:center}
+  .pagination>.button {flex:1}
+  .quick-detail {inset:12px;width:auto;max-height:calc(100dvh - 24px);padding:18px;z-index:30;overscroll-behavior:contain}
+  .quick-close {min-width:44px;min-height:44px;top:4px;right:4px;background:white}
+  #quick-title {font-size:22px;line-height:30px;padding-right:36px}
+}

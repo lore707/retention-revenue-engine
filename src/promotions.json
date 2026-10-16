@@ -1,0 +1,258 @@
+{
+  "version": 3,
+  "timezone": "Europe/Rome",
+  "campaigns": [
+    {
+      "id": "neo_three_nozzles_october_2026",
+      "status": "planned",
+      "starts_on": "2026-10-01",
+      "ends_on": "2026-10-07",
+      "skus": ["CQ15839", "CQ15841", "CQ15840"],
+      "price_minor": 12499,
+      "currency": "EUR"
+    },
+    {
+      "id": "p3_pro_october_2026",
+      "status": "planned",
+      "starts_on": "2026-10-12",
+      "ends_on": "2026-10-18",
+      "skus": ["CP96308", "CP96436"],
+      "price_minor": 16999,
+      "currency": "EUR"
+    },
+    {
+      "id": "p3_october_2026",
+      "status": "planned",
+      "starts_on": "2026-10-12",
+      "ends_on": "2026-10-18",
+      "skus": ["1ER91-P-XX-BL-002", "1ER91-P-XX-WH-002"],
+      "price_minor": 13999,
+      "currency": "EUR"
+    },
+    {
+      "id": "wave_pro_abs_october_2026",
+      "status": "planned",
+      "starts_on": "2026-10-12",
+      "ends_on": "2026-10-18",
+      "skus": ["CR95008", "CR95009", "CR95024"],
+      "price_minor": 8499,
+      "currency": "EUR"
+    },
+    {
+      "id": "wave_pro_aluminum_october_2026",
+      "status": "planned",
+      "starts_on": "2026-10-12",
+      "ends_on": "2026-10-18",
+      "skus": ["CR95017", "CR95041"],
+      "price_minor": 9999,
+      "currency": "EUR"
+    },
+    {
+      "id": "wave_pro_transparent_october_2026",
+      "status": "planned",
+      "starts_on": "2026-10-12",
+      "ends_on": "2026-10-18",
+      "skus": ["CR95016"],
+      "price_minor": 11899,
+      "currency": "EUR"
+    },
+    {
+      "id": "neo_three_nozzles_november_2026",
+      "status": "planned",
+      "starts_on": "2026-11-19",
+      "ends_on": "2026-11-30",
+      "skus": [
+        "CQ15839",
+        "CQ15841",
+        "CQ15840"
+      ],
+      "price_minor": 11399,
+      "currency": "EUR"
+    },
+    {
+      "id": "neo_special_november_2026",
+      "status": "planned",
+      "starts_on": "2026-11-19",
+      "ends_on": "2026-11-30",
+      "skus": [
+        "CR68941",
+        "CR68943",
+        "CR68942"
+      ],
+      "price_minor": 13599,
+      "currency": "EUR"
+    },
+    {
+      "id": "p3_pro_november_2026",
+      "status": "planned",
+      "starts_on": "2026-11-19",
+      "ends_on": "2026-11-30",
+      "skus": [
+        "CP96308",
+        "CP96436"
+      ],
+      "price_minor": 14999,
+      "currency": "EUR"
+    },
+    {
+      "id": "wave_pro_abs_november_2026",
+      "status": "planned",
+      "starts_on": "2026-11-19",
+      "ends_on": "2026-11-30",
+      "skus": [
+        "CR95008",
+        "CR95009",
+        "CR95024"
+      ],
+      "price_minor": 7999,
+      "currency": "EUR"
+    },
+    {
+      "id": "wave_pro_aluminum_november_2026",
+      "status": "planned",
+      "starts_on": "2026-11-19",
+      "ends_on": "2026-11-30",
+      "skus": [
+        "CR95017",
+        "CR95041"
+      ],
+      "price_minor": 9499,
+      "currency": "EUR"
+    },
+    {
+      "id": "wave_pro_transparent_november_2026",
+      "status": "planned",
+      "starts_on": "2026-11-19",
+      "ends_on": "2026-11-30",
+      "skus": [
+        "CR95016"
+      ],
+      "price_minor": 10999,
+      "currency": "EUR"
+    },
+    {
+      "id": "p3_november_2026",
+      "status": "planned",
+      "starts_on": "2026-11-19",
+      "ends_on": "2026-11-30",
+      "skus": [
+        "1ER91-P-XX-BL-002",
+        "1ER91-P-XX-WH-002"
+      ],
+      "price_minor": 12999,
+      "currency": "EUR"
+    },
+    {
+      "id": "air_november_2026",
+      "status": "planned",
+      "starts_on": "2026-11-19",
+      "ends_on": "2026-11-30",
+      "skus": [
+        "1HD20-S-EU-PU-001",
+        "1HD20-S-EU-WH-001",
+        "1HD20-S-EU-PK-001"
+      ],
+      "price_minor": 5499,
+      "currency": "EUR"
+    },
+    {
+      "id": "neo_three_nozzles_december_2026",
+      "status": "planned",
+      "starts_on": "2026-12-12",
+      "ends_on": "2026-12-25",
+      "skus": [
+        "CQ15839",
+        "CQ15841",
+        "CQ15840"
+      ],
+      "price_minor": 11399,
+      "currency": "EUR"
+    },
+    {
+      "id": "neo_special_december_2026",
+      "status": "planned",
+      "starts_on": "2026-12-12",
+      "ends_on": "2026-12-25",
+      "skus": [
+        "CR68941",
+        "CR68943",
+        "CR68942"
+      ],
+      "price_minor": 13599,
+      "currency": "EUR"
+    },
+    {
+      "id": "p3_pro_december_2026",
+      "status": "planned",
+      "starts_on": "2026-12-12",
+      "ends_on": "2026-12-25",
+      "skus": [
+        "CP96308",
+        "CP96436"
+      ],
+      "price_minor": 14999,
+      "currency": "EUR"
+    },
+    {
+      "id": "wave_pro_abs_december_2026",
+      "status": "planned",
+      "starts_on": "2026-12-12",
+      "ends_on": "2026-12-25",
+      "skus": [
+        "CR95008",
+        "CR95009",
+        "CR95024"
+      ],
+      "price_minor": 7999,
+      "currency": "EUR"
+    },
+    {
+      "id": "wave_pro_aluminum_december_2026",
+      "status": "planned",
+      "starts_on": "2026-12-12",
+      "ends_on": "2026-12-25",
+      "skus": [
+        "CR95017",
+        "CR95041"
+      ],
+      "price_minor": 9499,
+      "currency": "EUR"
+    },
+    {
+      "id": "wave_pro_transparent_december_2026",
+      "status": "planned",
+      "starts_on": "2026-12-12",
+      "ends_on": "2026-12-25",
+      "skus": [
+        "CR95016"
+      ],
+      "price_minor": 10999,
+      "currency": "EUR"
+    },
+    {
+      "id": "p3_december_2026",
+      "status": "planned",
+      "starts_on": "2026-12-12",
+      "ends_on": "2026-12-25",
+      "skus": [
+        "1ER91-P-XX-BL-002",
+        "1ER91-P-XX-WH-002"
+      ],
+      "price_minor": 12999,
+      "currency": "EUR"
+    },
+    {
+      "id": "air_december_2026",
+      "status": "planned",
+      "starts_on": "2026-12-12",
+      "ends_on": "2026-12-25",
+      "skus": [
+        "1HD20-S-EU-PU-001",
+        "1HD20-S-EU-WH-001",
+        "1HD20-S-EU-PK-001"
+      ],
+      "price_minor": 5499,
+      "currency": "EUR"
+    }
+  ]
+}
