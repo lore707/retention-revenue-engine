@@ -14,6 +14,8 @@ Il monitoraggio avviene a livello del singolo cliente; le opportunità e i risul
 
 ## Prima versione
 
+La dashboard può essere utilizzata sul PC oppure come servizio privato su Render. La versione online per un singolo operatore richiede accesso HTTP Basic su HTTPS e storage persistente per SQLite e upload; tutti i dati operativi sono protetti dalle stesse credenziali. La versione locale conserva l'accesso senza credenziali sul solo loopback. Un deploy non pubblica né trasferisce automaticamente dati reali: il database sul PC e quello online restano separati. L'eventuale prova gratuita usa esclusivamente la modalità demo sintetica già esistente; non conserva le registrazioni ai riavvii. Hosting e autenticazione non cambiano consenso, regole, tentativi, priorità o attribuzione economica.
+
 Export CSV manuale da Shopify → pulizia e import locali automatici → analisi dei clienti → regole deterministiche → opportunità spiegate → contatto manuale → follow-up registrato → nuovi ordini importati → verifica degli ordini successivi → misurazione. Lo storico operativo iniziale comprende i soli export disponibili e si amplia con i successivi; il sistema rivaluta i profili, senza considerare dimostrata l'assenza di acquisti non ancora importati.
 
 Il primo caso è Laifen Italia. Informazioni sui prodotti e regole commerciali saranno definite nelle rispettive fasi, senza supposizioni. Per ora non sono previsti Shopify API, invii automatici, n8n, infrastrutture cloud complesse, LLM o agenti autonomi.

@@ -1,13 +1,16 @@
-"""Server locale dell'Overview; HTML/CSS/JS senza dipendenze aggiuntive."""
+"""Server della dashboard, locale o protetto su Render, senza dipendenze aggiuntive."""
 
 import argparse
+from base64 import b64encode
 from datetime import datetime
 from email.parser import BytesParser
 from email.policy import default
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import mimetypes
+import os
 from pathlib import Path
+from secrets import compare_digest
 import tempfile
 from threading import Lock
 from urllib.parse import parse_qs, urlparse
@@ -66,8 +69,9 @@ def demo_store(path):
     return store
 
 
-def make_handler(store, *, demo=False, as_of=None):
+def make_handler(store, *, demo=False, as_of=None, credentials=None, public_origin=None):
     write_lock = Lock()
+    authorization = b"Basic " + b64encode(":".join(credentials).encode("utf-8")) if credentials else None
 
     class Handler(BaseHTTPRequestHandler):
         def setup(self):
@@ -81,18 +85,34 @@ def make_handler(store, *, demo=False, as_of=None):
             finally:
                 self.store.close()
 
-        def reply(self, status, payload, content_type="application/json; charset=utf-8"):
+        def reply(self, status, payload, content_type="application/json; charset=utf-8", headers=None):
             body = json.dumps(payload, ensure_ascii=False).encode() if isinstance(payload, dict) else payload
             self.send_response(status)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
             self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("Referrer-Policy", "same-origin")
+            for name, value in (headers or {}).items():
+                self.send_header(name, value)
             self.end_headers()
             self.wfile.write(body)
 
+        def authorized(self):
+            if authorization is None or compare_digest(
+                    self.headers.get("Authorization", "").encode("utf-8"), authorization):
+                return True
+            self.reply(401, {"error": "Accesso riservato."}, headers={
+                "WWW-Authenticate": 'Basic realm="Retention Revenue Engine", charset="UTF-8"'})
+            return False
+
         def do_GET(self):
             parsed = urlparse(self.path)
+            if parsed.path == "/healthz":
+                self.reply(200, {"status": "ok"})
+                return
+            if not self.authorized():
+                return
             day = as_of or datetime.now(ZoneInfo("Europe/Rome")).date().isoformat()
             try:
                 query = parse_qs(parsed.query)
@@ -126,13 +146,16 @@ def make_handler(store, *, demo=False, as_of=None):
                 self.reply(400, {"error": "Richiesta non valida."})
 
         def do_POST(self):
+            if not self.authorized():
+                return
+            origin = self.headers.get("Origin")
+            if origin and origin != (public_origin or "http://" + self.headers.get("Host", "")):
+                self.reply(400, {"error": "Origine della richiesta non valida."})
+                return
             if self.path == "/api/events":
                 try:
                     if self.headers.get("Content-Type", "").split(";")[0] != "application/json":
                         raise ValueError("La registrazione richiede dati JSON.")
-                    origin = self.headers.get("Origin")
-                    if origin and origin != "http://" + self.headers.get("Host", ""):
-                        raise ValueError("Origine della richiesta non valida.")
                     length = int(self.headers.get("Content-Length", 0))
                     if not 0 < length <= 65536:
                         raise ValueError("Dimensione evento non valida.")
@@ -161,8 +184,8 @@ def make_handler(store, *, demo=False, as_of=None):
                     ("Content-Type: " + self.headers.get("Content-Type", "") + "\r\n\r\n").encode()
                     + self.rfile.read(length))
                 paths = []
-                directory = ROOT / "local-data"
-                directory.mkdir(exist_ok=True)
+                directory = self.store.path.parent / "uploads"
+                directory.mkdir(parents=True, exist_ok=True)
                 for part in message.iter_parts():
                     name = part.get_filename()
                     if not name:
@@ -189,20 +212,31 @@ def make_handler(store, *, demo=False, as_of=None):
     return Handler
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group()
-    mode.add_argument("--database", type=Path, help="SQLite locale; predefinito: local-data/retention.sqlite3.")
+    mode.add_argument("--database", type=Path, default=os.environ.get("DATABASE_PATH"),
+                      help="SQLite; usa DATABASE_PATH o local-data/retention.sqlite3.")
     mode.add_argument("--demo", action="store_true", help="Usa soltanto dati sintetici, separati dal database reale.")
-    parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--host", default="0.0.0.0" if os.environ.get("RENDER") else "127.0.0.1")
+    parser.add_argument("--port", type=int, default=os.environ.get("PORT", "8000"))
     parser.add_argument("--as-of", help="Data di valutazione; in demo il riferimento Figma è 2026-10-05.")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
+    username, password = os.environ.get("RRE_USERNAME"), os.environ.get("RRE_PASSWORD")
+    if bool(username) != bool(password) or (username and ":" in username):
+        parser.error("Impostare RRE_USERNAME (senza due punti) e RRE_PASSWORD insieme.")
+    if (os.environ.get("RENDER") or args.host not in ("127.0.0.1", "localhost", "::1")) and not username:
+        parser.error("L'accesso remoto richiede RRE_USERNAME e RRE_PASSWORD.")
+    if os.environ.get("RENDER") and not args.demo and not args.database:
+        parser.error("Su Render impostare DATABASE_PATH sul disco persistente prima di usare dati reali.")
+    public_origin = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/") or None
     with tempfile.TemporaryDirectory(prefix="rre-demo-") as directory:
         database = args.database or ROOT / "local-data" / "retention.sqlite3"
         store = demo_store(Path(directory) / "demo.sqlite3") if args.demo else Store(database)
-        server = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(
-            store, demo=args.demo, as_of=args.as_of or ("2026-10-05" if args.demo else None)))
-        print(f"Overview: http://127.0.0.1:{args.port} ({'demo' if args.demo else 'dati locali'})", flush=True)
+        server = ThreadingHTTPServer((args.host, args.port), make_handler(
+            store, demo=args.demo, as_of=args.as_of or ("2026-10-05" if args.demo else None),
+            credentials=(username, password) if username else None, public_origin=public_origin))
+        print(f"Dashboard in ascolto su {args.host}:{args.port} ({'demo' if args.demo else 'dati importati'})", flush=True)
         try:
             server.serve_forever()
         except KeyboardInterrupt:

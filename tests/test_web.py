@@ -1,6 +1,7 @@
 """Contratto dei dati dell'Overview, usando soltanto ordini sintetici."""
 
 from pathlib import Path
+from base64 import b64encode
 import csv
 from http.server import ThreadingHTTPServer
 import io
@@ -17,7 +18,7 @@ from src.customer_profiles import (_product_images, activate_history, evaluate_d
                                    record_event, retention_summary, revenue_summary, plan_detail, filter_retention, rules_summary)
 from src.storage import Store
 from src.shopify_orders import MINIMAL_COLUMNS
-from src.web import make_handler
+from src.web import main, make_handler
 
 
 class OverviewTests(unittest.TestCase):
@@ -724,7 +725,9 @@ class OverviewServerTests(unittest.TestCase):
                     data = json.load(urlopen(base + "/api/overview", timeout=10))
                     self.assertFalse(data["active"])
                     self.assertEqual(data["rows"], [])
-                    for export in (Path(directory) / "local-data").glob("*.csv"):
+                    exports = list((Path(directory) / "uploads").glob("*.csv"))
+                    self.assertEqual(len(exports), 2)
+                    for export in exports:
                         with export.open(encoding="utf-8-sig", newline="") as source:
                             self.assertEqual(csv.DictReader(source).fieldnames, MINIMAL_COLUMNS)
                 finally:
@@ -736,6 +739,120 @@ class OverviewServerTests(unittest.TestCase):
                 self.assertEqual(len(store.load_state()["profiles"]["CUST_000001"]["orders"]), 1)
             finally:
                 store.close()
+
+
+class HostedServerTests(unittest.TestCase):
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.store = Store(Path(self.directory.name) / "retention.sqlite3")
+        self.authorization = "Basic " + b64encode(b"synthetic:synthetic-password").decode()
+        self.server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(
+            self.store, credentials=("synthetic", "synthetic-password"),
+            public_origin="https://retention.example.invalid", as_of="2026-10-05"))
+        self.worker = threading.Thread(target=self.server.serve_forever)
+        self.worker.start()
+        self.base = f"http://127.0.0.1:{self.server.server_port}"
+
+    def tearDown(self):
+        self.server.shutdown()
+        self.worker.join()
+        self.server.server_close()
+        self.store.close()
+        self.directory.cleanup()
+
+    def test_pages_assets_and_apis_require_correct_credentials_but_health_does_not(self):
+        for route in ("/", "/retention", "/rules", "/ui.js", "/api/overview", "/api/rules", "/api/plan"):
+            for authorization in ("", "Basic invalid", "Bearer synthetic", "Basic d3Jvbmc6d3Jvbmc="):
+                with self.subTest(route=route, authorization=authorization):
+                    request = Request(self.base + route, headers={"Authorization": authorization})
+                    with self.assertRaises(HTTPError) as caught:
+                        urlopen(request, timeout=5)
+                    self.assertEqual(caught.exception.code, 401)
+                    self.assertIn("Basic", caught.exception.headers["WWW-Authenticate"])
+                    self.assertEqual(caught.exception.headers["Cache-Control"], "no-store")
+            if route != "/api/plan":
+                request = Request(self.base + route, headers={"Authorization": self.authorization})
+                with urlopen(request, timeout=5) as response:
+                    self.assertEqual(response.status, 200)
+        with urlopen(self.base + "/healthz", timeout=5) as response:
+            self.assertEqual(json.load(response), {"status": "ok"})
+            self.assertIsNone(response.headers.get("WWW-Authenticate"))
+
+    def test_posts_require_login_and_exact_https_origin_before_reading_or_writing(self):
+        payload = {"customer_id": "SYNTHETIC", "event": {"id": "SYNTHETIC-CONTACT", "date": "2026-10-05"}}
+        with patch("src.web.record_event") as save:
+            for route in ("/api/events", "/api/import"):
+                request = Request(self.base + route, data=b"{}")
+                with self.assertRaises(HTTPError) as caught:
+                    urlopen(request, timeout=5)
+                self.assertEqual(caught.exception.code, 401)
+                for origin in ("https://other.example.invalid", self.base, "null"):
+                    request = Request(self.base + route, data=b"{}", headers={
+                        "Authorization": self.authorization, "Origin": origin})
+                    with self.assertRaises(HTTPError) as caught:
+                        urlopen(request, timeout=5)
+                    self.assertEqual(caught.exception.code, 400)
+                    self.assertIn("Origine", json.load(caught.exception)["error"])
+            save.assert_not_called()
+            request = Request(self.base + "/api/events", data=json.dumps(payload).encode(), headers={
+                "Authorization": self.authorization, "Origin": "https://retention.example.invalid",
+                "Content-Type": "application/json"})
+            with urlopen(request, timeout=5) as response:
+                self.assertEqual(json.load(response), {"saved": True, "event_id": "SYNTHETIC-CONTACT"})
+            self.assertEqual(save.call_args.args[1:], (payload["customer_id"], payload["event"]))
+
+    def test_render_environment_sets_binding_database_and_closes_resources(self):
+        environment = {"RENDER": "true", "PORT": "10000", "DATABASE_PATH": str(self.store.path),
+                       "RRE_USERNAME": "synthetic", "RRE_PASSWORD": "synthetic-password",
+                       "RENDER_EXTERNAL_URL": "https://retention.example.invalid/"}
+        with patch.dict("os.environ", environment, clear=True), patch("src.web.ThreadingHTTPServer") as server:
+            main([])
+            self.assertEqual(server.call_args.args[0], ("0.0.0.0", 10000))
+            server.return_value.serve_forever.assert_called_once()
+            server.return_value.server_close.assert_called_once()
+
+    def test_authenticated_upload_uses_database_directory_and_survives_reopening(self):
+        buffer = io.StringIO(newline="")
+        writer = csv.DictWriter(buffer, fieldnames=MINIMAL_COLUMNS)
+        writer.writeheader()
+        writer.writerow({"Name": "#HOSTED-DEMO", "Id": "HOSTED-DEMO",
+                         "Created at": "2026-08-01 12:00:00 +0200", "Financial Status": "paid",
+                         "Lineitem sku": "CR05272", "Lineitem quantity": "1",
+                         "Lineitem fulfillment status": "fulfilled", "Refunded Amount": "0",
+                         "Email": "hosted@example.invalid", "Accepts Marketing": "yes"})
+        body = ('--hosted\r\nContent-Disposition: form-data; name="files"; filename="synthetic.csv"\r\n'
+                'Content-Type: text/csv\r\n\r\n' + buffer.getvalue() + '\r\n--hosted--\r\n').encode()
+        request = Request(self.base + "/api/import", data=body, headers={
+            "Authorization": self.authorization, "Origin": "https://retention.example.invalid",
+            "Content-Type": "multipart/form-data; boundary=hosted"})
+        with urlopen(request, timeout=5) as response:
+            self.assertEqual(json.load(response), {"imported_files": 1, "active": False})
+        exports = list((self.store.path.parent / "uploads").glob("*.csv"))
+        self.assertEqual(len(exports), 1)
+        with exports[0].open(encoding="utf-8-sig", newline="") as source:
+            self.assertEqual(csv.DictReader(source).fieldnames, MINIMAL_COLUMNS)
+        reopened = Store(self.store.path)
+        try:
+            self.assertEqual(len(reopened.load_state()["profiles"]), 1)
+            self.assertIsNone(reopened.activation_date())
+        finally:
+            reopened.close()
+
+    def test_remote_startup_rejects_missing_login_or_missing_render_storage(self):
+        for environment, arguments in [
+            ({"RENDER": "true"}, []),
+            ({"RENDER": "true", "RRE_USERNAME": "synthetic", "RRE_PASSWORD": "password"}, []),
+            ({}, ["--host", "0.0.0.0"]),
+            ({"RRE_USERNAME": "synthetic"}, []),
+            ({"RRE_USERNAME": "bad:name", "RRE_PASSWORD": "password"}, []),
+        ]:
+            with self.subTest(environment=list(environment), arguments=arguments), \
+                    patch.dict("os.environ", environment, clear=True), \
+                    patch("src.web.ThreadingHTTPServer") as server, patch("sys.stderr", io.StringIO()):
+                with self.assertRaises(SystemExit) as caught:
+                    main(arguments)
+                self.assertEqual(caught.exception.code, 2)
+                server.assert_not_called()
 
 
 if __name__ == "__main__":

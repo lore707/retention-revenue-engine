@@ -13,7 +13,7 @@ Il motore è implementato in Python 3.12. Valuta completamenti accessorio, compl
 | Calendario promozionale per SKU, periodo e prezzo pianificato | `src/promotions.json` |
 | Riduzione locale dell'export Shopify e normalizzazione degli ordini in fatti e collegamenti email separati | `src/shopify_orders.py` |
 | Raggruppamento degli ordini, snapshot per il motore, segnali del profilo, conteggi dei clienti distinti, stato delle viste operative, eventi, liste di Overview/Retention e relativi aggregati | `src/customer_profiles.py` |
-| Server HTTP locale, lettura degli aggregati, dettaglio operativo, registrazione degli eventi e caricamento CSV tramite funzioni canoniche | `src/web.py` |
+| Server HTTP locale/Render, configurazione di rete e storage, accesso HTTP Basic, health check, aggregati, dettaglio, eventi e caricamento CSV tramite funzioni canoniche | `src/web.py` |
 | Stili comuni delle pagine e stile dell'Overview | `frontend/overview.css` |
 | Formattazione, chiamate HTTP, selettori flottanti condivisi fra Overview e Retention, scheda cliente con acquisti, percorso commerciale, storico e moduli per contatti ed esiti | `frontend/ui.js` |
 | Struttura e interazioni dell'Overview desktop | `frontend/overview.html`, `frontend/overview.js` |
@@ -27,6 +27,8 @@ Il motore è implementato in Python 3.12. Valuta completamenti accessorio, compl
 Le nuove schede e regole si aggiungono ai rispettivi JSON. Non creare un file o un motore per ciascun prodotto. Le regole fanno riferimento al catalogo senza duplicare prezzi o liste di SKU già definiti nelle configurazioni. Il motore supporta i comportamenti `ACCESSORY_COMPLETION`, `USE_CASE_COMPLEMENT`, `CATEGORY_EXPANSION`, `REPLENISHMENT` e `REPLACEMENT` verificati dalle regole correnti; un nuovo comportamento richiede implementazione e test. Non è un interprete universale di regole JSON.
 
 ## Contratto del primo motore
+
+`src/web.py` resta l'unico punto di ingresso HTTP. `main` legge `PORT`, `DATABASE_PATH`, `RRE_USERNAME`, `RRE_PASSWORD` e le variabili Render. In locale l'ascolto resta su loopback; su Render usa `0.0.0.0` e impone credenziali e percorso SQLite esplicito. `make_handler` applica HTTP Basic prima di servire pagine, asset e API; `/healthz` è l'unico GET pubblico e non espone aggregati. Le scritture browser verificano l'origine HTTPS `RENDER_EXTERNAL_URL` su Render, oppure l'origine HTTP locale. Gli upload ridotti restano in `uploads` accanto al database: su Render entrambi devono stare sul disco persistente. Non sono aggiunti un secondo datastore, un motore di autenticazione separato o una sincronizzazione col PC. Configurazione e procedura di avvio sono nel README.
 
 `commercial_category` in `src/engine.py` legge le tipologie mirate dalle definizioni canoniche; il portafoglio le usa prima delle promozioni nella scelta di nuove primarie e piani maturi. `retention_summary` in `src/customer_profiles.py` produce la partizione esclusiva e i piani di ogni cliente; `filter_retention` applica categoria/profilo e filtri coerenti di stato/strategia sullo stesso piano. `GET /api/retention` espone righe filtrate e KPI globali. `rules_summary` nello stesso modulo deriva la sezione consultabile da catalogo e regole; `GET /api/rules` e `/rules` la espongono senza un secondo archivio di decisioni commerciali.
 

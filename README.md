@@ -247,10 +247,41 @@ python -m src.web --demo
 
 La demo riproduce il riferimento Figma al 5 ottobre 2026 senza caricare dati reali.
 
-L'interfaccia vive in `frontend/overview.html`, `frontend/overview.css` e `frontend/overview.js`; `src/web.py` serve la pagina e richiama gli aggregati di `src/customer_profiles.py`. Non servono Node o dipendenze frontend. Il server ascolta soltanto su questo PC. Il pulsante Carica CSV usa la pulizia e l'import esistenti; in demo mostra soltanto le istruzioni. L'attivazione dello storico resta il comando backend `activate`.
+L'interfaccia vive in `frontend/overview.html`, `frontend/overview.css` e `frontend/overview.js`; `src/web.py` serve la pagina e richiama gli aggregati di `src/customer_profiles.py`. Non servono Node o dipendenze frontend. Per impostazione predefinita il server ascolta soltanto su questo PC. Il pulsante Carica CSV usa la pulizia e l'import esistenti; in demo mostra soltanto le istruzioni. Gli upload sono salvati nella sottocartella `uploads` accanto al database. L'attivazione dello storico resta il comando backend `activate`.
 
 Il grafico offre 30/90 giorni e 6/12 mesi, tooltip e aggiornamento ogni minuto mentre la pagina è visibile. I KPI sono cumulativi o riferiti alla valutazione corrente; il selettore modifica soltanto il grafico. Apri mostra la scheda cliente condivisa, con recapito email su richiesta, tutti gli acquisti disponibili, proposta corrente, logica e prossime opportunità, contatti ed esiti.
 
 La seconda sezione è http://127.0.0.1:8000/retention: Da contattare, In corso e Chiusi, con ricerca, filtri e paginazione. Legge gli stessi ordini ed eventi dell'Overview. Struttura e comportamento vivono in `frontend/retention.html`, `frontend/retention.css`, `frontend/retention.js`; formattazione e riepilogo condivisi sono in `frontend/ui.js`, lo stile comune in `frontend/overview.css`. `retention_summary` in `src/customer_profiles.py` espone gli aggregati; `evaluate_portfolio` in `src/engine.py` mantiene la decisione canonica di chiusura e lo storico dei piani contattati. Riepiloghi e totale restano riferiti all'intera scheda anche quando si filtra la tabella. I secondi tentativi lavorabili non sono duplicati nella scheda In corso.
 
-Follow-up, Risultati e Regole restano inattive. Nella scheda cliente puoi registrare un'email già inviata e aggiornare risposte, interessi, rifiuti, acquisti verificati e correzioni degli importi. Dopo il salvataggio, scheda e liste leggono nuovamente il backend. Le registrazioni in demo riguardano soltanto il database sintetico temporaneo.
+Follow-up e Risultati restano inattive; Regole presenta i percorsi di retention e le politiche comuni. Nella scheda cliente puoi registrare un'email già inviata e aggiornare risposte, interessi, rifiuti, acquisti verificati e correzioni degli importi. Dopo il salvataggio, scheda e liste leggono nuovamente il backend. Le registrazioni in demo riguardano soltanto il database sintetico temporaneo.
+
+## Pubblicazione su Render
+
+Il repository GitHub può restare privato. Creare un **Web Service Python 3** sul branch `main` con:
+
+| Campo | Valore |
+| --- | --- |
+| Root Directory | Vuota |
+| Build Command | `pip install -r requirements.txt` |
+| Start Command | `python -m src.web` |
+| Health Check Path | `/healthz` |
+| `PYTHON_VERSION` | `3.12.10`, versione usata nei test locali |
+| `RRE_USERNAME` | Nome utente scelto dall'operatore, senza `:` |
+| `RRE_PASSWORD` | Password lunga e casuale, conservata solo nelle variabili segrete di Render |
+| `DATABASE_PATH` | `/var/data/retention.sqlite3` |
+
+Per i dati reali collegare un disco persistente con mount path `/var/data`, disponibile sui servizi a pagamento. Solo quel percorso conserva database e upload ai riavvii e ai deploy. Non impostare soltanto `DATABASE_PATH` senza collegare il disco: una directory normale non rende persistente lo storage. Piano e costo vanno scelti esplicitamente dall'operatore. Documentazione: [dischi persistenti](https://render.com/docs/disks) e [limiti del piano gratuito](https://render.com/docs/free).
+
+Render fornisce `RENDER`, `PORT` e `RENDER_EXTERNAL_URL`. Il server ascolta su `0.0.0.0` e sulla porta assegnata; l'URL pubblico HTTPS è l'origine ammessa per le scritture. Non bisogna usare Gunicorn: questo progetto espone direttamente un server HTTP, non un'applicazione WSGI. HTTPS è terminato da Render; non esporre direttamente il server su Internet via HTTP.
+
+L'accesso avviene tramite la finestra credenziali del browser (HTTP Basic), per un singolo operatore: pagine, asset, API, import e registrazioni richiedono la password. `/healthz` restituisce soltanto lo stato del processo senza credenziali. Non sono previsti account multipli o un sistema di sessioni; la chiusura di una scheda non garantisce che il browser dimentichi le credenziali. Il server rifiuta l'avvio remoto senza credenziali e, su Render in modalità reale, senza `DATABASE_PATH`. Le credenziali non vanno inserite nel repository o negli URL.
+
+Il primo deploy non contiene i dati del PC e non avvia l'attività pianificata Windows. Dopo il deploy, caricare gli export tramite la dashboard protetta e attivare esplicitamente lo storico dalla Shell del servizio:
+
+```sh
+python -m src.customer_profiles --db /var/data/retention.sqlite3 activate --date AAAA-MM-GG
+```
+
+Sostituire la data con quella scelta per l'attivazione. Non eseguire automaticamente questo comando a ogni avvio. Gli eventi già registrati sul PC non vengono ricreati dai CSV; per trasferire l'operatività esistente occorre migrare una copia coerente del database tramite un canale privato, mai GitHub. Il database online e quello sul PC non si sincronizzano automaticamente. Il disco persistente non sostituisce una procedura di backup verificata.
+
+Per una sola prova gratuita con dati sintetici usare `python -m src.web --demo`, mantenendo `RRE_USERNAME` e `RRE_PASSWORD` e omettendo `DATABASE_PATH`. I dati della demo e le sue registrazioni sono temporanei e vengono ricreati a ogni riavvio. Non usare questa modalità per l'operatività reale.
