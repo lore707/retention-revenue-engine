@@ -88,6 +88,7 @@ function harness(search = '', page = 'retention') {
   document.createElement = tag => new Node(tag); document.createElementNS = (_, tag) => new Node(tag);
   const location = new URL(`http://localhost/${page === 'retention' ? 'retention' : ''}${search}`), calls = [], timers = new Map(); let timerId = 0;
   const data = {active: true, demo: true, date: '2026-10-15', analyzed_customers: 13,
+    purchased_product_options: [{value: 'synthetic_product', label: 'Prodotto acquistato sintetico'}],
     activity_views: [
       {key: 'today', label: 'Da gestire oggi', description: 'Risposte e follow-up dovuti', count: 2},
       {key: 'opportunities', label: 'Nuove opportunità', description: 'Clienti pronti da contattare', count: 4},
@@ -129,9 +130,9 @@ function harness(search = '', page = 'retention') {
     flush: async () => {for (const [id, callback] of [...timers]) {timers.delete(id); await callback();} await settle();}};
 }
 
-test('four single-select controls use backend category counts, descriptions and disabled profile choices', async () => {
+test('single-select filters use backend priority counts, descriptions and disabled profile choices', async () => {
   const h = harness(); await h.settle();
-  assert.equal(h.controls().length, 4);
+  assert.equal(h.controls().length, 6);
   for (const control of h.controls()) {
     assert.equal(control.select.hidden, true);
     assert.equal(control.trigger.attributes['aria-expanded'], 'false');
@@ -289,6 +290,35 @@ test('filtered backend rows keep their main proposal, client action and paginati
   assert.equal(opened.proposal, 'Proposta principale dal backend');
   h.fire(h.$('#next'), 'click'); assert.equal(h.$('#customers').children.length, 1);
   assert.equal(h.$('#page-label').textContent, '26–26 di 26');
+});
+
+test('Retention matches activity cards and advanced controls, preserving product and scope in URLs and reset', async () => {
+  const h = harness('?activity=history&product=synthetic_product&strategy=completion&scope=all_plans&state=closed&source=overview#lista'); await h.settle();
+  const tabs = h.$('#activity-tabs').children;
+  assert.equal(tabs.length, 4);
+  assert.equal(tabs.map(tab => tab.querySelector('strong').textContent).join(','), 'Da gestire,Nuove opportunità,Storico da recuperare,Tutti i clienti');
+  assert.equal(tabs.map(tab => tab.querySelector('small').textContent).join(','), '2 clienti,4 clienti,1 cliente,13 clienti');
+  assert.equal(tabs.map(tab => tab.attributes['aria-pressed']).join(','), 'false,false,true,false');
+  assert.equal(h.$('#advanced-filters').hidden, false);
+  assert.equal(h.$('#advanced-toggle').attributes['aria-expanded'], 'true');
+  const request = new URLSearchParams(h.calls[0].split('?')[1]);
+  assert.equal(request.get('product'), 'synthetic_product'); assert.equal(request.get('scope'), 'all_plans');
+  assert(h.$('#filter-chips').textContent.includes('Prodotto acquistato sintetico'));
+  h.fire(h.$('#advanced-toggle'), 'click'); assert.equal(h.$('#advanced-filters').hidden, true);
+  assert.equal(h.controls()[1].select.value, 'closed');
+  h.fire(h.$('#activity-tabs').children[0], 'click'); await h.settle();
+  assert.equal(h.location.searchParams.get('activity'), 'today');
+  assert.equal(h.location.searchParams.get('product'), 'synthetic_product');
+  assert.equal(h.location.searchParams.get('source'), 'overview'); assert.equal(h.location.hash, '#lista');
+  h.fire(h.$('#activity-tabs').children[3], 'click'); await h.settle();
+  assert.equal(h.location.searchParams.get('activity'), null);
+  assert.equal(h.$('#activity-tabs').children[3].attributes['aria-pressed'], 'true');
+  h.fire(h.$('#filters'), 'reset'); await h.settle();
+  assert.equal(h.location.searchParams.get('scope'), null); assert.equal(h.location.searchParams.get('product'), null);
+  assert.equal(h.$('#advanced-filters').hidden, true); assert(h.controls().every(control => control.select.value === ''));
+  h.location.search = '?product=synthetic_product&scope=all_plans'; h.fire(h.window, 'popstate'); await h.settle();
+  assert.equal(h.controls()[4].select.value, 'synthetic_product'); assert.equal(h.controls()[5].select.value, 'all_plans');
+  assert.equal(h.$('#advanced-filters').hidden, false);
 });
 
 test('Overview displays backend KPI, four activity cards, consent base and chart values', async () => {

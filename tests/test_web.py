@@ -145,16 +145,45 @@ class OverviewTests(unittest.TestCase):
         self.assertEqual(sum(view["count"] for view in data["operational_views"]), data["analyzed_customers"])
         self.assertEqual(len(data["operational_sections"]["targeted"]), 1)
         self.assertEqual(data["operational_sections"]["test"], [])
-        rows = filter_retention(data, category="targeted", strategy="complement", state="open")
+        self.assertEqual(filter_retention(data, category="targeted", strategy="complement", state="open"), [])
+        self.assertEqual(len(filter_retention(data, strategy="completion")), 1)
+        rows = filter_retention(data, category="targeted", strategy="complement", state="open", scope="all_plans")
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["strategy"], "completion")
         self.assertTrue(all(op["strategy"] == "complement" for plan in rows[0]["matching_plans"] for op in plan["opportunities"]))
         self.assertEqual(filter_retention(data, category="test", strategy="complement"), [])
         self.assertEqual(filter_retention(data, state="open", strategy="expansion"), [])
-        self.assertEqual(len(filter_retention(data, state="suspended", strategy="expansion")), 1)
+        self.assertEqual(filter_retention(data, state="suspended", strategy="expansion"), [])
+        self.assertEqual(len(filter_retention(data, state="suspended", strategy="expansion", scope="all_plans")), 1)
         self.assertEqual(filter_retention(data, profile="recurring"), [])
         self.assertEqual(len(filter_retention(data, profile="first_purchase")), 1)
         self.assertNotIn("demo@example.invalid", json.dumps(data))
+
+    def test_purchased_product_filter_uses_all_valid_observed_purchases_and_combines_with_primary_filters(self):
+        base = retention_summary(self.store, "2026-10-05")
+        source_keys = set(base["customers"][0]["purchased_products"])
+        state = self.store.load_state()
+        orders = state["profiles"]["CUST_000001"]["orders"]
+        orders["2"] = {"id": "2", "number": "#SYNTHETIC-SECOND", "date": "2026-09-01", "marketing_signal": "yes",
+                       "lines": [{"id": "2:BRUSH", "order_id": "2", "sku": "CL51809", "date": "2026-09-01", "validity": "valid", "quantity": 1}]}
+        self.store.save_state(state)
+        data = retention_summary(self.store, "2026-10-05")
+        brush = next(key for key in data["customers"][0]["purchased_products"] if key not in source_keys)
+        rows = filter_retention(data, product=brush, strategy="completion", category="targeted", profile="recurring", activity="history")
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["proposal"], base["customers"][0]["proposal"])
+        self.assertEqual(filter_retention(data, product=brush, strategy="expansion"), [])
+        self.assertEqual(filter_retention(data, product="unknown-product"), [])
+        self.assertEqual(data, retention_summary(self.store, "2026-10-05"))
+        label = next(option["label"] for option in data["purchased_product_options"] if option["value"] == brush)
+        self.assertEqual(len(filter_retention(data, search=label)), 1)
+        for validity, day in (("unknown", "2026-09-01"), ("cancelled", "2026-09-01"), ("valid", "2026-10-06")):
+            orders["2"]["date"] = orders["2"]["lines"][0]["date"] = day
+            orders["2"]["lines"][0]["validity"] = validity
+            self.store.save_state(state)
+            excluded = retention_summary(self.store, "2026-10-05")
+            self.assertEqual(filter_retention(excluded, product=brush), [])
+            self.assertNotIn(brush, [option["value"] for option in excluded["purchased_product_options"]])
 
     def test_unmature_unknown_and_unsubscribed_do_not_become_workable_views(self):
         for day, consent, validity, purchase_day in [("2026-10-05", "yes", "valid", "2026-10-01"),
@@ -332,9 +361,10 @@ class OverviewTests(unittest.TestCase):
                      "date": "2026-10-02", "plan_key": plan["plan_key"]})
         data = retention_summary(self.store, "2026-10-20")
         self.assertEqual(data["customers"][0]["category"], "test")
-        self.assertEqual(len(filter_retention(data, category="test", state="closed", strategy="completion")), 1)
+        self.assertEqual(filter_retention(data, category="test", state="closed", strategy="completion"), [])
+        self.assertEqual(len(filter_retention(data, category="test", state="closed", strategy="completion", scope="all_plans")), 1)
         self.assertEqual(filter_retention(data, state="closed", strategy="expansion"), [])
-        self.assertEqual(len(filter_retention(data, state="open", strategy="expansion")), 1)
+        self.assertEqual(len(filter_retention(data, state="open", strategy="expansion", scope="all_plans")), 1)
         self.assertEqual(filter_retention(data, category="none", state="closed"), [])
         self.assertEqual(len(filter_retention(data)), 1)
 
@@ -544,7 +574,8 @@ class QueueActionsTests(unittest.TestCase):
         return event
 
     def test_http_filters_and_rulebook(self):
-        data = self.get("/api/retention?category=targeted&strategy=complement&state=open")
+        self.assertEqual(self.get("/api/retention?category=targeted&strategy=complement&state=open")["rows"], [])
+        data = self.get("/api/retention?category=targeted&strategy=complement&state=open&scope=all_plans")
         self.assertEqual(len(data["rows"]), 1)
         self.assertEqual(data["rows"][0]["strategy"], "completion")
         self.assertEqual(self.get("/api/retention?category=test&strategy=complement")["rows"], [])
@@ -553,6 +584,9 @@ class QueueActionsTests(unittest.TestCase):
         self.assertEqual(len(self.get("/api/retention?activity=history")["rows"]), 1)
         self.assertEqual(self.get("/api/retention?activity=today")["rows"], [])
         self.assertEqual(self.get("/api/retention?activity=history&category=test")["rows"], [])
+        product = data["purchased_product_options"][0]["value"]
+        self.assertEqual(len(self.get("/api/retention?product=" + product)["rows"]), 1)
+        self.assertEqual(self.get("/api/retention?product=unknown-product")["rows"], [])
         with urlopen(self.base + "/rules") as response:
             self.assertEqual(response.status, 200)
             self.assertIn(b"/rules.js", response.read())

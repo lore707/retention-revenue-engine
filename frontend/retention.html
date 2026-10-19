@@ -25,17 +25,26 @@
       <div class="page-heading"><div><h1>Retention</h1><p>Scegli chi contattare, con quale proposta e perché.</p><p id="customer-scope" class="small" role="status"></p></div></div>
       <p id="notice" role="status">Caricamento dello storico e valutazione delle opportunità in corso…</p>
       <section id="retention-panel" aria-label="Clienti e opportunità">
+        <div id="activity-tabs" class="retention-activity-tabs" role="group" aria-label="Gruppi di clienti"></div>
         <form class="card retention-filters" id="filters" aria-labelledby="filters-title">
           <h2 id="filters-title" class="sr-only">Filtri di ricerca</h2>
-          <div class="retention-filter-fields">
-            <div class="retention-filter-field"><label id="operational-filter-label" class="retention-filter-label" for="operational-filter"><img src="/assets/retention-category.svg" alt="">Categoria commerciale</label><select id="operational-filter"><option value="">Tutti i clienti</option></select></div>
-            <div class="retention-filter-field"><label id="state-filter-label" class="retention-filter-label" for="state-filter"><img src="/assets/retention-state.svg" alt="">Stato del piano</label><select id="state-filter"><option value="">Tutti gli stati</option><option value="open">Aperti — da lavorare</option><option value="in_progress">In corso</option><option value="closed">Chiusi</option><option value="suspended">In attesa / sospesi</option></select></div>
-            <div class="retention-filter-field"><label id="strategy-label" class="retention-filter-label" for="strategy"><img src="/assets/retention-strategy.svg" alt="">Strategia commerciale</label><select id="strategy"><option value="">Tutte le strategie</option><option value="completion">Completamenti funzionali</option><option value="complement">Complementi d’uso</option><option value="expansion">Espansione di categoria</option><option value="replenishment">Ricambi</option><option value="replacement">Sostituzioni / upgrade</option></select></div>
-            <div class="retention-filter-field"><label id="profile-filter-label" class="retention-filter-label" for="profile-filter"><img src="/assets/retention-profile.svg" alt="">Profilo cliente</label><select id="profile-filter"><option value="">Tutti i profili</option><option value="first_purchase">Primo acquisto</option><option value="recurring">Ricorrenti</option><option value="recent_activity">Alta attività recente</option><option value="multicategory">Multicategoria</option><option value="possible_b2b" disabled>Possibile B2B — non valutabile</option><option value="high_historical_value" disabled>Alto valore — non valutabile</option></select></div>
-          </div>
           <div class="retention-search-row">
-            <label class="retention-search"><img src="/assets/retention-search.svg" alt=""><span><span class="sr-only">Ricerca cliente, ordine o prodotto</span><input id="search" type="search" placeholder="Cerca cliente, ordine o prodotto…" autocomplete="off"></span><kbd aria-hidden="true">Ctrl K</kbd></label>
+            <label class="retention-search"><img src="/assets/retention-search.svg" alt=""><span><span class="sr-only">Ricerca cliente, ordine o prodotto</span><input id="search" type="search" placeholder="Cerca cliente, ordine, prodotto…" autocomplete="off"></span><kbd aria-hidden="true">Ctrl K</kbd></label>
+            <button class="button retention-advanced-toggle" id="advanced-toggle" type="button" aria-expanded="false" aria-controls="advanced-filters"><span id="advanced-icon" aria-hidden="true"></span>Filtri avanzati</button>
+          </div>
+          <div class="retention-basic-row">
+            <div class="retention-filter-fields">
+              <div class="retention-filter-field"><label id="strategy-label" class="retention-filter-label" for="strategy">Strategia</label><select id="strategy"><option value="">Tutte le strategie</option><option value="completion">Completamenti funzionali</option><option value="complement">Complementi d’uso</option><option value="expansion">Espansione di categoria</option><option value="replenishment">Ricambi</option><option value="replacement">Sostituzioni / upgrade</option></select></div>
+              <div class="retention-filter-field"><label id="product-filter-label" class="retention-filter-label" for="product-filter">Prodotto acquistato</label><select id="product-filter"><option value="">Tutti i prodotti</option></select></div>
+              <div class="retention-filter-field"><label id="operational-filter-label" class="retention-filter-label" for="operational-filter">Priorità</label><select id="operational-filter"><option value="">Tutte</option></select></div>
+              <div class="retention-filter-field"><label id="profile-filter-label" class="retention-filter-label" for="profile-filter">Profilo cliente</label><select id="profile-filter"><option value="">Tutti i profili</option><option value="first_purchase">Primo acquisto</option><option value="recurring">Ricorrenti</option><option value="recent_activity">Alta attività recente</option><option value="multicategory">Multicategoria</option><option value="possible_b2b" disabled>Possibile B2B — non valutabile</option><option value="high_historical_value" disabled>Alto valore — non valutabile</option></select></div>
+            </div>
             <button class="button retention-reset" type="reset"><span class="retention-icon-slot"><img src="/assets/retention-reset.svg" alt=""></span>Azzera filtri</button>
+          </div>
+          <div id="advanced-filters" class="retention-advanced-fields" hidden>
+            <div class="retention-filter-field"><label id="state-filter-label" class="retention-filter-label" for="state-filter">Stato del piano</label><select id="state-filter"><option value="">Tutti gli stati</option><option value="open">Aperti — da lavorare</option><option value="in_progress">In corso</option><option value="closed">Chiusi</option><option value="suspended">In attesa / sospesi</option></select></div>
+            <div class="retention-filter-field"><label id="scope-filter-label" class="retention-filter-label" for="scope-filter">Ambito della ricerca</label><select id="scope-filter"><option value="">Proposta principale</option><option value="all_plans">Tutti i piani</option></select></div>
+            <p class="small">Strategia e stato si riferiscono alla proposta principale. Scegli Tutti i piani per cercare anche tra alternative, piani secondari e chiusi.</p>
           </div>
           <div id="filter-chips" class="retention-filter-chips" aria-label="Filtri applicati" hidden></div>
         </form>
@@ -45,7 +54,7 @@
           <div class="table-scroll"><table class="qualified-table" role="table"><thead><tr id="columns"></tr></thead><tbody id="customers"></tbody></table></div>
           <div class="pagination"><button class="button subtle" id="previous">Precedenti</button><small id="page-label"></small><button class="button subtle" id="next">Successivi</button></div>
         </section>
-        <details class="retention-scope"><summary>Come leggere la lista</summary><p>La ricerca non cambia la raccomandazione principale. Strategia e stato devono corrispondere allo stesso piano. Consultare un’alternativa non ne autorizza il contatto.</p><small id="freshness"></small></details>
+        <details class="retention-scope"><summary>Come leggere la lista</summary><p>I filtri di strategia e stato riguardano la proposta principale; nei filtri avanzati puoi cercare in tutti i piani. Il prodotto acquistato riguarda lo storico valido. I conteggi dei gruppi precedono gli altri filtri. Consultare un’alternativa non ne autorizza il contatto.</p><small id="freshness"></small></details>
       </section>
       <aside id="quick-detail" class="card quick-detail" aria-labelledby="quick-title" hidden>
         <button id="quick-close" class="button quick-close" type="button" aria-label="Chiudi dettaglio rapido">×</button>

@@ -652,6 +652,8 @@ def retention_summary(store, as_of):
     promotions = json.loads((root / "promotions.json").read_text(encoding="utf-8"))
     rules = {rule["id"]: rule for rule in definitions["rules"]}
     names = {variant["sku"]: product["name"] for product in catalog["products"] for variant in product["variants"]}
+    product_keys = {variant["sku"]: product["key"] for product in catalog["products"] for variant in product["variants"]}
+    product_names = {product["key"]: product["name"] for product in catalog["products"]}
     reviews = review_cases(state, as_of)
     uncertain = {case["customer_id"] for case in reviews if "customer_id" in case}
     active = bool(store.activation_date() and as_of >= store.activation_date())
@@ -669,8 +671,12 @@ def retention_summary(store, as_of):
                                        catalog=catalog, definitions=definitions, promotions=promotions)
         reasons = sorted({case["reason"] for case in reviews if case.get("customer_id") == customer_id})
         if portfolio["contact_permission"]["allowed"]:
-            operational_rows.append(_operational_row(state, customer_id, as_of, profile, portfolio,
-                                    active, reasons, names, rules, definitions))
+            row = _operational_row(state, customer_id, as_of, profile, portfolio, active, reasons, names, rules, definitions)
+            row["purchased_products"] = sorted({product_keys[line["sku"]]
+                for order in state["profiles"][customer_id]["orders"].values() if order["date"] <= as_of
+                for line in order["lines"] if line["date"] <= as_of and line["validity"] == "valid"
+                and line["quantity"] > 0 and line["sku"] in product_keys})
+            operational_rows.append(row)
         if not active or customer_id in uncertain:
             continue
         plan = _workable_plan(portfolio, as_of)
@@ -748,6 +754,10 @@ def retention_summary(store, as_of):
     activity_views = _activity_views(operational_rows, sections, as_of, definitions["overview_activity"]["recent_days"])
     return {"date": as_of, "active": active, "sections": sections, "summaries": summaries,
             "activity_views": activity_views,
+            "purchased_product_options": sorted(
+                [{"value": key, "label": product_names[key]}
+                 for key in {key for row in operational_rows for key in row["purchased_products"]}],
+                key=lambda option: option["label"]),
             "activity_unassigned_customers": sum(row["activity"] is None for row in operational_rows),
             "product_images": _product_images(catalog),
             "profile_counts": {key: _profile_counts(rows) for key, rows in sections.items()},
@@ -881,7 +891,7 @@ def _activity_views(rows, sections, as_of, recent_days):
                 ("history", "Storico da recuperare", "Clienti ancora da rivalutare"))]
 
 
-def filter_retention(data, *, category="", state="", strategy="", profile="", search="", activity=""):
+def filter_retention(data, *, category="", state="", strategy="", profile="", search="", activity="", product="", scope=""):
     """Filtri coerenti sullo stesso piano/opportunità, una riga per cliente."""
     rows = []
     if activity not in {view["key"] for view in data["activity_views"]}:
@@ -893,14 +903,19 @@ def filter_retention(data, *, category="", state="", strategy="", profile="", se
             continue
         if profile and not any(signal["key"] == profile for signal in row["customer_profile"]["signals"]):
             continue
-        matches = [{**plan, "opportunities": [op for op in plan["opportunities"]
+        if product and product not in row["purchased_products"]:
+            continue
+        matches = [{**plan, "opportunities": [op for op in (plan["opportunities"] if scope == "all_plans" else plan["opportunities"][:1])
                     if not strategy or op["strategy"] == strategy]}
-                   for plan in row["plans"] if not state or plan["state"] == state]
+                   for plan in row["plans"] if (scope == "all_plans" or plan["is_primary"])
+                   and (not state or plan["state"] == state)]
         matches = [plan for plan in matches if plan["opportunities"]]
         if (state or strategy) and not matches:
             continue
         if search and search.casefold() not in " ".join([row["customer_id"], row.get("order_number") or "",
-                row["source_product"], *[op["proposal"] for plan in matches for op in plan["opportunities"]]]).casefold():
+                row["source_product"], *[option["label"] for option in data["purchased_product_options"]
+                    if option["value"] in row["purchased_products"]],
+                *[op["proposal"] for plan in matches for op in plan["opportunities"]]]).casefold():
             continue
         rows.append({**row, "matching_plans": matches})
     return rows
@@ -1010,11 +1025,13 @@ def rules_summary():
 
     guides = [
         guide("retention", "Come funzionano i filtri", ["Filtro", "Che cosa seleziona", "Da ricordare"], [
-            ("Categoria commerciale", "blue", "La situazione operativa attuale del cliente.", "Mirata, da testare o nessuna azione immediata: una sola categoria per cliente."),
-            ("Stato del piano", "blue", "Clienti con almeno un piano nello stato richiesto.", "Lo stato riguarda il piano, non l'intero cliente."),
-            ("Strategia commerciale", "purple", "Clienti con una proposta della strategia richiesta, anche secondaria, futura o storica.", "La proposta principale in tabella resta quella globale: controlla Corrispondenze / motivo."),
+            ("Gruppo di attività", "blue", "Da gestire, Nuove opportunità, Storico da recuperare oppure Tutti i clienti.", "I conteggi precedono gli altri filtri; In lavorazione resta raggiungibile dall'Overview."),
+            ("Priorità", "blue", "La categoria commerciale attuale del cliente.", "Mirata, da testare o nessuna azione immediata: nessun nuovo punteggio di urgenza."),
+            ("Prodotto acquistato", "blue", "Un prodotto riconosciuto negli acquisti validi osservati fino alla data di valutazione.", "Comprende gli ordini precedenti, non soltanto la fonte della proposta; le varianti restano nello stesso prodotto."),
+            ("Stato del piano", "blue", "Lo stato del piano principale, oppure dei piani corrispondenti nell'ambito avanzato Tutti i piani.", "Lo stato riguarda il piano, non l'intero cliente."),
+            ("Strategia commerciale", "purple", "La strategia della proposta principale mostrata, nell'ambito predefinito.", "Tutti i piani include alternative, piani secondari e chiusi; le corrispondenze sono esplicitate senza cambiare la raccomandazione."),
             ("Profilo cliente", "slate", "Un segnale alla volta fra quelli osservati negli acquisti.", "I segnali possono sovrapporsi, ma il selettore attuale è singolo."),
-            ("Ricerca", None, "ID cliente, ordine e prodotto fonte, proposte nei piani corrispondenti.", "Non cerca l'email o ogni acquisto storico."),
+            ("Ricerca", None, "ID cliente, ordine fonte, prodotti acquistati validi e proposte nei piani corrispondenti.", "Non cerca l'email o tutti i numeri d'ordine storici."),
             ("Filtri combinati", None, "Tutti i filtri devono essere soddisfatti; stato e strategia sullo stesso piano.", "I conteggi delle categorie sono globali, prima degli altri filtri.")],
             "La lista e i conteggi includono solo clienti con consenso email valido. I filtri non ricalcolano la raccomandazione e non autorizzano un contatto bloccato."),
         guide("retention", "Le tre categorie cliente", ["Categoria", "Quando viene assegnata"], [

@@ -4,6 +4,35 @@
 .retention-main .page-heading p {font-size:20px;line-height:28px;margin-top:4px}
 .retention-main .page-heading #customer-scope {font-size:14px;line-height:20px;margin-top:18px}
 #retention-panel {display:flex;flex-direction:column;gap:18px;min-width:0}
+.retention-activity-tabs {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.retention-activity-tab {display:flex;align-items:center;gap:14px;min-width:0;min-height:94px;padding:16px 18px;border:1px solid #e3ebf5;border-radius:15px;background:#ffffffb8;color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:background 160ms,border-color 160ms,box-shadow 160ms}
+.retention-activity-tab[aria-pressed="true"] {border-color:var(--filter-border);background:linear-gradient(125deg,white,var(--filter-soft));box-shadow:0 0 0 1px var(--filter-border)}
+.retention-activity-tab:hover {border-color:var(--filter-color)}
+.retention-activity-tab:focus-visible {outline:3px solid #387be64d;outline-offset:3px}
+.retention-activity-copy {display:grid;gap:5px;min-width:0}
+.retention-activity-copy strong {font-size:14px;line-height:20px;font-weight:600}
+.retention-activity-copy small {font-size:14px;line-height:20px;color:var(--secondary);font-variant-numeric:tabular-nums}
+.retention-basic-row {display:flex;align-items:center;gap:20px}
+.retention-basic-row .retention-filter-fields {flex:1;gap:16px;min-width:0}
+.retention-basic-row .retention-filter-field {position:relative;gap:0}
+.retention-basic-row .retention-filter-label {position:absolute;top:10px;left:16px;z-index:1;font-size:12px;line-height:18px;min-height:18px;font-weight:500;color:var(--secondary);pointer-events:none}
+.retention-basic-row .floating-filter-trigger {min-height:72px;padding:29px 16px 10px;gap:8px;border-color:#e0e9f4;background:#ffffffb3}
+.retention-basic-row .floating-filter-trigger .filter-option-icon,.retention-basic-row .filter-option-description {display:none}
+.retention-basic-row .filter-option-title {font-size:14px;line-height:22px;font-weight:500}
+.retention-main .retention-search {min-height:56px;background:#ffffffc9}
+.retention-main .retention-search-row {gap:20px}
+.retention-advanced-toggle {display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:56px;padding:12px 20px;flex:none;border:1px solid #e4f0fe;border-radius:12px;background:#e7f2ff;color:var(--blue);font-size:14px;font-weight:600}
+.retention-advanced-toggle .filter-option-icon {width:20px;height:20px;flex-basis:20px;background:transparent;border-radius:0}
+.retention-advanced-toggle[aria-expanded="true"] {background:#dbeaff;border-color:#c4dbfb}
+.retention-advanced-fields {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding-top:18px;border-top:1px solid var(--border)}
+.retention-advanced-fields[hidden] {display:none}
+.retention-advanced-fields p {grid-column:1/-1;line-height:20px}
+.retention-main .retention-basic-row .retention-reset {background:transparent;border:0;min-width:132px;width:auto;flex:none;padding:10px 0;font-size:13px;font-weight:600}
+@media(max-width:1100px) {.retention-activity-tabs {grid-template-columns:repeat(2,minmax(0,1fr))}.retention-basic-row {align-items:flex-end}.retention-basic-row .retention-filter-fields {grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px) {.retention-basic-row {flex-direction:column;align-items:stretch;gap:12px}.retention-basic-row .retention-filter-fields {width:100%}.retention-advanced-toggle {min-height:48px;width:100%}.retention-advanced-fields {grid-template-columns:minmax(0,1fr)}.retention-activity-tab {padding:12px;gap:9px;min-height:90px}.retention-activity-tab .filter-option-icon {width:36px;height:36px;flex-basis:36px}.retention-activity-copy strong,.retention-activity-copy small {font-size:12px;line-height:18px}}
+@media(max-width:540px) {.retention-basic-row .retention-filter-fields {grid-template-columns:minmax(0,1fr)}}
+@media(max-width:360px) {.retention-activity-tabs {grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:reduce) {.retention-activity-tab {transition:none}}
 .retention-main .card {border-radius:18px;box-shadow:0 3px 16px #0d1a3d09}
 body[data-page="retention"] .workspace {min-width:0}
 .retention-main .retention-filters {display:flex;flex-direction:column;gap:20px;padding:24px 22px;background:linear-gradient(115deg,#f0f7ffcc,#f8fbff);border-color:#e1ebf6;box-shadow:0 2px 8px #172a4804}

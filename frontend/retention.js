@@ -5,13 +5,13 @@ const stateLabels = {open: 'Aperto — da lavorare', in_progress: 'In corso', cl
 
 // Presentation only: values and filtering continue to use the existing selects and API.
 const filterDefinitions = [
-  {id: 'operational-filter', param: 'view', icon: 'users', tone: 'green', hint: 'Panoramica completa', search: 'Cerca nella categoria…', options: commercialCategoryPresentation},
+  {id: 'operational-filter', param: 'view', icon: 'target', tone: 'green', hint: 'Tutte le priorità', search: 'Cerca nella priorità…', options: commercialCategoryPresentation},
   {id: 'state-filter', param: 'state', icon: 'list', tone: 'blue', hint: 'Tutti i piani', search: 'Cerca nello stato…', options: {
     open: {title: 'Aperti', description: 'Da lavorare', icon: 'play', tone: 'green'},
     in_progress: {description: 'Contatto già avviato', icon: 'activity', tone: 'amber'},
     closed: {description: 'Piani conclusi', icon: 'check', tone: 'slate'},
     suspended: {title: 'In attesa / sospesi', description: 'Non ancora attuabili o bloccati', icon: 'pause', tone: 'rose'}}},
-  {id: 'strategy', param: 'strategy', icon: 'grid', tone: 'purple', hint: 'Tutte le proposte', search: 'Cerca nella strategia…', options: {
+  {id: 'strategy', param: 'strategy', icon: 'grid', tone: 'purple', hint: 'Della proposta principale', search: 'Cerca nella strategia…', options: {
     completion: {description: 'Accessori di completamento', icon: 'puzzle', tone: 'green'},
     complement: {description: 'Complementi per l’esperienza d’uso', icon: 'box', tone: 'blue'},
     expansion: {description: 'Prodotti di un’altra categoria', icon: 'bars', tone: 'purple'},
@@ -23,7 +23,10 @@ const filterDefinitions = [
     recent_activity: {description: 'Frequenza d’acquisto recente', icon: 'bolt', tone: 'amber'},
     multicategory: {description: 'Acquisti in più categorie principali', icon: 'grid', tone: 'blue'},
     possible_b2b: {title: 'Possibile B2B', description: 'Non valutabile: criteri da definire', icon: 'briefcase', tone: 'slate'},
-    high_historical_value: {title: 'Alto valore storico', description: 'Non valutabile: spesa netta non disponibile', icon: 'gem', tone: 'slate'}}}
+    high_historical_value: {title: 'Alto valore storico', description: 'Non valutabile: spesa netta non disponibile', icon: 'gem', tone: 'slate'}}},
+  {id: 'product-filter', param: 'product', icon: 'box', tone: 'blue', hint: 'Acquisti validi nello storico', search: 'Cerca un prodotto…', options: {}},
+  {id: 'scope-filter', param: 'scope', icon: 'list', tone: 'slate', hint: 'Strategia e stato della primaria', search: 'Cerca un ambito…', options: {
+    all_plans: {description: 'Include alternative, piani secondari e chiusi', icon: 'grid', tone: 'blue'}}}
 ];
 function filterOption(definition, option) {
   const presentation = definition.options[option.value] || {};
@@ -56,15 +59,24 @@ function restoreRetentionFilters() {
   selectedActivity = params.get('activity') || '';
   for (const filter of floatingFilters) {
     const value = params.get(filter.definition.param) || '';
+    if (filter.definition.param === 'product' && value && ![...filter.select.options].some(option => option.value === value)) filter.select.append(new Option(value, value));
     filter.select.value = [...filter.select.options].some(option => option.value === value && !option.disabled) ? value : '';
     filter.update();
   }
   $('#search').value = params.get('search') || ''; renderFilterChips();
+  setAdvancedFilters(Boolean($('#state-filter').value || $('#scope-filter').value));
 }
+function setAdvancedFilters(open) {
+  if (!open) {floatingFilters.filter(filter => ['state', 'scope'].includes(filter.definition.param)).forEach(filter => filter.close());}
+  $('#advanced-filters').hidden = !open;
+  $('#advanced-toggle').setAttribute('aria-expanded', String(open));
+}
+$('#advanced-toggle').addEventListener('click', () => setAdvancedFilters($('#advanced-filters').hidden));
+$('#advanced-icon').append(filterIcon('list', 'blue'));
 function renderFilterChips() {
   const chips = $('#filter-chips'), nodes = [];
   const activity = retention?.activity_views?.find(view => view.key === selectedActivity);
-  const signature = JSON.stringify([selectedActivity, activity?.label, ...floatingFilters.map(filter => filter.select.value), $('#search').value.trim()]);
+  const signature = JSON.stringify([selectedActivity, activity?.label, ...floatingFilters.map(filter => [filter.select.value, filter.select.selectedOptions[0]?.textContent]), $('#search').value.trim()]);
   if (chips.dataset.signature === signature) return;
   chips.dataset.signature = signature;
   if (activity) {
@@ -102,7 +114,8 @@ restoreRetentionFilters();
 async function loadRetention() {
   const request = ++retentionRequest;
   const params = new URLSearchParams({category: selectedView, state: $('#state-filter').value,
-    strategy: $('#strategy').value, profile: $('#profile-filter').value, search: $('#search').value.trim(), activity: selectedActivity});
+    strategy: $('#strategy').value, profile: $('#profile-filter').value, search: $('#search').value.trim(), activity: selectedActivity,
+    product: $('#product-filter').value, scope: $('#scope-filter').value});
   try {
     $('#customers').setAttribute('aria-busy', 'true');
     const data = await api(`/api/retention?${params}`);
@@ -110,8 +123,13 @@ async function loadRetention() {
     retention = data;
     if (selectedActivity && !data.activity_views.some(view => view.key === selectedActivity)) {selectedActivity = ''; syncRetentionUrl();}
     if (!data.operational_views.some(view => view.key === selectedView)) selectedView = '';
-    $('#operational-filter').replaceChildren(new Option('Tutti i clienti', ''), ...data.operational_views.map(view => new Option(view.label, view.key)));
+    $('#operational-filter').replaceChildren(new Option('Tutte', ''), ...data.operational_views.map(view => new Option(view.label, view.key)));
     $('#operational-filter').value = selectedView;
+    const selectedProduct = $('#product-filter').value;
+    $('#product-filter').replaceChildren(new Option('Tutti i prodotti', ''), ...data.purchased_product_options.map(option => new Option(option.label, option.value)));
+    if (selectedProduct && !data.purchased_product_options.some(option => option.value === selectedProduct)) $('#product-filter').append(new Option(selectedProduct, selectedProduct));
+    $('#product-filter').value = selectedProduct;
+    renderActivityTabs();
     floatingFilters.forEach(filter => filter.update()); renderFilterChips();
     $('#mode').textContent = data.demo ? 'Simulazione · dati sintetici' : 'Dati locali';
     $('#workspace-mode').textContent = data.demo ? 'Laifen · Workspace demo' : 'Laifen · Workspace locale';
@@ -126,12 +144,32 @@ async function loadRetention() {
   finally { if (request === retentionRequest) $('#customers').removeAttribute('aria-busy'); }
 }
 
+function renderActivityTabs() {
+  const tabs = retention.activity_views.filter(view => ['today', 'opportunities', 'history'].includes(view.key))
+    .map(view => ({...view, label: view.key === 'today' ? 'Da gestire' : view.label}));
+  tabs.push({key: '', label: 'Tutti i clienti', count: retention.analyzed_customers});
+  const signature = JSON.stringify([tabs, selectedActivity]);
+  if ($('#activity-tabs').dataset.signature === signature) return;
+  const focused = [...$('#activity-tabs').children].find(tab => tab === document.activeElement)?.dataset.activity;
+  $('#activity-tabs').dataset.signature = signature; $('#activity-tabs').replaceChildren();
+  for (const tab of tabs) {
+    const [icon, tone] = {today: ['message', 'rose'], opportunities: ['target', 'blue'], history: ['archive', 'slate'], '': ['users', 'slate']}[tab.key];
+    const button = element('button', undefined, `retention-activity-tab filter-tone-${tone}`); button.type = 'button'; button.dataset.activity = tab.key;
+    button.setAttribute('aria-pressed', String(tab.key === selectedActivity)); button.setAttribute('aria-controls', 'customers');
+    button.title = 'Clienti prima degli altri filtri';
+    const copy = element('span', undefined, 'retention-activity-copy'); copy.append(element('strong', tab.label), element('small', `${tab.count.toLocaleString('it-IT')} ${tab.count === 1 ? 'cliente' : 'clienti'}`));
+    button.append(filterIcon(icon, tone), copy);
+    button.addEventListener('click', () => {selectedActivity = tab.key; applyRetentionFilters();});
+    $('#activity-tabs').append(button); if (focused === tab.key) button.focus({preventScroll: true});
+  }
+}
+
 function renderRetention() {
   const rows = retention.rows;
   const view = retention.operational_views.find(view => view.key === selectedView);
   const activity = retention.activity_views.find(view => view.key === selectedActivity);
   $('#view-description').textContent = (activity?.description || view?.description || 'Ogni cliente compare una sola volta. La categoria descrive la situazione attuale, lo stato riguarda i singoli piani.') + (retention.unassigned_review_orders ? ` ${retention.unassigned_review_orders} ordini senza email non sono ancora attribuiti a clienti.` : '');
-  const active = ['#operational-filter', '#state-filter', '#strategy', '#profile-filter'].map(id => $(id)).filter(select => select.value).map(select => select.selectedOptions[0].textContent);
+  const active = floatingFilters.map(filter => filter.select).filter(select => select.value).map(select => select.selectedOptions[0].textContent);
   $('#active-filters').textContent = `Ricerca attiva: ${[activity?.label, ...active].filter(Boolean).join(' · ') || 'Tutti i clienti'}${$('#search').value ? ' · ' + $('#search').value : ''}`;
   $('#queue-title').textContent = `${rows.length} clienti corrispondenti`;
   page = Math.min(page, Math.max(0, Math.ceil(rows.length / pageSize) - 1));
@@ -245,6 +283,7 @@ $('#search').addEventListener('input', () => {clearTimeout(refreshTimer); refres
 $('#filters').addEventListener('reset', () => {
   clearTimeout(refreshTimer); openFloatingSelect?.close();
   selectedActivity = '';
+  setAdvancedFilters(false);
   // Clear explicitly so hidden select state, triggers, chips and URL change together.
   floatingFilters.forEach(filter => {filter.select.value = '';}); $('#search').value = '';
   $('.retention-reset').focus(); applyRetentionFilters();
