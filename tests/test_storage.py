@@ -1,6 +1,7 @@
 """Persistenza e ciclo operativo con dati sintetici."""
 
 import csv
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -8,7 +9,7 @@ from unittest.mock import patch
 
 from src.customer_profiles import (activate_history, evaluate_day, explain_order, import_into_store,
                                    merge_orders, record_event, revenue_summary, sync_local_data)
-from src.storage import Store
+from src.storage import Store, migrate_sqlite
 
 
 def imported(order_id="1", *, email="one@example.invalid", marketing="yes",
@@ -360,6 +361,112 @@ class StorageTests(unittest.TestCase):
                     "date": "2026-09-29", "channel": "email", "plan_key": ["1", "hair_care", "2026-08-16"]})
             self.assertEqual(store.events_for("CUST_000001"), [])
             store.close()
+
+
+class MigrationTests(unittest.TestCase):
+    def populate(self, store):
+        state = merge_orders(None, imported())
+        state = merge_orders(state, imported("2", email=None))
+        store.save_state(state, imports=[("synthetic.csv", "synthetic-hash")])
+        activate_history(store, "2026-09-29")
+        store.add_event("CUST_000001", {"id": "Z-FIRST", "type": "contact", "date": "2026-09-29"})
+        store.add_event("CUST_000001", {"id": "A-SECOND", "type": "reply", "date": "2026-09-30"})
+
+    def test_copy_preserves_every_table_backup_and_insertion_order_without_changing_source(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Store(Path(directory) / "source.sqlite3")
+            target = Store(Path(directory) / "target.sqlite3")
+            try:
+                self.populate(source)
+                before = source._snapshot()
+                result = migrate_sqlite(source.path, target)
+                self.assertEqual(target._snapshot(), before)
+                self.assertEqual(source._snapshot(), before)
+                self.assertTrue(Path(result["backup"]).is_file())
+                self.assertEqual(result["rows"], {"profiles": 1, "contacts": 1, "unassigned_orders": 1,
+                                                "events": 2, "settings": 1, "imports": 1})
+                self.assertEqual([row[0] for row in before["events"]], ["Z-FIRST", "A-SECOND"])
+                with self.assertRaisesRegex(ValueError, "non vuota"):
+                    migrate_sqlite(source.path, target)
+                self.assertEqual(target._snapshot(), before)
+            finally:
+                source.close()
+                target.close()
+
+    def test_failed_verification_rolls_back_all_copied_rows(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Store(Path(directory) / "source.sqlite3")
+            target = Store(Path(directory) / "target.sqlite3")
+            try:
+                self.populate(source)
+                empty = target._snapshot()
+                with patch.object(target, "_snapshot", side_effect=[empty, {}]):
+                    with self.assertRaisesRegex(ValueError, "Verifica"):
+                        migrate_sqlite(source.path, target)
+                self.assertEqual(target._snapshot(), empty)
+                self.assertEqual(source.activation_date(), "2026-09-29")
+            finally:
+                source.close()
+                target.close()
+
+    def test_batch_events_match_individual_reads_and_include_later_writes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = Store(Path(directory) / "source.sqlite3")
+            try:
+                self.populate(store)
+                self.assertEqual(store.events_by_customer(), {"CUST_000001": store.events_for("CUST_000001")})
+                store.add_event("CUST_000001", {"id": "B-THIRD", "type": "reply", "date": "2026-10-01"})
+                self.assertEqual(len(store.events_by_customer()["CUST_000001"]), 3)
+            finally:
+                store.close()
+
+    def test_postgres_uses_tls_private_schema_and_preserves_connection_across_transactions(self):
+        from unittest.mock import MagicMock
+        import psycopg
+        with self.assertRaisesRegex(ValueError, "stringa PostgreSQL"):
+            Store("https://example.invalid")
+        connection = MagicMock()
+        with patch("psycopg.connect", return_value=connection) as connect:
+            store = Store("postgresql://synthetic:password@example.invalid/test")
+            self.assertTrue(store.postgres)
+            self.assertIsNone(store.path)
+            self.assertEqual(connect.call_args.kwargs["sslmode"], "require")
+            self.assertTrue(connect.call_args.kwargs["autocommit"])
+            sql = "\n".join(call.args[0] for call in connection.execute.call_args_list)
+            self.assertIn("SET search_path TO retention", sql)
+            self.assertIn("REVOKE ALL ON SCHEMA retention FROM PUBLIC", sql)
+            self.assertIn("BIGSERIAL", sql)
+            self.assertNotIn("AUTOINCREMENT", sql)
+            store.contact_email("SYNTHETIC")
+            self.assertIn("%s", connection.execute.call_args.args[0])
+            connection.close.assert_not_called()
+            store.close()
+            connection.close.assert_called_once()
+        with patch("psycopg.connect", side_effect=psycopg.OperationalError("synthetic secret")):
+            with self.assertRaises(ValueError) as caught:
+                Store("postgresql://synthetic:password@example.invalid/test")
+            self.assertNotIn("synthetic secret", str(caught.exception))
+
+    @unittest.skipUnless(os.environ.get("RRE_TEST_DATABASE_URL"), "PostgreSQL di test non configurato")
+    def test_real_postgres_migration_and_new_imports_inside_rolled_back_transaction(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Store(Path(directory) / "source.sqlite3")
+            target = Store(os.environ["RRE_TEST_DATABASE_URL"])
+            try:
+                self.assertFalse(any(target._snapshot().values()), "Usare un database di test vuoto.")
+                self.populate(source)
+                with target.connection.transaction(force_rollback=True):
+                    migrate_sqlite(source.path, target)
+                    self.assertEqual(target._snapshot(), source._snapshot())
+                    updated = merge_orders(target.load_state(), imported("3"))
+                    target.save_state(updated, imports=[("later.csv", "later-hash")])
+                    self.assertEqual(len(target.load_state()["profiles"]["CUST_000001"]["orders"]), 2)
+                    self.assertEqual(target.import_history()[-1]["sequence"], 2)
+                    self.assertEqual(target.events_by_customer(), source.events_by_customer())
+                self.assertFalse(any(target._snapshot().values()))
+            finally:
+                source.close()
+                target.close()
 
 
 if __name__ == "__main__":

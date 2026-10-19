@@ -1,6 +1,7 @@
 """Server della dashboard, locale o protetto su Render, senza dipendenze aggiuntive."""
 
 import argparse
+from contextlib import nullcontext
 from base64 import b64encode
 from datetime import datetime
 from email.parser import BytesParser
@@ -77,7 +78,7 @@ def make_handler(store, *, demo=False, as_of=None, credentials=None, public_orig
         def setup(self):
             super().setup()
             self.connection.settimeout(10)
-            self.store = Store(store.path)
+            self.store = Store(store.database)
 
         def finish(self):
             try:
@@ -184,25 +185,28 @@ def make_handler(store, *, demo=False, as_of=None, credentials=None, public_orig
                     ("Content-Type: " + self.headers.get("Content-Type", "") + "\r\n\r\n").encode()
                     + self.rfile.read(length))
                 paths = []
-                directory = self.store.path.parent / "uploads"
-                directory.mkdir(parents=True, exist_ok=True)
-                for part in message.iter_parts():
-                    name = part.get_filename()
-                    if not name:
-                        continue
-                    if Path(name).suffix.lower() != ".csv":
-                        raise ValueError("Sono ammessi solo CSV.")
-                    # Nome locale univoco: non sovrascrive export esistenti.
-                    with tempfile.NamedTemporaryFile(prefix="upload-", suffix=".csv", dir=directory, delete=False) as file:
-                        file.write(part.get_payload(decode=True))
-                        path = Path(file.name)
-                    sanitize_export(path)
-                    paths.append(path)
-                if not paths:
-                    raise ValueError("Selezionare almeno un export CSV.")
-                with write_lock:
-                    import_into_store(self.store, paths)
-                self.reply(200, {"imported_files": len(paths), "active": bool(self.store.activation_date())})
+                upload_directory = (tempfile.TemporaryDirectory(prefix="rre-upload-") if self.store.postgres
+                                    else nullcontext(str(self.store.path.parent / "uploads")))
+                with upload_directory as folder:
+                    directory = Path(folder)
+                    directory.mkdir(parents=True, exist_ok=True)
+                    for part in message.iter_parts():
+                        name = part.get_filename()
+                        if not name:
+                            continue
+                        if Path(name).suffix.lower() != ".csv":
+                            raise ValueError("Sono ammessi solo CSV.")
+                        # Nome locale univoco: non sovrascrive export esistenti.
+                        with tempfile.NamedTemporaryFile(prefix="upload-", suffix=".csv", dir=directory, delete=False) as file:
+                            file.write(part.get_payload(decode=True))
+                            path = Path(file.name)
+                        sanitize_export(path)
+                        paths.append(path)
+                    if not paths:
+                        raise ValueError("Selezionare almeno un export CSV.")
+                    with write_lock:
+                        import_into_store(self.store, paths)
+                    self.reply(200, {"imported_files": len(paths), "active": bool(self.store.activation_date())})
             except (ValueError, UnicodeError) as error:
                 self.reply(400, {"error": str(error)})
 
@@ -215,20 +219,22 @@ def make_handler(store, *, demo=False, as_of=None, credentials=None, public_orig
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group()
-    mode.add_argument("--database", type=Path, default=os.environ.get("DATABASE_PATH"),
-                      help="SQLite; usa DATABASE_PATH o local-data/retention.sqlite3.")
+    mode.add_argument("--database", default=os.environ.get("DATABASE_URL") or os.environ.get("DATABASE_PATH"),
+                      help="PostgreSQL via DATABASE_URL oppure SQLite via DATABASE_PATH.")
     mode.add_argument("--demo", action="store_true", help="Usa soltanto dati sintetici, separati dal database reale.")
     parser.add_argument("--host", default="0.0.0.0" if os.environ.get("RENDER") else "127.0.0.1")
     parser.add_argument("--port", type=int, default=os.environ.get("PORT", "8000"))
     parser.add_argument("--as-of", help="Data di valutazione; in demo il riferimento Figma è 2026-10-05.")
     args = parser.parse_args(argv)
+    if os.environ.get("DATABASE_URL") and os.environ.get("DATABASE_PATH"):
+        parser.error("Configurare DATABASE_URL oppure DATABASE_PATH, non entrambi.")
     username, password = os.environ.get("RRE_USERNAME"), os.environ.get("RRE_PASSWORD")
     if bool(username) != bool(password) or (username and ":" in username):
         parser.error("Impostare RRE_USERNAME (senza due punti) e RRE_PASSWORD insieme.")
     if (os.environ.get("RENDER") or args.host not in ("127.0.0.1", "localhost", "::1")) and not username:
         parser.error("L'accesso remoto richiede RRE_USERNAME e RRE_PASSWORD.")
     if os.environ.get("RENDER") and not args.demo and not args.database:
-        parser.error("Su Render impostare DATABASE_PATH sul disco persistente prima di usare dati reali.")
+        parser.error("Su Render impostare DATABASE_URL (PostgreSQL) oppure DATABASE_PATH sul disco persistente.")
     public_origin = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/") or None
     with tempfile.TemporaryDirectory(prefix="rre-demo-") as directory:
         database = args.database or ROOT / "local-data" / "retention.sqlite3"

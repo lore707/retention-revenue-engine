@@ -268,20 +268,41 @@ Il repository GitHub può restare privato. Creare un **Web Service Python 3** su
 | `PYTHON_VERSION` | `3.12.10`, versione usata nei test locali |
 | `RRE_USERNAME` | Nome utente scelto dall'operatore, senza `:` |
 | `RRE_PASSWORD` | Password lunga e casuale, conservata solo nelle variabili segrete di Render |
-| `DATABASE_PATH` | `/var/data/retention.sqlite3` |
+| `DATABASE_URL` | Stringa PostgreSQL Supabase, Session pooler, con password (solo backend) |
 
-Per i dati reali collegare un disco persistente con mount path `/var/data`, disponibile sui servizi a pagamento. Solo quel percorso conserva database e upload ai riavvii e ai deploy. Non impostare soltanto `DATABASE_PATH` senza collegare il disco: una directory normale non rende persistente lo storage. Piano e costo vanno scelti esplicitamente dall'operatore. Documentazione: [dischi persistenti](https://render.com/docs/disks) e [limiti del piano gratuito](https://render.com/docs/free).
+Per Render Free con dati reali usare PostgreSQL su Supabase. In **Connect** scegliere URI e **Session pooler**, compatibile IPv4. Salvare la stringa completa con password nelle variabili segrete di Render come `DATABASE_URL`, senza inserirla nel codice o in uno screenshot. Non impostare `DATABASE_PATH` insieme a `DATABASE_URL`. Non servono chiavi API Supabase o accesso diretto dal browser: il backend usa `psycopg` con TLS e lo schema privato `retention`, fuori dagli schemi esposti normalmente dalla Data API.
+
+Ordini, email, eventi, attivazione e registro import restano in PostgreSQL. In questa modalità i CSV caricati sono temporanei: dopo la pulizia e l'import la copia sul server viene rimossa; i fatti normalizzati e il registro restano nel database. Gli export originali devono essere conservati dall'operatore sul proprio PC. La lettura degli eventi e gli aggiornamenti sono eseguiti in blocco per evitare una richiesta di rete per ogni cliente.
+
+SQLite resta disponibile per l'uso locale. Per usarlo su Render occorre invece un servizio a pagamento con disco persistente montato in `/var/data` e `DATABASE_PATH=/var/data/retention.sqlite3`, senza `DATABASE_URL`. Una semplice directory non rende persistente lo storage. Documentazione: [dischi persistenti](https://render.com/docs/disks), [limiti Render Free](https://render.com/docs/free), [connessioni Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres).
 
 Render fornisce `RENDER`, `PORT` e `RENDER_EXTERNAL_URL`. Il server ascolta su `0.0.0.0` e sulla porta assegnata; l'URL pubblico HTTPS è l'origine ammessa per le scritture. Non bisogna usare Gunicorn: questo progetto espone direttamente un server HTTP, non un'applicazione WSGI. HTTPS è terminato da Render; non esporre direttamente il server su Internet via HTTP.
 
-L'accesso avviene tramite la finestra credenziali del browser (HTTP Basic), per un singolo operatore: pagine, asset, API, import e registrazioni richiedono la password. `/healthz` restituisce soltanto lo stato del processo senza credenziali. Non sono previsti account multipli o un sistema di sessioni; la chiusura di una scheda non garantisce che il browser dimentichi le credenziali. Il server rifiuta l'avvio remoto senza credenziali e, su Render in modalità reale, senza `DATABASE_PATH`. Le credenziali non vanno inserite nel repository o negli URL.
+L'accesso avviene tramite la finestra credenziali del browser (HTTP Basic), per un singolo operatore: pagine, asset, API, import e registrazioni richiedono la password. `/healthz` restituisce soltanto lo stato del processo senza credenziali. Non sono previsti account multipli o un sistema di sessioni; la chiusura di una scheda non garantisce che il browser dimentichi le credenziali. Il server rifiuta l'avvio remoto senza credenziali e, su Render in modalità reale, senza `DATABASE_URL` o `DATABASE_PATH`. Le credenziali non vanno inserite nel repository o negli URL.
 
-Il primo deploy non contiene i dati del PC e non avvia l'attività pianificata Windows. Dopo il deploy, caricare gli export tramite la dashboard protetta e attivare esplicitamente lo storico dalla Shell del servizio:
+Il primo deploy non contiene i dati del PC e non avvia l'attività pianificata Windows. Per conservare tutti gli ordini e gli eventuali contatti già presenti, migrare **prima** il database locale verso il progetto Supabase vuoto. Non limitarsi a ricaricare i CSV: non ricostruiscono gli eventi manuali.
 
-```sh
-python -m src.customer_profiles --db /var/data/retention.sqlite3 activate --date AAAA-MM-GG
+### Migrazione del database attuale
+
+Tenere ferma l'operatività locale durante il passaggio. Conservare la stringa completa Supabase in `local-data/supabase-connection.txt`, escluso da Git, su una sola riga. Non inviarla in chat o inserirla nei comandi come testo visibile. Da PowerShell:
+
+```powershell
+$env:DATABASE_URL = (Get-Content -LiteralPath 'local-data/supabase-connection.txt' -Raw).Trim()
+python -m src.storage --source local-data/retention.sqlite3
 ```
 
-Sostituire la data con quella scelta per l'attivazione. Non eseguire automaticamente questo comando a ogni avvio. Gli eventi già registrati sul PC non vengono ricreati dai CSV; per trasferire l'operatività esistente occorre migrare una copia coerente del database tramite un canale privato, mai GitHub. Il database online e quello sul PC non si sincronizzano automaticamente. Il disco persistente non sostituisce una procedura di backup verificata.
+Il comando crea una copia consistente del SQLite accanto all'originale, copia tutte le sei tabelle in un'unica transazione, preserva l'ordine degli eventi e verifica ogni riga prima del commit. Rifiuta una destinazione non vuota e non modifica il database sorgente. Il riepilogo mostra solo conteggi e percorso della copia; non mostra recapiti o credenziali. Il file della connessione è un segreto locale: rimuoverlo quando non serve più e conservarne il valore nel gestore di password e in Render.
 
-Per una sola prova gratuita con dati sintetici usare `python -m src.web --demo`, mantenendo `RRE_USERNAME` e `RRE_PASSWORD` e omettendo `DATABASE_PATH`. I dati della demo e le sue registrazioni sono temporanei e vengono ricreati a ogni riavvio. Non usare questa modalità per l'operatività reale.
+Dopo una migrazione riuscita, `DATABASE_URL` su Render deve puntare allo stesso progetto. Attivazione, contatti ed esiti migrati restano invariati. Verificare anche gli aggregati della dashboard alla stessa data. Non attivare nuovamente lo storico se era già attivo. I successivi export vengono caricati dalla dashboard protetta e aggiornano gli stessi profili senza azzerare gli eventi.
+
+Per una nuova installazione vuota, senza migrazione, caricare prima gli export e attivare esplicitamente lo storico dalla CLI, con `DATABASE_URL` già configurata:
+
+```sh
+python -m src.customer_profiles activate --date AAAA-MM-GG
+```
+
+Sostituire la data con quella scelta per l'attivazione; non eseguire il comando a ogni avvio. Il PC continua a usare SQLite se non si imposta `DATABASE_URL` anche lì: non esiste una sincronizzazione automatica. Dopo il passaggio usare un solo database operativo. Backup ed eventuali limiti/sospensioni dei piani gratuiti restano da gestire separatamente.
+
+Test PostgreSQL reali: impostare `RRE_TEST_DATABASE_URL` su un database dedicato vuoto, mai quello operativo, ed eseguire `python -m unittest discover -s tests`. Il test copia dati sintetici e verifica nuovi import in una transazione annullata; senza questa variabile il test viene saltato esplicitamente.
+
+Per una sola prova gratuita con dati sintetici usare `python -m src.web --demo`, mantenendo `RRE_USERNAME` e `RRE_PASSWORD` e omettendo `DATABASE_PATH` e `DATABASE_URL`. I dati della demo e le sue registrazioni sono temporanei e vengono ricreati a ogni riavvio. Non usare questa modalità per l'operatività reale.

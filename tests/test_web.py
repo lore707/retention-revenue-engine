@@ -845,6 +845,7 @@ class HostedServerTests(unittest.TestCase):
             ({}, ["--host", "0.0.0.0"]),
             ({"RRE_USERNAME": "synthetic"}, []),
             ({"RRE_USERNAME": "bad:name", "RRE_PASSWORD": "password"}, []),
+            ({"DATABASE_URL": "postgresql://example.invalid/test", "DATABASE_PATH": "local.sqlite3"}, []),
         ]:
             with self.subTest(environment=list(environment), arguments=arguments), \
                     patch.dict("os.environ", environment, clear=True), \
@@ -853,6 +854,16 @@ class HostedServerTests(unittest.TestCase):
                     main(arguments)
                 self.assertEqual(caught.exception.code, 2)
                 server.assert_not_called()
+
+    def test_render_postgres_url_is_passed_to_store_without_becoming_a_file_path(self):
+        environment = {"RENDER": "true", "PORT": "10000",
+                       "DATABASE_URL": "postgresql://synthetic:password@example.invalid/test",
+                       "RRE_USERNAME": "synthetic", "RRE_PASSWORD": "synthetic-password"}
+        with patch.dict("os.environ", environment, clear=True), patch("src.web.Store") as store, \
+                patch("src.web.ThreadingHTTPServer") as server:
+            main([])
+            store.assert_called_once_with(environment["DATABASE_URL"])
+            self.assertEqual(server.call_args.args[0], ("0.0.0.0", 10000))
 
 
 if __name__ == "__main__":

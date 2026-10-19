@@ -6,6 +6,7 @@ from copy import deepcopy
 from datetime import date, datetime, timedelta
 import hashlib
 import json
+import os
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -198,12 +199,13 @@ def evaluate_day(store, as_of):
     definitions = json.loads((root / "rules.json").read_text(encoding="utf-8"))
     promotions = json.loads((root / "promotions.json").read_text(encoding="utf-8"))
     ready = []
+    event_history = store.events_by_customer()
     for customer_id in sorted(state["profiles"]):
         if customer_id in uncertain_ids:
             continue
         snapshot = engine_snapshot(
             state, customer_id, as_of, history_complete=True,
-            contact_history_complete=True, events=store.events_for(customer_id),
+            contact_history_complete=True, events=event_history.get(customer_id, []),
         )
         result = evaluate_portfolio(snapshot, as_of, catalog=catalog, definitions=definitions,
                                     promotions=promotions)
@@ -655,11 +657,12 @@ def retention_summary(store, as_of):
     active = bool(store.activation_date() and as_of >= store.activation_date())
     sections = {"ready": [], "in_progress": [], "closed": []}
     operational_rows = []
+    event_history = store.events_by_customer()
     sales = _verified_sales(store, as_of)
     for customer_id in sorted(state["profiles"]):
         if not any(order["date"] <= as_of for order in state["profiles"][customer_id]["orders"].values()):
             continue
-        events = store.events_for(customer_id)
+        events = event_history.get(customer_id, [])
         profile = customer_signals(state, customer_id, as_of, catalog=catalog, definitions=definitions)
         portfolio = evaluate_portfolio(engine_snapshot(state, customer_id, as_of, history_complete=True,
                                        contact_history_complete=True, events=events), as_of,
@@ -752,7 +755,7 @@ def retention_summary(store, as_of):
             "metrics": {"ready_customers": len(sections["ready"]),
                         "potential_value_minor": sum(row["value_minor"] for row in sections["ready"]),
                         "registered_contacts": sum(event["type"] == "contact" and event["date"] <= as_of
-                            for customer_id in state["profiles"] for event in store.events_for(customer_id)),
+                            for customer_id in state["profiles"] for event in event_history.get(customer_id, [])),
                         **revenue_summary(store, as_of, customer_ids={row["customer_id"] for row in operational_rows})},
             "totals": {key: sum((row["revenue_minor"] if key == "closed" else row["value_minor"]) or 0 for row in rows)
                        for key, rows in sections.items()},
@@ -1122,7 +1125,7 @@ def revenue_summary(store, as_of, *, starts_on=None, include_series=False, custo
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Import, eventi e lista operativa senza recapiti in output.")
-    parser.add_argument("--db", type=Path, default=Path("local-data/retention.sqlite3"))
+    parser.add_argument("--db", default=os.environ.get("DATABASE_URL") or os.environ.get("DATABASE_PATH") or "local-data/retention.sqlite3")
     commands = parser.add_subparsers(dest="command", required=True)
     import_command = commands.add_parser("import")
     import_command.add_argument("csv_paths", nargs="+", type=Path)
