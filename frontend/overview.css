@@ -649,7 +649,8 @@ dialog::backdrop {
 #revenue {color:var(--green)}
 .operational-section,.profile-section {display:grid;gap:12px}
 .operational-cards {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-.operational-card {padding:20px;display:flex;flex-direction:column;gap:14px;min-height:210px;color:var(--ink);border-color:var(--filter-border);background:linear-gradient(145deg,white 35%,var(--filter-soft));transition:border-color 160ms,box-shadow 160ms,transform 160ms}
+.operational-card {padding:20px;display:flex;flex-direction:column;gap:14px;min-height:210px;color:var(--ink);border-color:var(--filter-border);background:linear-gradient(145deg,white 35%,var(--filter-soft));transition:border-color 160ms,box-shadow 160ms,transform 160ms;font:inherit;text-align:left;cursor:pointer}
+.operational-card[aria-pressed="true"] {border-color:var(--filter-color);box-shadow:0 0 0 1px var(--filter-color),0 6px 20px -12px var(--filter-color)}
 .operational-card:hover {border-color:var(--filter-color);box-shadow:0 8px 24px -12px #13284c33;transform:translateY(-2px)}
 .overview-category-heading {display:flex;align-items:center;gap:12px}
 .operational-card h3 {font-size:15px;line-height:22px;font-weight:600;margin:0}
@@ -763,6 +764,25 @@ body[data-page="overview"] .workspace {min-width:0}
 .overview-main .plot .area {opacity:.07}
 .overview-main #chart-caption {padding-top:2px;line-height:20px}
 .overview-main .queue {gap:14px}
+.overview-section-heading {display:flex;align-items:center;justify-content:space-between;gap:16px}
+.overview-section-heading h2 {font-size:18px;line-height:26px}
+.overview-section-heading p {margin-top:4px}
+.overview-section-heading a {font-size:13px;color:var(--blue);flex:none}
+.overview-filters {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:18px;background:#f5f9ff;border:1px solid var(--border);border-radius:14px;min-width:0}
+.overview-filters>div {min-width:0}
+.overview-filters label {display:block;font-size:12px;font-weight:600;color:var(--secondary);margin-bottom:8px}
+.overview-filters .floating-filter-trigger {min-height:56px;padding:8px 12px}
+.overview-filters .filter-option-icon {width:36px;height:36px;flex-basis:36px;border-radius:10px}
+.overview-filters .filter-option-title {font-size:13px}
+.overview-filters .filter-option-description {font-size:11px;line-height:16px}
+.overview-filters .floating-filter-trigger:disabled {opacity:.6;cursor:default}
+.overview-search-field>div {display:flex;align-items:center;gap:8px;min-height:56px}
+.overview-search-field input {min-width:0;width:100%;height:56px;border:1px solid #d6e2f1;border-radius:12px;background:white;padding:12px;font:inherit;font-size:13px;color:var(--ink)}
+.overview-search-field input:focus {outline:3px solid #387be633;border-color:var(--blue)}
+.overview-search-field button {min-height:44px;flex:none}
+.overview-chips {grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px}
+.overview-chips[hidden] {display:none}
+.overview-chip {min-height:36px;padding:7px 12px;border:1px solid var(--filter-border);border-radius:10px;color:var(--filter-color);background:var(--filter-soft);font:inherit;font-size:12px;text-align:left;overflow-wrap:anywhere;cursor:pointer}
 .overview-main .table-heading {height:auto;min-height:44px;gap:16px;padding:0 8px}
 .overview-main #show-all {min-height:38px;border-radius:10px;color:var(--blue);border-color:#d8e7fa;background:#f4f8ff;font-weight:500;flex:none}
 .overview-main #show-all:hover {background:#e8f2ff}
@@ -787,6 +807,8 @@ body[data-page="overview"] .workspace {min-width:0}
 .overview-main a:focus-visible,.overview-main button:focus-visible {outline:3px solid #387be64d;outline-offset:3px}
 @media(max-width:1199px) {.overview-main .metrics {grid-template-columns:repeat(2,minmax(0,1fr))}.overview-main .page-heading {flex-wrap:wrap}.overview-main .operational-card {padding:16px}.overview-category-heading {gap:8px;align-items:flex-start}}
 @media(max-width:940px) {.overview-main .operational-cards {grid-template-columns:minmax(0,1fr)}.overview-main .operational-card {min-height:0;gap:12px}.overview-main .chart-heading {align-items:flex-start;flex-wrap:wrap}.overview-period-field {width:100%}.overview-main .chart-summary {align-items:flex-start;flex-direction:column}.overview-main .chart-summary>span {text-align:left;max-width:100%}.overview-main .table-heading {align-items:flex-start;flex-wrap:wrap}}
+@media(max-width:1100px) {.overview-filters {grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px) {.overview-filters {grid-template-columns:minmax(0,1fr);padding:14px;gap:14px}.overview-section-heading {align-items:flex-start;flex-direction:column;gap:8px}.overview-chip {min-height:44px}.overview-filters input {font-size:16px}}
 @media(max-width:700px) {.overview-main {padding:20px 14px}.overview-main .page-heading {padding:0}.overview-main h1 {font-size:30px;line-height:38px}.overview-main .page-heading p {font-size:16px;line-height:24px}.overview-main .metrics {grid-template-columns:minmax(0,1fr)}.overview-main .revenue-chart {padding:16px}.overview-main .metric {min-height:148px}.overview-section-title {gap:8px}}
 @media(prefers-reduced-motion:reduce) {.operational-card {transition:none}.operational-card:hover {transform:none}}
 

@@ -95,6 +95,16 @@ function harness(search = '', page = 'retention') {
       {key: 'none', label: 'Nessuna azione immediata', description: 'Attese o blocchi', tone: 'amber', count: 5}
     ]};
   if (page === 'overview') {
+    Object.assign(data, {work_group: 'recent', recent_days: 30,
+      work_views: [
+        {key: 'follow_up', label: 'Da seguire', count: 2, description: 'Risposte e follow-up consentiti'},
+        {key: 'recent', label: 'Nuove opportunità', count: 3, description: 'Primo contatto del piano'},
+        {key: 'backlog', label: 'Storico da recuperare', count: 3, description: 'Piani maturi da tempo'}],
+      filters: {category: '', product: '', strategy: '', profile: '', search: '', order: 'recommended'},
+      filter_options: {category: [{value: 'targeted', label: 'Opportunità mirate'}, {value: 'test', label: 'Da testare'}],
+        product: [{value: 'Prodotto sintetico', label: 'Prodotto sintetico'}],
+        strategy: [{value: 'completion', label: 'Completamenti funzionali'}],
+        profile: [{value: 'recurring', label: 'Ricorrente'}]}});
     Object.assign(data.metrics, {potential_value_minor: 14995, registered_contacts: 6, attributed_revenue_minor: 2400, verified_orders: 1});
     Object.assign(data, {period: '30d', starts_on: '2026-09-16', chart: {attributed_revenue_minor: 2400, verified_orders: 1,
       series: [{date: '2026-09-16', amount_minor: 0}, {date: '2026-10-15', amount_minor: 2400}]}});
@@ -285,16 +295,17 @@ test('filtered backend rows keep their main proposal, client action and paginati
   assert.equal(h.$('#page-label').textContent, '26–26 di 26');
 });
 
-test('Overview displays backend KPI, exclusive category counts, destinations and chart values', async () => {
+test('Overview displays backend KPI, exclusive work groups and chart values', async () => {
   const h = harness('', 'overview'); await h.settle();
   assert.equal(h.calls[0], '/api/overview?period=30d');
   assert.equal(h.$('#ready-count').textContent, '8'); assert.equal(h.$('#potential').textContent, '€ 149,95');
   assert.equal(h.$('#contacts').textContent, '6'); assert.equal(h.$('#revenue').textContent, '€ 24,00');
   assert.equal(h.$('#chart-total').textContent, '€ 24,00');
   const cards = h.$('#operational-views').children;
-  assert.equal(cards.map(card => card.href).join(','), '/retention?view=targeted,/retention?view=test,/retention?view=none');
-  assert.equal(cards.map(card => card.querySelector('strong').textContent).join(','), '5,3,5');
-  assert(h.$('#operational-note').textContent.includes('una sola categoria'));
+  assert.equal(cards.map(card => card.tagName).join(','), 'BUTTON,BUTTON,BUTTON');
+  assert.equal(cards.map(card => card.attributes['aria-pressed']).join(','), 'false,true,false');
+  assert.equal(cards.map(card => card.querySelector('strong').textContent).join(','), '2,3,3');
+  assert(h.$('#operational-note').textContent.includes('Gruppi esclusivi'));
   assert.equal(h.$('#customers').children[0].children[0].colSpan, 8);
   const points = h.$('#chart').querySelectorAll('.hit'); assert.equal(points.length, 2);
   h.fire(points[1], 'focus'); assert(h.$('#chart-tooltip').textContent.includes('€ 24,00'));
@@ -357,6 +368,47 @@ test('Overview still opens client detail and expands the backend queue', async (
   h.fire(h.$('#customers').querySelector('.open-button'), 'click'); assert.equal(opened.customer_id, 'SYNTHETIC_OVERVIEW_0');
   assert.equal(opened.proposal, row.proposal);
   h.fire(h.$('#show-all'), 'click'); assert.equal(h.$('#customers').children.length, 4);
+});
+
+test('Overview work groups and primary filters call backend, persist URL and remove chips without touching KPI', async () => {
+  const h = harness('?source=bookmark#clienti', 'overview'); await h.settle();
+  h.state.data = {...h.data, work_group: 'backlog'};
+  h.fire(h.$('#operational-views').children[2], 'click'); await h.settle();
+  assert.equal(h.location.searchParams.get('work'), 'backlog');
+  assert.equal(h.$('#operational-views').children[2].attributes['aria-pressed'], 'true');
+  const controls = vm.runInContext('overviewFilters', h.context);
+  const values = ['targeted', 'Prodotto sintetico', 'completion', 'recurring', 'product'];
+  for (const [index, control] of controls.entries()) control.select.value = values[index];
+  h.state.data = {...h.state.data, filters: {category: values[0], product: values[1], strategy: values[2], profile: values[3], order: 'product', search: 'ordine'}};
+  h.$('#overview-search').value = 'ordine'; h.fire(h.$('#overview-search'), 'input'); await h.flush();
+  const request = new URLSearchParams(h.calls.at(-1).split('?')[1]);
+  for (const [index, key] of ['category', 'product', 'strategy', 'profile', 'order'].entries()) assert.equal(request.get(key), values[index]);
+  assert.equal(request.get('search'), 'ordine'); assert.equal(request.get('work'), 'backlog');
+  assert.equal(h.location.searchParams.get('source'), 'bookmark'); assert.equal(h.location.hash, '#clienti');
+  assert.equal(h.$('#overview-chips').children.length, 5); assert.equal(h.$('#ready-count').textContent, '8');
+  assert(h.$('#overview-order-note').textContent.includes('Stesso prodotto insieme'));
+  h.state.data.filters.category = '';
+  h.fire(h.$('#overview-chips').children[0], 'click'); await h.settle();
+  assert.equal(new URLSearchParams(h.calls.at(-1).split('?')[1]).get('category'), null);
+  h.state.data.filters = {...h.data.filters};
+  h.fire(h.$('#overview-filters'), 'reset'); await h.settle();
+  assert.equal(h.$('#overview-chips').hidden, true); assert.equal(h.location.searchParams.get('work'), 'backlog');
+  assert.equal(h.location.searchParams.get('product'), null); assert.equal(h.location.hash, '#clienti');
+});
+
+test('Overview restores filter URLs, accepts server normalization and disables sorting only for responses and followups', async () => {
+  const h = harness('?work=follow_up&product=Prodotto+sintetico&profile=recurring&category=invalid', 'overview'); await h.settle();
+  assert.equal(new URLSearchParams(h.calls[0].split('?')[1]).get('product'), 'Prodotto sintetico');
+  const controls = vm.runInContext('overviewFilters', h.context);
+  assert.equal(controls[0].select.value, '');
+  h.state.data = {...h.data, work_group: 'follow_up'}; await vm.runInContext('loadOverview()', h.context);
+  assert.equal(controls[4].trigger.disabled, true); assert(h.$('#overview-order-note').textContent.includes('Prima le risposte'));
+  h.location.search = '?work=recent&strategy=completion&search=cliente';
+  h.fire(h.window, 'popstate'); await h.settle();
+  const request = new URLSearchParams(h.calls.at(-1).split('?')[1]);
+  assert.equal(request.get('work'), 'recent'); assert.equal(request.get('strategy'), 'completion'); assert.equal(request.get('search'), 'cliente');
+  h.state.data = {...h.data, work_group: 'recent'}; await vm.runInContext('loadOverview()', h.context);
+  assert.equal(controls[4].trigger.disabled, false);
 });
 
 test('Rules renders all backend relations and guides as accessible tables without old cards', async () => {

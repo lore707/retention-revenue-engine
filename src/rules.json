@@ -1,6 +1,9 @@
 {
-  "version": 28,
+  "version": 29,
   "scope": "Accessori, complementi, espansioni di categoria, ricambi e sostituzioni con consenso marketing e coordinamento per cliente.",
+  "overview_worklist": {
+    "recent_days": 30
+  },
   "customer_signals": {
     "first_purchase_order_count": 1,
     "recurring_minimum_orders": 2,

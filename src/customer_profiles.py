@@ -832,7 +832,13 @@ def _operational_row(state, customer_id, as_of, profile, portfolio, active, revi
                                   "value_minor": None, "rationale": rule["rationale"]})
         entries.append({"plan_key": tracked["plan_key"], "state": tracked["state"], "is_primary": False,
                         "contactable": False, "opportunities": opportunities, "reason": "Piano storico: " + tracked["outcome"]})
+    response = bool(active and not reviews and portfolio["contact_permission"]["allowed"]
+                    and portfolio["portfolio_status"] == "operator_response" and plan)
     row.update(customer_profile=profile, category=category, reason=reason, plans=entries,
+               work_action="reply" if response else "follow_up" if workable and plan["contact_count"] else
+                           "first_contact" if workable else None,
+               work_date=plan["first_contact_date"] if response else
+                         plan["earliest_contact_date"] if workable else None,
                maximum_contacts=definitions["shared_policies"]["follow_up"]["maximum_contacts"],
                contactable=bool(workable), status_label="Da contattare" if workable else "Nessuna azione immediata",
                tone="blue" if category == "targeted" else "purple" if category == "test" else "amber")
@@ -1048,7 +1054,69 @@ def rules_summary():
             "guides": guides, "categories": categories, "flows": flows}
 
 
-def overview_summary(store, as_of, period="30d"):
+def _overview_worklist(evaluation, as_of, recent_days, *, work="", category="", product="",
+                       strategy="", profile="", search="", order="recommended"):
+    """Organizza soltanto le azioni correnti; non seleziona nuovi piani o prodotti."""
+    groups = {"follow_up": [], "recent": [], "backlog": []}
+    for row in evaluation["customers"]:
+        if not row["work_action"]:
+            continue
+        age = ((date.fromisoformat(as_of) - date.fromisoformat(row["eligible_from_date"])).days
+               if row["work_action"] == "first_contact" else None)
+        key = "follow_up" if age is None else "recent" if age < recent_days else "backlog"
+        groups[key].append(row)
+    views = [{"key": key, "label": label, "description": description, "count": len(groups[key])}
+             for key, label, description in (
+                 ("follow_up", "Da seguire", "Risposte da gestire e follow-up arrivati alla data consentita."),
+                 ("recent", "Nuove opportunità", f"Primo contatto del piano: maturazione da meno di {recent_days} giorni."),
+                 ("backlog", "Storico da recuperare", f"Primo contatto del piano: maturazione da almeno {recent_days} giorni."))]
+    if work not in groups:
+        work = next((key for key, rows in groups.items() if rows), "recent")
+    all_rows = [row for rows in groups.values() for row in rows]
+    options = {
+        "category": [{"value": view["key"], "label": view["label"]}
+                     for view in evaluation["operational_views"] if view["key"] != "none"],
+        "product": [{"value": name, "label": name} for name in sorted({row["proposal"] for row in all_rows})],
+        "strategy": [{"value": key, "label": label} for key, label in sorted(
+            {(row["strategy"], row["strategy_label"]) for row in all_rows})],
+        "profile": [{"value": key, "label": label} for key, label in sorted(
+            {(signal["key"], signal["label"]) for row in all_rows
+             for signal in row["customer_profile"]["signals"]})],
+    }
+    selected = {"category": category, "product": product, "strategy": strategy, "profile": profile}
+    selected = {key: value if value in {option["value"] for option in options[key]} else ""
+                for key, value in selected.items()}
+    search = search.strip()
+    rows = [row for row in groups[work]
+            if (not selected["category"] or row["commercial_category"] == selected["category"])
+            and (not selected["product"] or row["proposal"] == selected["product"])
+            and (not selected["strategy"] or row["strategy"] == selected["strategy"])
+            and (not selected["profile"] or any(signal["key"] == selected["profile"]
+                                               for signal in row["customer_profile"]["signals"]))
+            and (not search or search.casefold() in " ".join((row["customer_id"], row.get("order_number") or "",
+                                                            row["source_product"], row["proposal"])).casefold())]
+    order = order if order in {"recommended", "product"} and work != "follow_up" else "recommended"
+    if work == "follow_up":
+        rows.sort(key=lambda row: (row["work_action"] != "reply", row["work_date"], row["customer_id"]))
+    elif order == "product":
+        rows.sort(key=lambda row: (row["commercial_category"] != "targeted", row["proposal"],
+                                   row["eligible_from_date"], row["customer_id"]))
+    else:
+        ordered = []
+        for commercial_category in ("targeted", "test"):
+            by_product = {}
+            for row in sorted(rows, key=lambda item: (item["eligible_from_date"], item["customer_id"])):
+                if row["commercial_category"] == commercial_category:
+                    by_product.setdefault(row["proposal"], []).append(row)
+            queues = sorted(by_product.values(), key=lambda queue: (queue[0]["eligible_from_date"], queue[0]["proposal"]))
+            for index in range(max((len(queue) for queue in queues), default=0)):
+                ordered.extend(queue[index] for queue in queues if index < len(queue))
+        rows = ordered
+    return {"work_views": views, "work_group": work, "recent_days": recent_days,
+            "filter_options": options, "filters": {**selected, "search": search, "order": order}, "rows": rows}
+
+
+def overview_summary(store, as_of, period="30d", **filters):
     """Dati dell'Overview: decisioni correnti e ricavi verificati nel periodo."""
     today = date.fromisoformat(as_of)
     if period in {"30d", "90d"}:
@@ -1060,7 +1128,8 @@ def overview_summary(store, as_of, period="30d"):
     else:
         raise ValueError("Periodo non supportato.")
     evaluation = retention_summary(store, as_of)
-    rows = evaluation["sections"]["ready"]
+    definitions = json.loads((Path(__file__).resolve().parent / "rules.json").read_text(encoding="utf-8"))
+    worklist = _overview_worklist(evaluation, as_of, definitions["overview_worklist"]["recent_days"], **filters)
     chart = revenue_summary(store, as_of, starts_on=start.isoformat(), include_series=True,
                             customer_ids={row["customer_id"] for row in evaluation["customers"]})
     if period in {"6m", "12m"}:
@@ -1072,8 +1141,7 @@ def overview_summary(store, as_of, period="30d"):
                            for month, amount in monthly.items()]
     return {"date": as_of, "active": evaluation["active"], "period": period,
             "product_images": evaluation["product_images"],
-            "starts_on": start.isoformat(), "chart": chart, "rows": rows,
-            "operational_views": evaluation["operational_views"],
+            "starts_on": start.isoformat(), "chart": chart, **worklist,
             "metrics": evaluation["metrics"],
             "history_scope": "imported_orders_only"}
 
