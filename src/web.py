@@ -134,7 +134,7 @@ def make_handler(store, *, demo=False, as_of=None, credentials=None, public_orig
                 elif parsed.path == "/api/retention":
                     data = retention_summary(self.store, day)
                     data["rows"] = filter_retention(data, **{key: query.get(key, [""])[0]
-                        for key in ("category", "state", "strategy", "profile", "search")})
+                        for key in ("category", "state", "strategy", "profile", "search", "activity")})
                     data["demo"] = demo
                     self.reply(200, data)
                 elif parsed.path == "/api/rules":

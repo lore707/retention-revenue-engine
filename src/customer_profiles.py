@@ -745,7 +745,10 @@ def retention_summary(store, as_of):
                 summaries[section].append({"label": "Non più proponibili", "count": sum(row["outcome"] == "not_eligible" for row in rows), "tone": "neutral"})
     operational_sections = {key: [row for row in operational_rows if key == row["category"]]
                             for key in ("targeted", "test", "none")}
+    activity_views = _activity_views(operational_rows, sections, as_of, definitions["overview_activity"]["recent_days"])
     return {"date": as_of, "active": active, "sections": sections, "summaries": summaries,
+            "activity_views": activity_views,
+            "activity_unassigned_customers": sum(row["activity"] is None for row in operational_rows),
             "product_images": _product_images(catalog),
             "profile_counts": {key: _profile_counts(rows) for key, rows in sections.items()},
             "operational_views": _operational_views(operational_rows),
@@ -851,10 +854,41 @@ def _operational_views(rows):
                 ("none", "Nessuna azione immediata", "Attese, dati da verificare, blocchi o nessuna proposta.", "amber"))]
 
 
-def filter_retention(data, *, category="", state="", strategy="", profile="", search=""):
+def _activity_views(rows, sections, as_of, recent_days):
+    """Riepilogo del lavoro corrente, derivato esclusivamente dai piani valutati."""
+    ready = {row["customer_id"]: row for row in sections["ready"]}
+    responses = {row["customer_id"] for row in sections["in_progress"] if row["status_label"] == "Risposta da gestire"}
+    started = {row["customer_id"] for row in sections["in_progress"]}
+    for row in rows:
+        customer = row["customer_id"]
+        current = ready.get(customer)
+        if customer in responses or (current and current["contact_count"]):
+            group = "today"
+        elif current:
+            age = (date.fromisoformat(as_of) - date.fromisoformat(current["eligible_from_date"])).days
+            group = "opportunities" if age < recent_days else "history"
+        elif customer in started:
+            group = "working"
+        else:
+            group = None
+        row["activity"] = group
+    return [{"key": key, "label": label, "description": description,
+             "count": sum(row["activity"] == key for row in rows)}
+            for key, label, description in (
+                ("today", "Da gestire oggi", "Risposte e follow-up dovuti"),
+                ("opportunities", "Nuove opportunità", "Clienti pronti da contattare"),
+                ("working", "In lavorazione", "Piani commerciali già avviati"),
+                ("history", "Storico da recuperare", "Clienti ancora da rivalutare"))]
+
+
+def filter_retention(data, *, category="", state="", strategy="", profile="", search="", activity=""):
     """Filtri coerenti sullo stesso piano/opportunità, una riga per cliente."""
     rows = []
+    if activity not in {view["key"] for view in data["activity_views"]}:
+        activity = ""
     for row in data["customers"]:
+        if activity and row["activity"] != activity:
+            continue
         if category and row["category"] != category:
             continue
         if profile and not any(signal["key"] == profile for signal in row["customer_profile"]["signals"]):
@@ -1073,7 +1107,9 @@ def overview_summary(store, as_of, period="30d"):
     return {"date": as_of, "active": evaluation["active"], "period": period,
             "product_images": evaluation["product_images"],
             "starts_on": start.isoformat(), "chart": chart, "rows": rows,
-            "operational_views": evaluation["operational_views"],
+            "activity_views": evaluation["activity_views"],
+            "analyzed_customers": evaluation["analyzed_customers"],
+            "activity_unassigned_customers": evaluation["activity_unassigned_customers"],
             "metrics": evaluation["metrics"],
             "history_scope": "imported_orders_only"}
 

@@ -53,10 +53,10 @@ class OverviewTests(unittest.TestCase):
         self.assertEqual(retention["metrics"], data["metrics"])
         self.assertEqual(retention["profile_counts"]["ready"]["first_purchase"], 1)
         self.assertIsNone(retention["profile_counts"]["ready"]["possible_b2b"])
-        self.assertEqual(data["operational_views"], retention["operational_views"])
-        self.assertEqual(len(data["operational_views"]), 3)
-        self.assertEqual({view["key"]: view["count"] for view in data["operational_views"]},
-                         {"targeted": 1, "test": 0, "none": 0})
+        self.assertEqual(data["activity_views"], retention["activity_views"])
+        self.assertEqual(data["analyzed_customers"], 1)
+        self.assertEqual({view["key"]: view["count"] for view in data["activity_views"]},
+                         {"today": 0, "opportunities": 0, "working": 0, "history": 1})
         for consent in ("no", "unknown"):
             state = self.store.load_state()
             state["profiles"]["CUST_000001"]["orders"]["1"]["marketing_signal"] = consent
@@ -219,7 +219,64 @@ class OverviewTests(unittest.TestCase):
                 self.assertEqual(len(filter_retention(data)), expected)
                 self.assertEqual(sum(view["count"] for view in data["operational_views"]), expected)
                 self.assertEqual(len(self.store.load_state()["profiles"]), 1)
-                self.assertEqual(overview_summary(self.store, "2026-10-05")["operational_views"], data["operational_views"])
+                self.assertEqual(overview_summary(self.store, "2026-10-05")["activity_views"], data["activity_views"])
+
+    def test_activity_cards_follow_maturity_actual_contacts_waiting_and_due_followup(self):
+        customer = "CUST_000001"
+        recent = retention_summary(self.store, "2026-09-14")
+        self.assertEqual(recent["customers"][0]["activity"], "opportunities")
+        historical = retention_summary(self.store, "2026-09-15")
+        self.assertEqual(historical["customers"][0]["activity"], "history")
+        self.assertEqual(filter_retention(historical, activity="opportunities"), [])
+        self.assertEqual(len(filter_retention(historical, activity="history", category="targeted")), 1)
+        self.assertEqual(filter_retention(historical, activity="history", category="test"), [])
+        detail = plan_detail(self.store, customer, None, "2026-09-15")
+        original_plan = detail["plan_key"]
+        record_event(self.store, customer, {**detail["event_templates"]["contact"], "id": "SYNTHETIC-START"})
+        waiting = retention_summary(self.store, "2026-09-29")
+        self.assertEqual(waiting["customers"][0]["activity"], "working")
+        self.assertEqual(filter_retention(waiting, activity="today"), [])
+        due = retention_summary(self.store, "2026-09-30")
+        self.assertEqual(due["customers"][0]["activity"], "today")
+        self.assertEqual(due["customers"][0]["plan_key"], original_plan)
+        self.assertEqual(due["customers"][0]["source_date"], "2026-08-01")
+        detail = plan_detail(self.store, customer, original_plan, "2026-10-01")
+        record_event(self.store, customer, {**detail["event_templates"]["reply"], "id": "SYNTHETIC-RESPONSE"})
+        response = retention_summary(self.store, "2026-10-01")
+        self.assertEqual(response["customers"][0]["activity"], "today")
+        self.assertFalse(response["customers"][0]["contactable"])
+        self.assertEqual(response, retention_summary(self.store, "2026-10-01"))
+        self.assertEqual(sum(view["count"] for view in response["activity_views"]), 1)
+        detail = plan_detail(self.store, customer, original_plan, "2026-10-01")
+        record_event(self.store, customer, {**detail["event_templates"]["plan_rejection"], "id": "SYNTHETIC-CLOSE"})
+        after_close = retention_summary(self.store, "2026-10-01")
+        self.assertNotEqual(after_close["customers"][0]["plan_key"], original_plan)
+        self.assertEqual(after_close["customers"][0]["activity"], "opportunities")
+        self.assertEqual(after_close["customers"][0]["contact_count"], 0)
+        self.assertEqual(sum(view["count"] for view in after_close["activity_views"])
+                         + after_close["activity_unassigned_customers"], after_close["analyzed_customers"])
+
+    def test_activity_cards_keep_future_uncertain_and_inactive_outside_recovery_and_exclude_no_consent(self):
+        original = self.store.load_state()
+        state = self.store.load_state()
+        order = state["profiles"]["CUST_000001"]["orders"]["1"]
+        order["date"] = order["lines"][0]["date"] = "2026-10-01"
+        self.store.save_state(state)
+        future = overview_summary(self.store, "2026-10-02")
+        self.assertEqual(sum(view["count"] for view in future["activity_views"]), 0)
+        self.assertEqual(future["activity_unassigned_customers"], 1)
+        self.store.save_state(original)
+        with patch.object(self.store, "activation_date", return_value=None):
+            inactive = overview_summary(self.store, "2026-10-05")
+            self.assertEqual(sum(view["count"] for view in inactive["activity_views"]), 0)
+        for consent, validity in (("yes", "unknown"), ("no", "valid")):
+            order = original["profiles"]["CUST_000001"]["orders"]["1"]
+            order["marketing_signal"] = consent
+            order["lines"][0]["validity"] = validity
+            self.store.save_state(original)
+            result = overview_summary(self.store, "2026-10-05")
+            self.assertEqual(sum(view["count"] for view in result["activity_views"]), 0)
+            self.assertEqual(result["analyzed_customers"], int(consent == "yes"))
 
     def test_hidden_customer_preserves_contacts_revenue_and_history(self):
         plan, contact = self.first_contact()
@@ -493,6 +550,9 @@ class QueueActionsTests(unittest.TestCase):
         self.assertEqual(self.get("/api/retention?category=test&strategy=complement")["rows"], [])
         self.assertEqual(data["metrics"], self.get("/api/retention")["metrics"])
         self.assertEqual(len(self.get("/api/rules")["rules"]), 15)
+        self.assertEqual(len(self.get("/api/retention?activity=history")["rows"]), 1)
+        self.assertEqual(self.get("/api/retention?activity=today")["rows"], [])
+        self.assertEqual(self.get("/api/retention?activity=history&category=test")["rows"], [])
         with urlopen(self.base + "/rules") as response:
             self.assertEqual(response.status, 200)
             self.assertIn(b"/rules.js", response.read())

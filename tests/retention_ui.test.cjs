@@ -88,6 +88,12 @@ function harness(search = '', page = 'retention') {
   document.createElement = tag => new Node(tag); document.createElementNS = (_, tag) => new Node(tag);
   const location = new URL(`http://localhost/${page === 'retention' ? 'retention' : ''}${search}`), calls = [], timers = new Map(); let timerId = 0;
   const data = {active: true, demo: true, date: '2026-10-15', analyzed_customers: 13,
+    activity_views: [
+      {key: 'today', label: 'Da gestire oggi', description: 'Risposte e follow-up dovuti', count: 2},
+      {key: 'opportunities', label: 'Nuove opportunità', description: 'Clienti pronti da contattare', count: 4},
+      {key: 'working', label: 'In lavorazione', description: 'Piani commerciali già avviati', count: 3},
+      {key: 'history', label: 'Storico da recuperare', description: 'Clienti ancora da rivalutare', count: 1}],
+    activity_unassigned_customers: 3,
     metrics: {ready_customers: 8}, unassigned_review_orders: 0, rows: [], product_images: {},
     operational_views: [
       {key: 'targeted', label: 'Opportunità mirate', description: 'Descrizione ricevuta dal backend', tone: 'blue', count: 5},
@@ -285,21 +291,39 @@ test('filtered backend rows keep their main proposal, client action and paginati
   assert.equal(h.$('#page-label').textContent, '26–26 di 26');
 });
 
-test('Overview displays backend KPI, exclusive category counts, destinations and chart values', async () => {
+test('Overview displays backend KPI, four activity cards, consent base and chart values', async () => {
   const h = harness('', 'overview'); await h.settle();
   assert.equal(h.calls[0], '/api/overview?period=30d');
   assert.equal(h.$('#ready-count').textContent, '8'); assert.equal(h.$('#potential').textContent, '€ 149,95');
   assert.equal(h.$('#contacts').textContent, '6'); assert.equal(h.$('#revenue').textContent, '€ 24,00');
   assert.equal(h.$('#chart-total').textContent, '€ 24,00');
   const cards = h.$('#operational-views').children;
-  assert.equal(cards.map(card => card.href).join(','), '/retention?view=targeted,/retention?view=test,/retention?view=none');
-  assert.equal(cards.map(card => card.querySelector('strong').textContent).join(','), '5,3,5');
-  assert(h.$('#operational-note').textContent.includes('una sola categoria'));
+  assert.equal(cards.map(card => card.href).join(','), '/retention?activity=today,/retention?activity=opportunities,/retention?activity=working,/retention?activity=history');
+  assert.equal(cards.map(card => card.querySelector('strong').textContent).join(','), '2,4,3,1');
+  assert.equal(h.$('#operational-note').textContent, '13 clienti con consenso email valido');
+  assert(h.$('#retention-base-other').textContent.includes('3 altri clienti'));
   assert.equal(h.$('#customers').children[0].children[0].colSpan, 8);
   const points = h.$('#chart').querySelectorAll('.hit'); assert.equal(points.length, 2);
   h.fire(points[1], 'focus'); assert(h.$('#chart-tooltip').textContent.includes('€ 24,00'));
   h.fire(points[1], 'blur'); assert.equal(h.$('#chart-tooltip').hidden, true);
   h.fire(points[1], 'click'); assert.equal(h.$('#chart-tooltip').hidden, false);
+});
+
+test('Overview activity links remain visible and removable when combining Retention filters and navigating back', async () => {
+  const h = harness('?activity=history&view=targeted&source=overview#lista'); await h.settle();
+  assert.equal(new URLSearchParams(h.calls[0].split('?')[1]).get('activity'), 'history');
+  assert(h.$('#active-filters').textContent.includes('Storico da recuperare'));
+  const chip = h.$('#filter-chips').querySelectorAll('.retention-filter-chip').find(node => node.textContent.includes('Storico'));
+  assert(chip); h.controls()[2].select.value = 'completion'; h.fire(h.controls()[2].select, 'change'); await h.settle();
+  assert.equal(h.location.searchParams.get('activity'), 'history');
+  h.fire(h.$('#filter-chips').querySelectorAll('.retention-filter-chip').find(node => node.textContent.includes('Storico')), 'click'); await h.settle();
+  assert.equal(h.location.searchParams.get('activity'), null);
+  assert.equal(h.location.searchParams.get('view'), 'targeted'); assert.equal(h.location.searchParams.get('source'), 'overview');
+  h.location.search = '?activity=working'; h.fire(h.window, 'popstate'); await h.settle();
+  assert(h.$('#active-filters').textContent.includes('In lavorazione'));
+  h.fire(h.$('#filters'), 'reset'); await h.settle(); assert.equal(h.location.searchParams.get('activity'), null);
+  h.location.search = '?activity=invalid'; h.fire(h.window, 'popstate'); await h.settle();
+  assert.equal(h.location.searchParams.get('activity'), null);
 });
 
 test('Overview period popup searches and selects by keyboard while preserving KPI and URL context', async () => {

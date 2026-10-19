@@ -12,6 +12,9 @@ const commercialCategoryPresentation = {
   targeted: {icon: 'target', tone: 'green'}, test: {icon: 'flask', tone: 'purple'}, none: {icon: 'clock', tone: 'slate'}
 };
 const filterIconPaths = {
+  message: 'M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-3 3V11.5A8.5 8.5 0 0 1 9.5 3h3a8.5 8.5 0 0 1 8.5 8.5Z',
+  send: 'm22 2-7 20-4-9-9-4 20-7ZM22 2 11 13',
+  archive: 'M3 3h18v5H3V3Zm1 5v13h16V8M9 12h6',
   users: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M15 3.13a4 4 0 0 1 0 7.75M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0',
   target: 'M21 12a9 9 0 1 1-9-9m5 9a5 5 0 1 1-5-5m0 5 9-9m-5 0h5v5',
   flask: 'M9 3h6m-5 0v7L4 20a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1l-6-10V3M8 15h8',

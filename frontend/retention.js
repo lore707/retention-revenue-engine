@@ -1,5 +1,5 @@
 let retention, page = 0, retentionRequest = 0, quickRequest = 0, quickOrigin, refreshTimer;
-let selectedView = '';
+let selectedView = '', selectedActivity = '';
 const pageSize = 25;
 const stateLabels = {open: 'Aperto — da lavorare', in_progress: 'In corso', closed: 'Chiuso', suspended: 'In attesa / sospeso'};
 
@@ -42,6 +42,7 @@ const floatingFilters = filterDefinitions.map(definition => ({definition, ...cre
 
 function syncRetentionUrl() {
   const params = new URLSearchParams(location.search); params.delete('category');
+  if (selectedActivity) params.set('activity', selectedActivity); else params.delete('activity');
   for (const filter of floatingFilters) {
     const value = filter.definition.param === 'view' ? selectedView : filter.select.value;
     if (value) params.set(filter.definition.param, value); else params.delete(filter.definition.param);
@@ -52,6 +53,7 @@ function syncRetentionUrl() {
 function restoreRetentionFilters() {
   const params = new URLSearchParams(location.search);
   selectedView = params.get('view') || params.get('category') || '';
+  selectedActivity = params.get('activity') || '';
   for (const filter of floatingFilters) {
     const value = params.get(filter.definition.param) || '';
     filter.select.value = [...filter.select.options].some(option => option.value === value && !option.disabled) ? value : '';
@@ -61,9 +63,15 @@ function restoreRetentionFilters() {
 }
 function renderFilterChips() {
   const chips = $('#filter-chips'), nodes = [];
-  const signature = JSON.stringify([...floatingFilters.map(filter => filter.select.value), $('#search').value.trim()]);
+  const activity = retention?.activity_views?.find(view => view.key === selectedActivity);
+  const signature = JSON.stringify([selectedActivity, activity?.label, ...floatingFilters.map(filter => filter.select.value), $('#search').value.trim()]);
   if (chips.dataset.signature === signature) return;
   chips.dataset.signature = signature;
+  if (activity) {
+    const chip = element('button', `${activity.label} ×`, 'retention-filter-chip filter-tone-blue'); chip.type = 'button';
+    chip.setAttribute('aria-label', `Rimuovi filtro ${activity.label}`);
+    chip.addEventListener('click', () => {selectedActivity = ''; $('.retention-reset').focus(); applyRetentionFilters();}); nodes.push(chip);
+  }
   for (const filter of floatingFilters) {
     if (!filter.select.value) continue;
     const option = filterOption(filter.definition, filter.select.selectedOptions[0]);
@@ -94,12 +102,13 @@ restoreRetentionFilters();
 async function loadRetention() {
   const request = ++retentionRequest;
   const params = new URLSearchParams({category: selectedView, state: $('#state-filter').value,
-    strategy: $('#strategy').value, profile: $('#profile-filter').value, search: $('#search').value.trim()});
+    strategy: $('#strategy').value, profile: $('#profile-filter').value, search: $('#search').value.trim(), activity: selectedActivity});
   try {
     $('#customers').setAttribute('aria-busy', 'true');
     const data = await api(`/api/retention?${params}`);
     if (request !== retentionRequest) return;
     retention = data;
+    if (selectedActivity && !data.activity_views.some(view => view.key === selectedActivity)) {selectedActivity = ''; syncRetentionUrl();}
     if (!data.operational_views.some(view => view.key === selectedView)) selectedView = '';
     $('#operational-filter').replaceChildren(new Option('Tutti i clienti', ''), ...data.operational_views.map(view => new Option(view.label, view.key)));
     $('#operational-filter').value = selectedView;
@@ -120,9 +129,10 @@ async function loadRetention() {
 function renderRetention() {
   const rows = retention.rows;
   const view = retention.operational_views.find(view => view.key === selectedView);
-  $('#view-description').textContent = (view?.description || 'Ogni cliente compare una sola volta. La categoria descrive la situazione attuale, lo stato riguarda i singoli piani.') + (retention.unassigned_review_orders ? ` ${retention.unassigned_review_orders} ordini senza email non sono ancora attribuiti a clienti.` : '');
+  const activity = retention.activity_views.find(view => view.key === selectedActivity);
+  $('#view-description').textContent = (activity?.description || view?.description || 'Ogni cliente compare una sola volta. La categoria descrive la situazione attuale, lo stato riguarda i singoli piani.') + (retention.unassigned_review_orders ? ` ${retention.unassigned_review_orders} ordini senza email non sono ancora attribuiti a clienti.` : '');
   const active = ['#operational-filter', '#state-filter', '#strategy', '#profile-filter'].map(id => $(id)).filter(select => select.value).map(select => select.selectedOptions[0].textContent);
-  $('#active-filters').textContent = `Ricerca attiva: ${active.join(' · ') || 'Tutti i clienti'}${$('#search').value ? ' · ' + $('#search').value : ''}`;
+  $('#active-filters').textContent = `Ricerca attiva: ${[activity?.label, ...active].filter(Boolean).join(' · ') || 'Tutti i clienti'}${$('#search').value ? ' · ' + $('#search').value : ''}`;
   $('#queue-title').textContent = `${rows.length} clienti corrispondenti`;
   page = Math.min(page, Math.max(0, Math.ceil(rows.length / pageSize) - 1));
   renderRetentionRows(rows.slice(page * pageSize, (page + 1) * pageSize));
@@ -234,6 +244,7 @@ $('#filters').addEventListener('change', event => {if (floatingFilters.some(filt
 $('#search').addEventListener('input', () => {clearTimeout(refreshTimer); refreshTimer = setTimeout(applyRetentionFilters, 350);});
 $('#filters').addEventListener('reset', () => {
   clearTimeout(refreshTimer); openFloatingSelect?.close();
+  selectedActivity = '';
   // Clear explicitly so hidden select state, triggers, chips and URL change together.
   floatingFilters.forEach(filter => {filter.select.value = '';}); $('#search').value = '';
   $('.retention-reset').focus(); applyRetentionFilters();

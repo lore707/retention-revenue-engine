@@ -39,25 +39,33 @@ async function loadOverview() {
     $('#notice').hidden = data.active;
     $('#notice').textContent = 'Lo storico non è ancora attivato: nessun cliente è lavorabile.';
     renderChart(data);
-    renderOperationalViews(data.operational_views);
+    renderOperationalViews(data.activity_views, data.analyzed_customers);
+    $('#retention-base-other').hidden = !data.activity_unassigned_customers;
+    $('#retention-base-other').textContent = `${data.activity_unassigned_customers} altri clienti: piani futuri, verifiche o nessuna proposta attuale. Consultabili in Retention.`;
     renderRows();
   } catch (error) {
     if (sequence === requestSequence) {$('#notice').textContent = error.message; $('#notice').hidden = false;}
   } finally {if (sequence === requestSequence) $('.revenue-chart').removeAttribute('aria-busy');}
 }
 
-function renderOperationalViews(views) {
+function renderOperationalViews(views, analyzedCustomers) {
   $('#operational-views').replaceChildren();
   for (const view of views) {
-    const presentation = commercialCategoryPresentation[view.key];
+    const presentation = {
+      today: {icon: 'message', tone: 'rose', action: 'Apri in Retention'},
+      opportunities: {icon: 'target', tone: 'blue', action: 'Esplora opportunità'},
+      working: {icon: 'send', tone: 'green', action: 'Visualizza piani'},
+      history: {icon: 'archive', tone: 'slate', action: 'Esamina storico'}
+    }[view.key];
     const card = element('a', undefined, `card operational-card filter-tone-${presentation.tone}`);
-    card.href = `/retention?view=${encodeURIComponent(view.key)}`;
+    card.href = `/retention?activity=${encodeURIComponent(view.key)}`;
     const heading = element('div', undefined, 'overview-category-heading'); heading.append(filterIcon(presentation.icon, presentation.tone), element('h3', view.label));
-    const count = element('div', undefined, 'overview-category-count'); count.append(element('strong', view.count.toLocaleString('it-IT')), element('span', 'clienti', 'small'));
-    card.append(heading, count, element('p', view.description, 'small'), element('span', 'Apri in Retention →', 'operational-link'));
+    const count = element('strong', view.count.toLocaleString('it-IT'), 'overview-category-count');
+    card.append(heading, count, element('p', view.description, 'small'), element('span', `${presentation.action} →`, 'operational-link'));
     $('#operational-views').append(card);
   }
-  $('#operational-note').textContent = 'Solo clienti con consenso email valido. Ogni cliente appartiene a una sola categoria.';
+  $('#operational-note').textContent = `${analyzedCustomers.toLocaleString('it-IT')} clienti con consenso email valido`;
+  $('#retention-base-icon').replaceChildren(filterIcon('users', 'slate'));
 }
 
 function renderRows() {
