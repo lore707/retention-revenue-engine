@@ -442,6 +442,14 @@ class MigrationTests(unittest.TestCase):
             connection.close.assert_not_called()
             store.close()
             connection.close.assert_called_once()
+        connection = MagicMock()
+        with patch("psycopg.connect", return_value=connection):
+            store = Store("postgresql://synthetic:password@example.invalid/test", initialize=False)
+            try:
+                self.assertEqual([call.args[0] for call in connection.execute.call_args_list],
+                                 ["SET search_path TO retention"])
+            finally:
+                store.close()
         with patch("psycopg.connect", side_effect=psycopg.OperationalError("synthetic secret")):
             with self.assertRaises(ValueError) as caught:
                 Store("postgresql://synthetic:password@example.invalid/test")

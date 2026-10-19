@@ -801,6 +801,31 @@ class HostedServerTests(unittest.TestCase):
                 self.assertEqual(json.load(response), {"saved": True, "event_id": "SYNTHETIC-CONTACT"})
             self.assertEqual(save.call_args.args[1:], (payload["customer_id"], payload["event"]))
 
+    def test_static_resources_health_and_rejected_login_do_not_open_database(self):
+        with patch("src.web.Store", side_effect=AssertionError("Il file statico non deve aprire il database")), \
+                patch("src.web.mimetypes.guess_type", return_value=("application/octet-stream", None)):
+            for route, content_type in [("/", "text/html"), ("/overview.css", "text/css"),
+                                        ("/ui.js", "text/javascript"), ("/overview.js", "text/javascript"),
+                                        ("/retention.css", "text/css"), ("/rules.js", "text/javascript")]:
+                request = Request(self.base + route, headers={"Authorization": self.authorization})
+                with urlopen(request, timeout=5) as response:
+                    self.assertEqual(response.status, 200)
+                    self.assertEqual(response.headers.get_content_type(), content_type)
+                    self.assertEqual(response.headers.get_content_charset(), "utf-8")
+                    self.assertEqual(response.headers["X-Content-Type-Options"], "nosniff")
+            self.assertEqual(urlopen(self.base + "/healthz", timeout=5).status, 200)
+            for route in ("/", "/overview.css", "/ui.js", "/api/overview"):
+                with self.assertRaises(HTTPError) as caught:
+                    urlopen(self.base + route, timeout=5)
+                self.assertEqual(caught.exception.code, 401)
+
+    def test_api_connection_reuses_schema_initialized_at_server_start(self):
+        with patch("src.web.Store", wraps=Store) as connect:
+            request = Request(self.base + "/api/overview", headers={"Authorization": self.authorization})
+            with urlopen(request, timeout=5) as response:
+                self.assertEqual(response.status, 200)
+            connect.assert_called_once_with(self.store.database, initialize=False)
+
     def test_render_environment_sets_binding_database_and_closes_resources(self):
         environment = {"RENDER": "true", "PORT": "10000", "DATABASE_PATH": str(self.store.path),
                        "RRE_USERNAME": "synthetic", "RRE_PASSWORD": "synthetic-password",

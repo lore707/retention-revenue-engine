@@ -16,7 +16,7 @@ TABLE_COLUMNS = {
 
 
 class Store:
-    def __init__(self, path):
+    def __init__(self, path, *, initialize=True):
         self.database = str(path)
         self.postgres = self.database.startswith(("postgresql://", "postgres://"))
         if "://" in self.database and not self.postgres:
@@ -29,13 +29,16 @@ class Store:
                                                   sslmode="require", prepare_threshold=None)
             except psycopg.Error:
                 raise ValueError("Connessione PostgreSQL non riuscita: verificare configurazione e disponibilità.") from None
-            self.connection.execute("CREATE SCHEMA IF NOT EXISTS retention")
-            self.connection.execute("REVOKE ALL ON SCHEMA retention FROM PUBLIC")
+            if initialize:
+                self.connection.execute("CREATE SCHEMA IF NOT EXISTS retention")
+                self.connection.execute("REVOKE ALL ON SCHEMA retention FROM PUBLIC")
             self.connection.execute("SET search_path TO retention")
         else:
             self.path.parent.mkdir(parents=True, exist_ok=True)
             self.connection = sqlite3.connect(self.path)
             self.connection.execute("PRAGMA foreign_keys = ON")
+        if not initialize:
+            return
         schema = """
                 CREATE TABLE IF NOT EXISTS profiles (
                     id TEXT PRIMARY KEY, orders_json TEXT NOT NULL

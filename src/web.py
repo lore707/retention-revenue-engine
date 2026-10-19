@@ -78,13 +78,20 @@ def make_handler(store, *, demo=False, as_of=None, credentials=None, public_orig
         def setup(self):
             super().setup()
             self.connection.settimeout(10)
-            self.store = Store(store.database)
+            self._store = None
+
+        @property
+        def store(self):
+            if self._store is None:
+                self._store = Store(store.database, initialize=False)
+            return self._store
 
         def finish(self):
             try:
                 super().finish()
             finally:
-                self.store.close()
+                if self._store is not None:
+                    self._store.close()
 
         def reply(self, status, payload, content_type="application/json; charset=utf-8", headers=None):
             body = json.dumps(payload, ensure_ascii=False).encode() if isinstance(payload, dict) else payload
@@ -142,7 +149,12 @@ def make_handler(store, *, demo=False, as_of=None, credentials=None, public_orig
                     if not path.is_relative_to(FRONTEND.resolve()) or not path.is_file():
                         self.reply(404, {"error": "Pagina non trovata."})
                         return
-                    self.reply(200, path.read_bytes(), mimetypes.guess_type(path.name)[0] or "application/octet-stream")
+                    content_type = {
+                        ".html": "text/html; charset=utf-8",
+                        ".css": "text/css; charset=utf-8",
+                        ".js": "text/javascript; charset=utf-8",
+                    }.get(path.suffix.lower(), mimetypes.guess_type(path.name)[0] or "application/octet-stream")
+                    self.reply(200, path.read_bytes(), content_type)
             except (ValueError, KeyError, TypeError, IndexError):
                 self.reply(400, {"error": "Richiesta non valida."})
 
