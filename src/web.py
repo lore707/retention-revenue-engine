@@ -126,9 +126,7 @@ def make_handler(store, *, demo=False, as_of=None, credentials=None, public_orig
             try:
                 query = parse_qs(parsed.query)
                 if parsed.path == "/api/overview":
-                    data = overview_summary(self.store, day, query.get("period", ["30d"])[0],
-                        **{key: query.get(key, [""])[0] for key in
-                           ("work", "category", "product", "strategy", "profile", "search", "order")})
+                    data = overview_summary(self.store, day, query.get("period", ["30d"])[0])
                     data["demo"] = demo
                     self.reply(200, data)
                 elif parsed.path == "/api/order":

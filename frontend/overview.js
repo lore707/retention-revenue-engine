@@ -1,34 +1,9 @@
 let overview, period = '30d', expanded = false, requestSequence = 0;
-let work = '', searchTimer;
-const overviewFilterDefinitions = [
-  {key: 'category', all: 'Tutte le categorie', icon: 'target', tone: 'green'},
-  {key: 'product', all: 'Tutti i prodotti', icon: 'box', tone: 'blue'},
-  {key: 'strategy', all: 'Tutte le strategie', icon: 'grid', tone: 'purple'},
-  {key: 'profile', all: 'Tutti i profili', icon: 'users', tone: 'slate'},
-  {key: 'order', icon: 'bars', tone: 'blue'},
-];
-const overviewFilters = overviewFilterDefinitions.map(definition => {
-  const control = createFloatingSelect({id: `overview-${definition.key}`, search: 'Cerca…', describeOption: option => ({
-    value: option.value, title: option.textContent, disabled: option.disabled,
-    icon: definition.icon, tone: definition.tone,
-    description: definition.key === 'order' ? (option.value === 'product' ? 'Clienti raggruppati per proposta' : 'Priorità e alternanza dei prodotti') : 'Filtra la proposta principale del piano',
-  })});
-  control.definition = definition;
-  control.select.addEventListener('change', applyOverviewFilters);
-  return control;
-});
 const periodSelect = $('#period-filter');
 function restoreOverviewPeriod() {
-  const params = new URLSearchParams(location.search), requested = params.get('period');
+  const requested = new URLSearchParams(location.search).get('period');
   period = [...periodSelect.options].some(option => option.value === requested) ? requested : '30d';
   periodSelect.value = period;
-  work = params.get('work') || '';
-  for (const control of overviewFilters) {
-    const value = params.get(control.definition.key) || (control.definition.key === 'order' ? 'recommended' : '');
-    if (![...control.select.options].some(option => option.value === value)) control.select.append(new Option(value, value));
-    control.select.value = value; control.update();
-  }
-  $('#overview-search').value = params.get('search') || '';
 }
 restoreOverviewPeriod();
 const periodPicker = createFloatingSelect({id: 'period-filter', search: 'Cerca un periodo…', describeOption: option => ({
@@ -41,14 +16,12 @@ $('#chart-heading-icon').append(filterIcon('bars', 'green'));
 async function loadOverview() {
   const sequence = ++requestSequence;
   $('.revenue-chart').setAttribute('aria-busy', 'true');
-  $('#customers').setAttribute('aria-busy', 'true');
   if (!overview) {
     $('#notice').hidden = false;
     $('#notice').textContent = 'Caricamento dello storico e valutazione delle opportunità in corso…';
   }
   try {
-    const params = overviewParams();
-    const data = await api(`/api/overview?${params}`);
+    const data = await api(`/api/overview?period=${period}`);
     if (sequence !== requestSequence) return;
     overview = data;
     $('#mode').textContent = data.demo ? 'Dati demo' : 'Dati locali';
@@ -66,101 +39,36 @@ async function loadOverview() {
     $('#notice').hidden = data.active;
     $('#notice').textContent = 'Lo storico non è ancora attivato: nessun cliente è lavorabile.';
     renderChart(data);
-    updateOverviewFilters(data);
-    renderOperationalViews(data.work_views);
+    renderOperationalViews(data.operational_views);
     renderRows();
   } catch (error) {
     if (sequence === requestSequence) {$('#notice').textContent = error.message; $('#notice').hidden = false;}
-  } finally {if (sequence === requestSequence) {$('.revenue-chart').removeAttribute('aria-busy'); $('#customers').removeAttribute('aria-busy');}}
+  } finally {if (sequence === requestSequence) $('.revenue-chart').removeAttribute('aria-busy');}
 }
 
-function overviewParams() {
-  const params = new URLSearchParams({period});
-  if (work) params.set('work', work);
-  for (const control of overviewFilters) {
-    if (control.select.value && !(control.definition.key === 'order' && control.select.value === 'recommended')) params.set(control.definition.key, control.select.value);
-  }
-  const search = $('#overview-search').value.trim(); if (search) params.set('search', search);
-  return params;
-}
-function syncOverviewUrl() {
-  const params = new URLSearchParams(location.search), current = overviewParams();
-  for (const key of ['period', 'work', 'category', 'product', 'strategy', 'profile', 'search', 'order']) {
-    if (current.has(key)) params.set(key, current.get(key)); else params.delete(key);
-  }
-  history.replaceState(null, '', `${location.pathname}?${params}${location.hash}`);
-}
-function applyOverviewFilters() {
-  clearTimeout(searchTimer); expanded = false;
-  overviewFilters.forEach(control => control.update());
-  syncOverviewUrl(); renderOverviewChips(); loadOverview();
-}
-function updateOverviewFilters(data) {
-  if (work) work = data.work_group;
-  for (const control of overviewFilters) {
-    const key = control.definition.key;
-    if (key !== 'order') control.select.replaceChildren(new Option(control.definition.all, ''), ...data.filter_options[key].map(option => new Option(option.label, option.value)));
-    control.select.value = data.filters[key];
-    control.trigger.disabled = key === 'order' && data.work_group === 'follow_up';
-    control.update();
-  }
-  $('#overview-search').value = data.filters.search;
-  renderOverviewChips(); syncOverviewUrl();
-  $('#overview-order-note').textContent = data.work_group === 'follow_up'
-    ? 'Prima le risposte da gestire, poi i follow-up consentiti, dal più vecchio. Filtri sulla proposta principale.'
-    : data.filters.order === 'product' ? 'Prima le mirate, poi i test. Stesso prodotto insieme, dal piano più vecchio. Filtri sulla proposta principale.'
-    : 'Prima le mirate, poi i test. I prodotti si alternano; per ogni prodotto, prima i piani più vecchi. Filtri sulla proposta principale.';
-}
-function renderOverviewChips() {
-  const chips = $('#overview-chips');
-  const signature = JSON.stringify([...overviewFilters.map(control => control.select.value), $('#overview-search').value.trim()]);
-  if (chips.dataset.signature === signature) return;
-  chips.dataset.signature = signature;
-  const nodes = [];
-  for (const control of overviewFilters) {
-    if (control.definition.key === 'order' || !control.select.value) continue;
-    const chip = element('button', `${control.select.selectedOptions[0].textContent} ×`, `overview-chip filter-tone-${control.definition.tone}`); chip.type = 'button';
-    chip.setAttribute('aria-label', `Rimuovi filtro ${control.select.selectedOptions[0].textContent}`);
-    chip.addEventListener('click', () => {control.select.value = ''; control.trigger.focus(); applyOverviewFilters();}); nodes.push(chip);
-  }
-  if ($('#overview-search').value.trim()) {
-    const chip = element('button', `Ricerca: ${$('#overview-search').value.trim()} ×`, 'overview-chip filter-tone-slate'); chip.type = 'button';
-    chip.setAttribute('aria-label', 'Rimuovi filtro di ricerca');
-    chip.addEventListener('click', () => {$('#overview-search').value = ''; $('#overview-search').focus(); applyOverviewFilters();}); nodes.push(chip);
-  }
-  chips.hidden = nodes.length === 0; chips.replaceChildren(...nodes);
-}
 function renderOperationalViews(views) {
-  const signature = JSON.stringify([views, overview.work_group]);
-  if ($('#operational-views').dataset.signature === signature) return;
-  const focusedWork = [...$('#operational-views').children].find(card => card === document.activeElement)?.dataset.work;
-  $('#operational-views').dataset.signature = signature;
   $('#operational-views').replaceChildren();
   for (const view of views) {
-    const presentation = {follow_up: {icon: 'repeat', tone: 'blue'}, recent: {icon: 'target', tone: 'green'}, backlog: {icon: 'clock', tone: 'amber'}}[view.key];
-    const card = element('button', undefined, `card operational-card filter-tone-${presentation.tone}`); card.type = 'button';
-    card.dataset.work = view.key;
-    card.setAttribute('aria-pressed', String(view.key === overview.work_group));
-    card.setAttribute('aria-controls', 'customers');
-    card.addEventListener('click', () => {work = view.key; applyOverviewFilters();});
+    const presentation = commercialCategoryPresentation[view.key];
+    const card = element('a', undefined, `card operational-card filter-tone-${presentation.tone}`);
+    card.href = `/retention?view=${encodeURIComponent(view.key)}`;
     const heading = element('div', undefined, 'overview-category-heading'); heading.append(filterIcon(presentation.icon, presentation.tone), element('h3', view.label));
     const count = element('div', undefined, 'overview-category-count'); count.append(element('strong', view.count.toLocaleString('it-IT')), element('span', 'clienti', 'small'));
-    card.append(heading, count, element('p', view.description, 'small'), element('span', view.key === overview.work_group ? 'Lista selezionata' : 'Mostra clienti →', 'operational-link'));
+    card.append(heading, count, element('p', view.description, 'small'), element('span', 'Apri in Retention →', 'operational-link'));
     $('#operational-views').append(card);
-    if (view.key === focusedWork) card.focus({preventScroll: true});
   }
-  $('#operational-note').textContent = 'Gruppi esclusivi sul piano attuale, prima dei filtri. Solo azioni consentite oggi e clienti con consenso valido. Piani futuri e attese restano in Retention.';
+  $('#operational-note').textContent = 'Solo clienti con consenso email valido. Ogni cliente appartiene a una sola categoria.';
 }
 
 function renderRows() {
   const rows = expanded ? overview.rows : overview.rows.slice(0, 4);
-  $('#queue-title').textContent = `${overview.work_views.find(view => view.key === overview.work_group).label} · ${overview.rows.length} clienti`;
+  $('#queue-title').textContent = `Da contattare oggi · ${overview.rows.length} clienti`;
   $('#show-all').textContent = expanded ? 'Mostra meno' : `Vedi tutti i ${overview.rows.length} clienti`;
   $('#show-all').hidden = overview.rows.length <= 4;
   $('#customers').replaceChildren();
   if (!rows.length) {
     const row = element('tr');
-    const cell = element('td', 'Nessun cliente corrisponde a questo gruppo e ai filtri selezionati.', 'empty');
+    const cell = element('td', 'Nessun cliente da contattare oggi.', 'empty');
     cell.colSpan = 8;
     row.append(cell); $('#customers').append(row);
   }
@@ -172,12 +80,12 @@ function renderRows() {
       [`${item.source_product.replace(/^Laifen /, '')} · ${dateLabel(item.source_date)}`, `${item.elapsed_days} giorni dall’acquisto`],
       [item.proposal, item.alternatives_count ? `+ ${item.alternatives_count} opzioni compatibili` : 'Proposta del piano'],
       [item.strategy_label],
-      [item.work_action === 'reply' ? 'Gestisci la risposta' : item.work_action === 'follow_up' ? `Follow-up dal ${dateLabel(item.work_date)}` : `Primo contatto · maturo dal ${dateLabel(item.eligible_from_date)}`, item.reason],
+      [`Disponibile dal ${dateLabel(item.eligible_from_date)}`, item.reason],
       [money(item.value_minor), 'Valore nominale'],
     ];
     cells.forEach((values, index) => {
       const cell = element('td', undefined, index === 6 ? 'numeric' : '');
-      cell.dataset.label = ['Cliente', 'Profilo e comportamento', 'Acquisto fonte', 'Proposta principale', 'Strategia', 'Prossimo passo', 'Valore'][index];
+      cell.dataset.label = ['Cliente', 'Profilo e comportamento', 'Acquisto fonte', 'Proposta principale', 'Strategia', 'Perché ora', 'Valore'][index];
       if (index === 1) { cell.append(profileBadges(item.customer_profile)); row.append(cell); return; }
       const [primary, secondary] = values;
       const title = element('span', primary, 'primary-text'); title.title = primary;
@@ -241,16 +149,10 @@ function renderChart(data) {
 
 periodSelect.addEventListener('change', () => {
   period = periodSelect.value; periodPicker.update();
-  syncOverviewUrl(); loadOverview();
+  const params = new URLSearchParams(location.search); params.set('period', period);
+  history.replaceState(null, '', `${location.pathname}?${params}${location.hash}`); loadOverview();
 });
-window.addEventListener('popstate', () => {clearTimeout(searchTimer); openFloatingSelect?.close(); restoreOverviewPeriod(); periodPicker.update(); expanded = false; loadOverview();});
-$('#overview-filters').addEventListener('submit', event => {event.preventDefault(); applyOverviewFilters();});
-$('#overview-filters').addEventListener('reset', event => {
-  event.preventDefault(); overviewFilters.forEach(control => {control.select.value = control.definition.key === 'order' ? 'recommended' : '';});
-  $('#overview-search').value = ''; applyOverviewFilters();
-});
-$('#overview-search').addEventListener('input', () => {++requestSequence; clearTimeout(searchTimer); searchTimer = setTimeout(applyOverviewFilters, 300);});
-document.addEventListener('keydown', event => {if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k' && $('#detail').hidden) {event.preventDefault(); openFloatingSelect?.close(); $('#overview-search').focus();}});
+window.addEventListener('popstate', () => {periodPicker.close(); restoreOverviewPeriod(); periodPicker.update(); loadOverview();});
 $('#show-all').addEventListener('click', () => {expanded = !expanded; renderRows();});
 $('#upload').addEventListener('click', () => {
   const demo = overview?.demo;

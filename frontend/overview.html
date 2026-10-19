@@ -30,31 +30,21 @@
         <article class="card metric"><div class="overview-metric-heading" data-icon="repeat" data-tone="purple"><h2>Follow-up registrati</h2></div><strong id="contacts">—</strong><p>Contatti inseriti dall’operatore</p></article>
         <article class="card metric"><div class="overview-metric-heading" data-icon="bars" data-tone="green"><h2>Revenue attribuita</h2></div><strong class="green" id="revenue">—</strong><p id="verified-note">Ordini verificati in Shopify</p></article>
       </section>
-      <section class="operational-section" aria-labelledby="operational-title">
-        <div class="overview-section-heading"><div><h2 id="operational-title">Da dove iniziare oggi</h2><p class="small">Scegli un gruppo, filtra la lista e apri il piano del cliente.</p></div><a href="/retention">Tutti i clienti in Retention →</a></div>
-        <div class="operational-cards" id="operational-views" role="group" aria-label="Gruppi di lavoro"></div>
-        <p class="small" id="operational-note"></p>
-      </section>
-      <section class="card queue" aria-labelledby="queue-title">
-        <div class="table-heading"><div class="overview-section-title"><img src="/assets/retention-customers.svg" alt=""><h2 id="queue-title">Lista di lavoro</h2></div><button class="button subtle" id="show-all">Vedi tutti</button></div>
-        <form id="overview-filters" class="overview-filters" role="search" aria-label="Filtra la lista di lavoro">
-          <div><label id="overview-category-label" for="overview-category">Categoria commerciale</label><select id="overview-category"><option value="">Tutte le categorie</option></select></div>
-          <div><label id="overview-product-label" for="overview-product">Proposta principale</label><select id="overview-product"><option value="">Tutti i prodotti</option></select></div>
-          <div><label id="overview-strategy-label" for="overview-strategy">Strategia commerciale</label><select id="overview-strategy"><option value="">Tutte le strategie</option></select></div>
-          <div><label id="overview-profile-label" for="overview-profile">Profilo cliente</label><select id="overview-profile"><option value="">Tutti i profili</option></select></div>
-          <div><label id="overview-order-label" for="overview-order">Ordina la lista</label><select id="overview-order"><option value="recommended">Ordine consigliato</option><option value="product">Raggruppa per prodotto</option></select></div>
-          <div class="overview-search-field"><label for="overview-search">Ricerca</label><div><input id="overview-search" type="search" placeholder="Cliente, ordine o prodotto…"><button class="button subtle" type="reset">Azzera</button></div></div>
-          <div id="overview-chips" class="overview-chips" hidden></div>
-        </form>
-        <p class="small" id="overview-order-note"></p>
-        <div class="table-scroll"><table class="qualified-table" role="table"><thead><tr><th>Cliente</th><th>Profilo e comportamento</th><th>Acquisto fonte</th><th>Proposta principale</th><th>Strategia</th><th>Prossimo passo</th><th class="numeric">Valore</th><th class="action">Azione</th></tr></thead><tbody id="customers"></tbody></table></div>
-        <p class="small" id="table-summary" role="status" aria-live="polite"></p>
-      </section>
       <section class="card revenue-chart" aria-labelledby="chart-title">
         <div class="chart-heading"><div class="overview-section-title"><span id="chart-heading-icon" aria-hidden="true"></span><div><h2 id="chart-title">Ricavi da retention</h2><p class="small">Acquisti verificati nel periodo selezionato.</p></div></div><div class="overview-period-field"><label id="period-filter-label" class="sr-only" for="period-filter">Periodo del grafico</label><select id="period-filter"><option value="30d">30 giorni</option><option value="90d">90 giorni</option><option value="6m">6 mesi</option><option value="12m">12 mesi</option></select></div></div>
         <div class="chart-summary"><div><strong class="green" id="chart-total">—</strong><p class="small">Totale attribuito nel periodo</p></div><span id="chart-range"></span></div>
         <div class="plot" tabindex="0" role="region" aria-label="Grafico dei ricavi, scorribile orizzontalmente su smartphone"><svg id="chart" viewBox="0 0 1120 130" role="img" aria-label="Ricavi verificati nel periodo"></svg><div id="chart-tooltip" role="status" hidden></div></div>
         <p class="small" id="chart-caption">Ricavi giornalieri · solo acquisti verificati</p>
+      </section>
+      <section class="operational-section" aria-labelledby="operational-title">
+        <h2 id="operational-title">Dove concentrare il lavoro commerciale</h2>
+        <div class="operational-cards" id="operational-views"></div>
+        <p class="small" id="operational-note"></p>
+      </section>
+      <section class="card queue" aria-labelledby="queue-title">
+        <div class="table-heading"><div class="overview-section-title"><img src="/assets/retention-customers.svg" alt=""><h2 id="queue-title">Da contattare oggi</h2></div><button class="button subtle" id="show-all">Vedi tutti</button></div>
+        <div class="table-scroll"><table class="qualified-table" role="table"><thead><tr><th>Cliente</th><th>Profilo e comportamento</th><th>Acquisto fonte</th><th>Proposta principale</th><th>Strategia</th><th>Perché ora</th><th class="numeric">Valore</th><th class="action">Azione</th></tr></thead><tbody id="customers"></tbody></table></div>
+        <p class="small" id="table-summary"></p>
       </section>
       <footer class="freshness"><span id="freshness"></span><span id="privacy-label">Dati locali · storico disponibile</span></footer>
     </main>

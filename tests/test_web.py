@@ -14,77 +14,11 @@ from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
-from src.customer_profiles import (_overview_worklist, _product_images, activate_history, evaluate_day, merge_orders, overview_summary,
+from src.customer_profiles import (_product_images, activate_history, evaluate_day, merge_orders, overview_summary,
                                    record_event, retention_summary, revenue_summary, plan_detail, filter_retention, rules_summary)
 from src.storage import Store
 from src.shopify_orders import MINIMAL_COLUMNS
 from src.web import main, make_handler
-
-
-class OverviewWorklistTests(unittest.TestCase):
-    """La soglia esplicita dei dati sintetici non definisce la politica di prodotto."""
-
-    def row(self, customer_id, product="A", matured="2026-09-01", category="targeted", action="first_contact"):
-        return {"customer_id": customer_id, "proposal": product, "eligible_from_date": matured,
-                "commercial_category": category, "strategy": "completion" if category == "targeted" else "complement",
-                "strategy_label": "Completamento" if category == "targeted" else "Complemento",
-                "work_action": action, "work_date": matured, "order_number": "#SYNTHETIC",
-                "source_product": "Fonte sintetica", "source_date": "2026-01-01",
-                "plan_key": [customer_id, "original-plan"], "target_sku": product,
-                "customer_profile": {"signals": [{"key": "recurring", "label": "Ricorrente"}]}}
-
-    def worklist(self, rows, **filters):
-        evaluation = {"customers": rows, "operational_views": [
-            {"key": "targeted", "label": "Mirate"}, {"key": "test", "label": "Test"}, {"key": "none", "label": "Attese"}]}
-        return _overview_worklist(evaluation, "2026-10-19", 30, **filters)
-
-    def test_partition_uses_plan_maturity_inclusive_boundary_not_source_purchase_and_excludes_no_action(self):
-        rows = [self.row("NEW", matured="2026-09-20"), self.row("OLD", matured="2026-09-19"),
-                self.row("DUE", action="follow_up"), self.row("REPLY", action="reply"),
-                self.row("WAIT", action=None)]
-        result = self.worklist(rows)
-        self.assertEqual({view["key"]: view["count"] for view in result["work_views"]},
-                         {"follow_up": 2, "recent": 1, "backlog": 1})
-        self.assertEqual([row["customer_id"] for row in result["rows"]], ["REPLY", "DUE"])
-        self.assertEqual(self.worklist(rows, work="recent")["rows"], [rows[0]])
-        self.assertEqual(self.worklist(rows, work="backlog")["rows"], [rows[1]])
-        self.assertEqual(self.worklist([rows[-1]])["rows"], [])
-
-    def test_rotation_preserves_primary_category_and_oldest_within_product_and_is_reproducible(self):
-        rows = [self.row("A2", "A", "2026-09-02"), self.row("B1", "B", "2026-08-10"),
-                self.row("TEST", "T", "2026-01-01", "test"), self.row("A1", "A", "2026-09-01"),
-                self.row("B2", "B", "2026-08-11"), self.row("A3", "A", "2026-09-03")]
-        result = self.worklist(rows, work="backlog")
-        self.assertEqual([row["customer_id"] for row in result["rows"]], ["B1", "A1", "B2", "A2", "A3", "TEST"])
-        self.assertEqual(result, self.worklist(list(reversed(rows)), work="backlog"))
-        for row in result["rows"]:
-            self.assertEqual(row, next(original for original in rows if original["customer_id"] == row["customer_id"]))
-        grouped = self.worklist(rows, work="backlog", order="product")
-        self.assertEqual([row["customer_id"] for row in grouped["rows"]], ["A1", "A2", "A3", "B1", "B2", "TEST"])
-
-    def test_filters_match_current_primary_only_combine_and_leave_cards_global(self):
-        rows = [self.row("A", "Accessory"), self.row("B", "Expansion", category="test")]
-        rows[1]["customer_profile"]["signals"] = [{"key": "first_purchase", "label": "Primo acquisto"}]
-        rows[0]["plans"] = [{"opportunities": [{"proposal": "Expansion", "strategy": "complement"}]}]
-        result = self.worklist(rows, category="targeted", product="Accessory", strategy="completion", profile="recurring", search="#synthetic")
-        self.assertEqual(result["rows"], [rows[0]])
-        self.assertEqual(self.worklist(rows, category="targeted", product="Expansion")["rows"], [])
-        self.assertEqual(self.worklist(rows, product="Accessory", strategy="complement")["rows"], [])
-        self.assertEqual(self.worklist(rows, product="Accessory", profile="first_purchase")["rows"], [])
-        self.assertEqual(self.worklist(rows, search="does-not-match")["rows"], [])
-        self.assertEqual(result["work_views"], self.worklist(rows)["work_views"])
-        normalized = self.worklist(rows, work="bad", category="none", profile="unavailable", order="bad")
-        self.assertEqual(normalized["work_group"], "backlog")
-        self.assertEqual(normalized["filters"], {"category": "", "product": "", "strategy": "", "profile": "", "search": "", "order": "recommended"})
-
-    def test_replies_before_due_followups_no_rotation_or_product_sort(self):
-        rows = [self.row("F1", "A", "2026-08-01", action="follow_up"),
-                self.row("R2", "B", "2026-09-02", action="reply"),
-                self.row("R1", "A", "2026-09-01", action="reply"),
-                self.row("F2", "B", "2026-08-02", action="follow_up")]
-        result = self.worklist(rows, order="product")
-        self.assertEqual([row["customer_id"] for row in result["rows"]], ["R1", "R2", "F1", "F2"])
-        self.assertEqual(result["filters"]["order"], "recommended")
 
 
 class OverviewTests(unittest.TestCase):
@@ -119,10 +53,10 @@ class OverviewTests(unittest.TestCase):
         self.assertEqual(retention["metrics"], data["metrics"])
         self.assertEqual(retention["profile_counts"]["ready"]["first_purchase"], 1)
         self.assertIsNone(retention["profile_counts"]["ready"]["possible_b2b"])
-        self.assertEqual(data["recent_days"], 30)
-        self.assertEqual(data["work_group"], "backlog")
-        self.assertEqual({view["key"]: view["count"] for view in data["work_views"]},
-                         {"follow_up": 0, "recent": 0, "backlog": 1})
+        self.assertEqual(data["operational_views"], retention["operational_views"])
+        self.assertEqual(len(data["operational_views"]), 3)
+        self.assertEqual({view["key"]: view["count"] for view in data["operational_views"]},
+                         {"targeted": 1, "test": 0, "none": 0})
         for consent in ("no", "unknown"):
             state = self.store.load_state()
             state["profiles"]["CUST_000001"]["orders"]["1"]["marketing_signal"] = consent
@@ -152,62 +86,6 @@ class OverviewTests(unittest.TestCase):
         self.assertTrue(all(point["amount_minor"] == 0 for point in result["chart"]["series"][1:]))
         self.assertEqual(result["metrics"]["attributed_revenue_minor"], 3499)
         self.assertEqual(revenue_summary(self.store, "2026-10-05")["attributed_revenue_minor"], 3499)
-
-    def test_work_actions_follow_engine_due_dates_replies_and_current_plan_not_customer_lifetime(self):
-        customer = "CUST_000001"
-        first = retention_summary(self.store, "2026-08-16")["customers"][0]
-        self.assertEqual(first["work_action"], "first_contact")
-        detail = plan_detail(self.store, customer, first["plan_key"], "2026-08-16")
-        record_event(self.store, customer, {**detail["event_templates"]["contact"], "id": "SYNTHETIC-FIRST"})
-        waiting = retention_summary(self.store, "2026-08-30")["customers"][0]
-        self.assertIsNone(waiting["work_action"])
-        due = retention_summary(self.store, "2026-08-31")["customers"][0]
-        self.assertEqual(due["work_action"], "follow_up")
-        self.assertEqual(due["work_date"], "2026-08-31")
-        self.assertEqual(due["plan_key"], first["plan_key"])
-        detail = plan_detail(self.store, customer, first["plan_key"], "2026-09-01")
-        record_event(self.store, customer, {**detail["event_templates"]["reply"], "id": "SYNTHETIC-REPLY"})
-        response = retention_summary(self.store, "2026-09-01")["customers"][0]
-        self.assertEqual(response["work_action"], "reply")
-        self.assertFalse(response["contactable"])
-        self.assertEqual(response["plan_key"], first["plan_key"])
-        response_queue = overview_summary(self.store, "2026-09-01", work="follow_up")
-        self.assertEqual(response_queue["rows"][0]["work_action"], "reply")
-        self.assertEqual(response_queue["metrics"]["ready_customers"], 0)
-        detail = plan_detail(self.store, customer, first["plan_key"], "2026-09-01")
-        record_event(self.store, customer, {**detail["event_templates"]["plan_rejection"], "id": "SYNTHETIC-CLOSE"})
-        following = retention_summary(self.store, "2026-10-05")["customers"][0]
-        self.assertEqual(following["work_action"], "first_contact")
-        self.assertNotEqual(following["plan_key"], first["plan_key"])
-        self.assertEqual(following["contact_count"], 0)
-
-    def test_overview_uses_confirmed_threshold_and_filters_leave_engine_metrics_and_chart_unchanged(self):
-        recent = overview_summary(self.store, "2026-09-14")
-        historical = overview_summary(self.store, "2026-09-15")
-        self.assertEqual(recent["work_group"], "recent")
-        self.assertEqual(historical["work_group"], "backlog")
-        self.assertEqual(recent["rows"][0]["eligible_from_date"], "2026-08-16")
-        baseline = overview_summary(self.store, "2026-10-05")
-        filtered = overview_summary(self.store, "2026-10-05", category="test")
-        self.assertEqual(filtered["rows"], [])
-        for key in ("metrics", "chart", "work_views"):
-            self.assertEqual(filtered[key], baseline[key])
-        row = baseline["rows"][0]
-        for key in ("plan_key", "target_sku", "value_minor", "eligible_from_date"):
-            self.assertEqual(row[key], retention_summary(self.store, "2026-10-05")["sections"]["ready"][0][key])
-
-    def test_future_inactive_and_review_customers_are_not_overview_actions(self):
-        state = self.store.load_state()
-        order = state["profiles"]["CUST_000001"]["orders"]["1"]
-        order["date"] = order["lines"][0]["date"] = "2026-10-01"
-        self.store.save_state(state)
-        self.assertIsNone(retention_summary(self.store, "2026-10-02")["customers"][0]["work_action"])
-        with patch.object(self.store, "activation_date", return_value=None):
-            self.assertIsNone(retention_summary(self.store, "2026-10-20")["customers"][0]["work_action"])
-        state = self.store.load_state()
-        state["profiles"]["CUST_000001"]["orders"]["1"]["lines"][0]["validity"] = "unknown"
-        self.store.save_state(state)
-        self.assertIsNone(retention_summary(self.store, "2026-10-20")["customers"][0]["work_action"])
 
     def test_proposal_reasons_follow_engine_facts_and_do_not_invent_completion_claims(self):
         detail = plan_detail(self.store, "CUST_000001", None, "2026-10-05")
@@ -341,9 +219,7 @@ class OverviewTests(unittest.TestCase):
                 self.assertEqual(len(filter_retention(data)), expected)
                 self.assertEqual(sum(view["count"] for view in data["operational_views"]), expected)
                 self.assertEqual(len(self.store.load_state()["profiles"]), 1)
-                overview = overview_summary(self.store, "2026-10-05")
-                self.assertEqual(sum(view["count"] for view in overview["work_views"]), expected)
-                self.assertEqual(overview["metrics"], data["metrics"])
+                self.assertEqual(overview_summary(self.store, "2026-10-05")["operational_views"], data["operational_views"])
 
     def test_hidden_customer_preserves_contacts_revenue_and_history(self):
         plan, contact = self.first_contact()
@@ -617,16 +493,6 @@ class QueueActionsTests(unittest.TestCase):
         self.assertEqual(self.get("/api/retention?category=test&strategy=complement")["rows"], [])
         self.assertEqual(data["metrics"], self.get("/api/retention")["metrics"])
         self.assertEqual(len(self.get("/api/rules")["rules"]), 15)
-        overview = self.get("/api/overview?work=backlog&order=product&profile=first_purchase")
-        self.assertEqual(overview["work_group"], "backlog")
-        self.assertEqual(overview["filters"]["order"], "product")
-        self.assertEqual(len(overview["rows"]), 1)
-        self.assertEqual(overview["rows"][0]["target_sku"], data["rows"][0]["target_sku"])
-        self.assertEqual(self.get("/api/overview?work=recent")["rows"], [])
-        filtered = self.get("/api/overview?work=backlog&category=test&search=missing")
-        self.assertEqual(filtered["rows"], [])
-        self.assertEqual(filtered["metrics"], overview["metrics"])
-        self.assertEqual(filtered["chart"], overview["chart"])
         with urlopen(self.base + "/rules") as response:
             self.assertEqual(response.status, 200)
             self.assertIn(b"/rules.js", response.read())
@@ -911,7 +777,6 @@ class HostedServerTests(unittest.TestCase):
         with urlopen(self.base + "/healthz", timeout=5) as response:
             self.assertEqual(json.load(response), {"status": "ok"})
             self.assertIsNone(response.headers.get("WWW-Authenticate"))
-            self.assertIsNone(response.headers.get("X-App-Revision"))
         with patch.dict("os.environ", {"RENDER_GIT_COMMIT": "synthetic-revision"}):
             with urlopen(self.base + "/healthz", timeout=5) as response:
                 self.assertEqual(response.headers["X-App-Revision"], "synthetic-revision")
