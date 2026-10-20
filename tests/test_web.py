@@ -14,11 +14,43 @@ from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
-from src.customer_profiles import (_product_images, activate_history, evaluate_day, merge_orders, overview_summary,
+from src.customer_profiles import (RETENTION_URGENCY, _order_retention_rows, _product_images, activate_history, evaluate_day, merge_orders, overview_summary,
                                    record_event, retention_summary, revenue_summary, plan_detail, filter_retention, rules_summary)
 from src.storage import Store
 from src.shopify_orders import MINIMAL_COLUMNS
 from src.web import main, make_handler
+
+
+class RetentionUrgencyTests(unittest.TestCase):
+    def row(self, customer, product, day, key="first_targeted"):
+        return {"customer_id": customer, "proposal": product, "urgency": {**RETENTION_URGENCY[key], "key": key, "date": day},
+                "category": "targeted" if key == "first_targeted" else "test" if key == "first_test" else "none",
+                "customer_profile": {"signals": []}, "purchased_products": ["include"],
+                "plans": [], "value_minor": 999999 if key == "waiting" else 1}
+
+    def test_priority_product_rotation_age_and_determinism_without_changing_rows(self):
+        rows = [self.row("A2", "A", "2026-08-02"), self.row("B1", "B", "2026-07-01"),
+                self.row("R2", "R", "2026-09-02", "reply"), self.row("WAIT", "W", None, "waiting"),
+                self.row("A1", "A", "2026-08-01"), self.row("B2", "B", "2026-07-02"),
+                self.row("TEST", "T", "2026-01-01", "first_test"), self.row("A3", "A", "2026-08-03"),
+                self.row("F2", "F", "2026-08-02", "follow_up"), self.row("R1", "R", "2026-09-01", "reply"),
+                self.row("F1", "F", "2026-08-01", "follow_up")]
+        original = json.loads(json.dumps(rows))
+        ordered = _order_retention_rows(rows)
+        self.assertEqual([row["customer_id"] for row in ordered], ["R1", "R2", "F1", "F2", "B1", "A1", "B2", "A2", "A3", "TEST", "WAIT"])
+        self.assertEqual(ordered, _order_retention_rows(list(reversed(rows))))
+        self.assertEqual(rows, original)
+        self.assertEqual(_order_retention_rows([]), [])
+        self.assertEqual(len({row["customer_id"] for row in ordered}), len(rows))
+
+    def test_rotation_is_recomputed_for_filtered_rows(self):
+        rows = [self.row("A1", "A", "2026-08-01"), self.row("A2", "A", "2026-08-02"),
+                self.row("B1", "B", "2026-07-01"), self.row("B2", "B", "2026-07-02")]
+        rows[2]["purchased_products"] = ["exclude"]
+        data = {"customers": rows, "activity_views": [], "purchased_product_options": []}
+        self.assertEqual([row["customer_id"] for row in filter_retention(data)], ["B1", "A1", "B2", "A2"])
+        self.assertEqual([row["customer_id"] for row in filter_retention(data, product="include")], ["B2", "A1", "A2"])
+        self.assertEqual(filter_retention(data, category="test"), [])
 
 
 class OverviewTests(unittest.TestCase):
@@ -256,6 +288,8 @@ class OverviewTests(unittest.TestCase):
         self.assertEqual(recent["customers"][0]["activity"], "opportunities")
         historical = retention_summary(self.store, "2026-09-15")
         self.assertEqual(historical["customers"][0]["activity"], "history")
+        self.assertEqual(historical["customers"][0]["urgency"]["key"], "first_targeted")
+        self.assertTrue(historical["customers"][0]["urgency"]["mixed_plan"])
         self.assertEqual(filter_retention(historical, activity="opportunities"), [])
         self.assertEqual(len(filter_retention(historical, activity="history", category="targeted")), 1)
         self.assertEqual(filter_retention(historical, activity="history", category="test"), [])
@@ -264,15 +298,20 @@ class OverviewTests(unittest.TestCase):
         record_event(self.store, customer, {**detail["event_templates"]["contact"], "id": "SYNTHETIC-START"})
         waiting = retention_summary(self.store, "2026-09-29")
         self.assertEqual(waiting["customers"][0]["activity"], "working")
+        self.assertEqual(waiting["customers"][0]["urgency"]["key"], "waiting")
         self.assertEqual(filter_retention(waiting, activity="today"), [])
         due = retention_summary(self.store, "2026-09-30")
         self.assertEqual(due["customers"][0]["activity"], "today")
+        self.assertEqual(due["customers"][0]["urgency"]["key"], "follow_up")
+        self.assertEqual(due["customers"][0]["urgency"]["date"], "2026-09-30")
         self.assertEqual(due["customers"][0]["plan_key"], original_plan)
         self.assertEqual(due["customers"][0]["source_date"], "2026-08-01")
         detail = plan_detail(self.store, customer, original_plan, "2026-10-01")
         record_event(self.store, customer, {**detail["event_templates"]["reply"], "id": "SYNTHETIC-RESPONSE"})
         response = retention_summary(self.store, "2026-10-01")
         self.assertEqual(response["customers"][0]["activity"], "today")
+        self.assertEqual(response["customers"][0]["urgency"]["key"], "reply")
+        self.assertEqual(response["customers"][0]["urgency"]["date"], "2026-09-15")
         self.assertFalse(response["customers"][0]["contactable"])
         self.assertEqual(response, retention_summary(self.store, "2026-10-01"))
         self.assertEqual(sum(view["count"] for view in response["activity_views"]), 1)
@@ -361,6 +400,8 @@ class OverviewTests(unittest.TestCase):
                      "date": "2026-10-02", "plan_key": plan["plan_key"]})
         data = retention_summary(self.store, "2026-10-20")
         self.assertEqual(data["customers"][0]["category"], "test")
+        self.assertEqual(data["customers"][0]["urgency"]["key"], "first_test")
+        self.assertFalse(data["customers"][0]["urgency"]["mixed_plan"])
         self.assertEqual(filter_retention(data, category="test", state="closed", strategy="completion"), [])
         self.assertEqual(len(filter_retention(data, category="test", state="closed", strategy="completion", scope="all_plans")), 1)
         self.assertEqual(filter_retention(data, state="closed", strategy="expansion"), [])

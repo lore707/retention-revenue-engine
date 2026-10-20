@@ -28,6 +28,8 @@ Le nuove schede e regole si aggiungono ai rispettivi JSON. Non creare un file o 
 
 ## Contratto del primo motore
 
+`RETENTION_URGENCY` e `_operational_row` in `src/customer_profiles.py` definiscono metadati dei cinque livelli di urgenza a partire dai piani canonici. `_order_retention_rows`, richiamata da `filter_retention` dopo la selezione, è l'unico ordinamento operativo di Retention: date per risposte/follow-up, rotazione dei prodotti nei due livelli di primi contatti, righe non lavorabili in fondo. `_activity_views` riusa questi stati per i gruppi dell'Overview. `frontend/retention.js` presenta legenda, etichette e date ricevute, senza ordinare la lista o riclassificare i piani.
+
 `retention_summary` in `src/customer_profiles.py` deriva anche contenitori acquistati validi e opzioni del filtro prodotto dal catalogo e dagli ordini osservati. `filter_retention` applica prodotto, gruppo, categoria e profilo sul cliente; strategia/stato sulla sola primaria per default, oppure su tutti i piani quando `scope=all_plans`. `src/web.py` inoltra `product` e `scope` alla stessa funzione. `frontend/retention.js` presenta schede, selettori e filtri avanzati senza ricostruire acquisti validi o idoneità commerciali.
 
 `_activity_views` in `src/customer_profiles.py` deriva i quattro riepiloghi dell'Overview dalle liste canoniche di `retention_summary`, assegna un solo gruppo di attività per cliente e legge la soglia di maturazione da `src/rules.json`. `overview_summary` espone conteggi, base con consenso valido e altri clienti; `filter_retention(activity=...)` usa la stessa assegnazione per i collegamenti contestuali. Il frontend presenta i risultati senza ricostruire stati o scadenze. Questi gruppi non sostituiscono le categorie commerciali di Retention.

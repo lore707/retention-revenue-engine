@@ -50,7 +50,8 @@
         </form>
         <div class="filter-context" role="status"><img src="/assets/retention-info.svg" alt=""><div><p id="active-filters"></p><p id="view-description"></p></div></div>
         <section class="card retention-queue">
-          <div class="table-heading"><span class="retention-list-icon"><img src="/assets/retention-customers.svg" alt=""></span><h2 id="queue-title">Clienti da valutare</h2><span class="retention-sort"><img src="/assets/retention-sort.svg" alt="">Ordina per: Categoria → valore nominale</span></div>
+          <div class="table-heading"><span class="retention-list-icon"><img src="/assets/retention-customers.svg" alt=""></span><h2 id="queue-title">Clienti da valutare</h2><span class="retention-sort"><img src="/assets/retention-sort.svg" alt="">Ordine consigliato: urgenza → alternanza prodotti</span></div>
+          <div id="urgency-legend" class="urgency-legend" role="list" aria-label="Legenda ordine di urgenza"></div>
           <div class="table-scroll"><table class="qualified-table" role="table"><thead><tr id="columns"></tr></thead><tbody id="customers"></tbody></table></div>
           <div class="pagination"><button class="button subtle" id="previous">Precedenti</button><small id="page-label"></small><button class="button subtle" id="next">Successivi</button></div>
         </section>

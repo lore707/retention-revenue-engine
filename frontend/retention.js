@@ -172,6 +172,9 @@ function renderRetention() {
   const active = floatingFilters.map(filter => filter.select).filter(select => select.value).map(select => select.selectedOptions[0].textContent);
   $('#active-filters').textContent = `Ricerca attiva: ${[activity?.label, ...active].filter(Boolean).join(' · ') || 'Tutti i clienti'}${$('#search').value ? ' · ' + $('#search').value : ''}`;
   $('#queue-title').textContent = `${rows.length} clienti corrispondenti`;
+  $('#urgency-legend').replaceChildren(...retention.urgency_legend.map(urgency => {
+    const badge = urgencyBadge(urgency); badge.setAttribute('role', 'listitem'); return badge;
+  }));
   page = Math.min(page, Math.max(0, Math.ceil(rows.length / pageSize) - 1));
   renderRetentionRows(rows.slice(page * pageSize, (page + 1) * pageSize));
   $('#page-label').textContent = rows.length ? `${page * pageSize + 1}–${Math.min((page + 1) * pageSize, rows.length)} di ${rows.length}` : 'Nessun cliente';
@@ -228,26 +231,29 @@ async function previewPlan(item, row, origin) {
   } catch (error) { if (request === quickRequest) content.replaceChildren(element('p', error.message)); }
 }
 
+function urgencyBadge(urgency) {
+  return element('span', `${urgency.rank} · ${urgency.label}`, `urgency-badge filter-tone-${urgency.tone}`);
+}
+
 function renderRetentionRows(rows) {
-  $('#columns').replaceChildren(...['Cliente / categoria', 'Profilo', 'Acquisto fonte', 'Raccomandazione principale', 'Strategia', 'Corrispondenze / motivo', 'Valore', 'Azione'].map((label, i) => {
+  $('#columns').replaceChildren(...['Cliente / urgenza', 'Profilo', 'Acquisto fonte', 'Raccomandazione principale', 'Strategia', 'Corrispondenze / motivo', 'Valore', 'Azione'].map((label, i) => {
     const heading = element('th', undefined, i === 6 ? 'numeric' : i === 7 ? 'action' : ''); heading.scope = 'col';
     heading.append(element('span', label, i === 7 ? 'sr-only' : '')); return heading;
   }));
   $('#customers').replaceChildren();
   if (!rows.length) {const row = element('tr'), cell = element('td', 'Nessun cliente corrisponde alla combinazione di filtri.', 'empty'); cell.colSpan = 8; row.append(cell); $('#customers').append(row); return;}
   for (const item of rows) {
-    const row = element('tr');
-    const category = retention.operational_views.find(view => view.key === item.category);
+    const row = element('tr', undefined, `urgency-row filter-tone-${item.urgency.tone}`);
     const matches = item.matching_plans.flatMap(plan => plan.opportunities.map(op => `${op.proposal} · ${stateLabels[plan.state]}`));
     const filtered = $('#strategy').value || $('#state-filter').value;
-    const cells = [[item.customer_id, category.label], null,
+    const cells = [[item.customer_id], null,
       [item.source_product, `${item.order_number || ''} · ${dateLabel(item.source_date, true)}`],
       [item.proposal, item.contactable ? 'Attuabile oggi' : item.status_label], [item.strategy_label],
       [filtered ? matches.join(' / ') : item.reason, filtered ? 'Corrispondenze al filtro; raccomandazione globale invariata' : null],
       [item.value_minor == null ?  '—' : money(item.value_minor), 'Valore nominale']];
     cells.forEach((values, index) => {
       const cell = element('td', undefined, index === 6 ? 'numeric' : '');
-      cell.dataset.label = ['Cliente / categoria', 'Profilo', 'Acquisto fonte', 'Raccomandazione principale', 'Strategia', 'Corrispondenze / motivo', 'Valore'][index];
+      cell.dataset.label = ['Cliente / urgenza', 'Profilo', 'Acquisto fonte', 'Raccomandazione principale', 'Strategia', 'Corrispondenze / motivo', 'Valore'][index];
       if (index === 1) {
         const badges = profileBadges(item.customer_profile);
         item.customer_profile.signals.forEach((signal, i) => {
@@ -258,7 +264,12 @@ function renderRetentionRows(rows) {
       }
       else {const label = element('span', values[0], 'primary-text'); label.title = values[0]; cell.append(label);
         if (index === 4) label.classList.add('strategy-badge', `strategy-${item.strategy}`);
-        if (values[1]) cell.append(element('small', values[1], index === 0 ? `tone-${category.tone}` : ''));
+        if (values[1]) cell.append(element('small', values[1]));
+      }
+      if (index === 0) {
+        cell.append(urgencyBadge(item.urgency));
+        if (item.urgency.date) cell.append(element('small', `${item.urgency.date_label} ${dateLabel(item.urgency.date)}`));
+        if (item.urgency.mixed_plan) cell.append(element('small', 'Mirate e Da testare nella stessa mail', 'mixed-plan-note'));
       }
       if (index === 3) attachProductImage(cell, retention.product_images[item.target_sku]);
       if (index === 5 && item.plans.length) {

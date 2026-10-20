@@ -15,6 +15,15 @@ from src.shopify_orders import import_orders, sanitize_local_data
 from src.storage import Store
 
 
+RETENTION_URGENCY = {
+    "reply": {"rank": 1, "label": "Risposta da gestire", "tone": "rose"},
+    "follow_up": {"rank": 2, "label": "Follow-up dovuto", "tone": "amber"},
+    "first_targeted": {"rank": 3, "label": "Primo contatto · Mirata", "tone": "blue"},
+    "first_test": {"rank": 4, "label": "Primo contatto · Da testare", "tone": "purple"},
+    "waiting": {"rank": 5, "label": "Nessuna azione oggi", "tone": "slate"},
+}
+
+
 def merge_orders(state, imported):
     """Aggiorna uno stato in memoria usando ID ordine ed email normalizzata."""
     result = deepcopy(state) if state is not None else {
@@ -728,7 +737,6 @@ def retention_summary(store, as_of):
                 row.update(proposal=names[sale["purchased_sku"]], revenue_minor=sales[sale["id"]][1]["amount_minor"],
                            shopify_order_id=sale["shopify_order_id"], purchase_date=sale["purchase_date"])
             sections[tracked["state"]].append(row)
-    operational_rows.sort(key=lambda row: ({"targeted": 0, "test": 1, "none": 2}[row["category"]], -(row["value_minor"] or 0), row["customer_id"]))
     for rows in sections.values():
         rows.sort(key=lambda row: (row.get("commercial_category") != "targeted", -(row.get("value_minor") or 0), row["customer_id"], row["plan_key"]))
     summaries = {}
@@ -754,6 +762,7 @@ def retention_summary(store, as_of):
     activity_views = _activity_views(operational_rows, sections, as_of, definitions["overview_activity"]["recent_days"])
     return {"date": as_of, "active": active, "sections": sections, "summaries": summaries,
             "activity_views": activity_views,
+            "urgency_legend": list(RETENTION_URGENCY.values()),
             "purchased_product_options": sorted(
                 [{"value": key, "label": product_names[key]}
                  for key in {key for row in operational_rows for key in row["purchased_products"]}],
@@ -845,7 +854,20 @@ def _operational_row(state, customer_id, as_of, profile, portfolio, active, revi
                                   "value_minor": None, "rationale": rule["rationale"]})
         entries.append({"plan_key": tracked["plan_key"], "state": tracked["state"], "is_primary": False,
                         "contactable": False, "opportunities": opportunities, "reason": "Piano storico: " + tracked["outcome"]})
+    if active and not reviews and plan and portfolio["portfolio_status"] == "operator_response":
+        urgency_key, urgency_date, date_label = "reply", plan["first_contact_date"], "Conversazione dal"
+    elif workable and plan["contact_count"]:
+        urgency_key, urgency_date, date_label = "follow_up", plan["earliest_contact_date"], "Follow-up dal"
+    elif workable:
+        urgency_key = "first_targeted" if category == "targeted" else "first_test"
+        urgency_date, date_label = plan["eligible_from_date"], "Maturo dal"
+    else:
+        urgency_key, urgency_date, date_label = "waiting", None, None
     row.update(customer_profile=profile, category=category, reason=reason, plans=entries,
+               urgency={**RETENTION_URGENCY[urgency_key], "key": urgency_key,
+                        "date": urgency_date, "date_label": date_label,
+                        "mixed_plan": bool(workable and category == "targeted" and
+                                           any(item["commercial_category"] == "test" for item in proposals))},
                maximum_contacts=definitions["shared_policies"]["follow_up"]["maximum_contacts"],
                contactable=bool(workable), status_label="Da contattare" if workable else "Nessuna azione immediata",
                tone="blue" if category == "targeted" else "purple" if category == "test" else "amber")
@@ -866,16 +888,14 @@ def _operational_views(rows):
 
 def _activity_views(rows, sections, as_of, recent_days):
     """Riepilogo del lavoro corrente, derivato esclusivamente dai piani valutati."""
-    ready = {row["customer_id"]: row for row in sections["ready"]}
-    responses = {row["customer_id"] for row in sections["in_progress"] if row["status_label"] == "Risposta da gestire"}
     started = {row["customer_id"] for row in sections["in_progress"]}
     for row in rows:
         customer = row["customer_id"]
-        current = ready.get(customer)
-        if customer in responses or (current and current["contact_count"]):
+        urgency = row["urgency"]
+        if urgency["key"] in {"reply", "follow_up"}:
             group = "today"
-        elif current:
-            age = (date.fromisoformat(as_of) - date.fromisoformat(current["eligible_from_date"])).days
+        elif urgency["key"] in {"first_targeted", "first_test"}:
+            age = (date.fromisoformat(as_of) - date.fromisoformat(urgency["date"])).days
             group = "opportunities" if age < recent_days else "history"
         elif customer in started:
             group = "working"
@@ -889,6 +909,24 @@ def _activity_views(rows, sections, as_of, recent_days):
                 ("opportunities", "Nuove opportunità", "Clienti pronti da contattare"),
                 ("working", "In lavorazione", "Piani commerciali già avviati"),
                 ("history", "Storico da recuperare", "Clienti ancora da rivalutare"))]
+
+
+def _order_retention_rows(rows):
+    """Urgenza e rotazione deterministica fra clienti, senza cambiare i loro piani."""
+    ordered = []
+    for key in RETENTION_URGENCY:
+        group = sorted((row for row in rows if row["urgency"]["key"] == key),
+                       key=lambda row: (row["urgency"]["date"] or "9999-12-31", row["customer_id"]))
+        if key in {"first_targeted", "first_test"}:
+            by_product = {}
+            for row in group:
+                by_product.setdefault(row["proposal"], []).append(row)
+            queues = sorted(by_product.values(), key=lambda queue: (queue[0]["urgency"]["date"], queue[0]["proposal"]))
+            for index in range(max((len(queue) for queue in queues), default=0)):
+                ordered.extend(queue[index] for queue in queues if index < len(queue))
+        else:
+            ordered.extend(group)
+    return ordered
 
 
 def filter_retention(data, *, category="", state="", strategy="", profile="", search="", activity="", product="", scope=""):
@@ -918,7 +956,7 @@ def filter_retention(data, *, category="", state="", strategy="", profile="", se
                 *[op["proposal"] for plan in matches for op in plan["opportunities"]]]).casefold():
             continue
         rows.append({**row, "matching_plans": matches})
-    return rows
+    return _order_retention_rows(rows)
 
 
 def rules_summary():
@@ -1067,7 +1105,8 @@ def rules_summary():
             ("2 · Nuovi piani maturi", "green", "Prima mirate, poi promozione, finestra stagionale, valore nominale maggiore, maturazione più vecchia, rango e spareggi."),
             ("3 · Piani futuri", "slate", "Se manca un piano maturo, precede la prossima data utile. Gli altri restano in coda."),
             ("Primaria dentro il piano", None, "Interesse espresso, poi primaria già contattata ancora disponibile; per nuove proposte: mirata, promozione, valore, rango e ID regola."),
-            ("Ordine lista Retention", None, "Categoria mirata / da testare / nessuna azione, poi valore principale decrescente e ID cliente. Il filtro non cambia questa graduatoria.")],
+            ("Ordine lista Retention", None, "Risposte, follow-up dovuti, primi contatti con Mirate, primi contatti solo Da testare, nessuna azione oggi. Fra primi contatti si alternano i prodotti principali, dal piano più vecchio per ciascun prodotto. L'ordine è ricalcolato dopo i filtri, prima della paginazione."),
+            ("Piani misti", None, "Una Mirata attuabile rende il piano prioritario anche con complementi Da testare nella stessa mail. Proposte e tentativi restano uniti; l'ordine della lista non cambia il piano principale.")],
             "Un solo piano principale per cliente. Valore nominale non significa probabilità di acquisto, margine o ricavo atteso."),
         guide("contacts", "Condizioni e frequenza", ["Regola", "Comportamento"], [
             ("Canale email", "blue", "Invio manuale fuori dal sistema. Qui si registra il contatto effettuato."),

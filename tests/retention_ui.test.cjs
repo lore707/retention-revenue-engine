@@ -88,6 +88,10 @@ function harness(search = '', page = 'retention') {
   document.createElement = tag => new Node(tag); document.createElementNS = (_, tag) => new Node(tag);
   const location = new URL(`http://localhost/${page === 'retention' ? 'retention' : ''}${search}`), calls = [], timers = new Map(); let timerId = 0;
   const data = {active: true, demo: true, date: '2026-10-15', analyzed_customers: 13,
+    urgency_legend: [
+      {rank: 1, label: 'Risposta da gestire', tone: 'rose'}, {rank: 2, label: 'Follow-up dovuto', tone: 'amber'},
+      {rank: 3, label: 'Primo contatto · Mirata', tone: 'blue'}, {rank: 4, label: 'Primo contatto · Da testare', tone: 'purple'},
+      {rank: 5, label: 'Nessuna azione oggi', tone: 'slate'}],
     purchased_product_options: [{value: 'synthetic_product', label: 'Prodotto acquistato sintetico'}],
     activity_views: [
       {key: 'today', label: 'Da gestire oggi', description: 'Risposte e follow-up dovuti', count: 2},
@@ -271,6 +275,7 @@ test('debounced search, API errors and stale-response guard remain functional', 
 test('filtered backend rows keep their main proposal, client action and pagination', async () => {
   const h = harness('?strategy=complement&state=open'); await h.settle();
   const row = {customer_id: 'SYNTHETIC_UI_001', category: 'targeted', customer_profile: {signals: []},
+    urgency: {key: 'first_targeted', rank: 3, label: 'Primo contatto · Mirata', tone: 'blue', date: '2026-08-16', date_label: 'Maturo dal', mixed_plan: true},
     source_product: 'Prodotto fonte sintetico', order_number: '#SYNTHETIC', source_date: '2026-08-01',
     proposal: 'Proposta principale dal backend', contactable: true, strategy_label: 'Completamenti funzionali',
     strategy: 'completion', target_sku: 'SYNTHETIC_SKU', value_minor: 2400, reason: 'Motivazione dal backend',
@@ -281,7 +286,11 @@ test('filtered backend rows keep their main proposal, client action and paginati
   await vm.runInContext('loadRetention()', h.context);
   assert.equal(h.$('#customers').children.length, 25);
   assert.deepEqual(h.$('#customers').children[0].children.slice(0, 7).map(cell => cell.dataset.label),
-    ['Cliente / categoria', 'Profilo', 'Acquisto fonte', 'Raccomandazione principale', 'Strategia', 'Corrispondenze / motivo', 'Valore']);
+    ['Cliente / urgenza', 'Profilo', 'Acquisto fonte', 'Raccomandazione principale', 'Strategia', 'Corrispondenze / motivo', 'Valore']);
+  assert.equal(h.$('#urgency-legend').children.length, 5);
+  assert(h.$('#customers').children[0].textContent.includes('3 · Primo contatto · Mirata'));
+  assert(h.$('#customers').children[0].textContent.includes('Mirate e Da testare nella stessa mail'));
+  assert(h.$('#customers').children[0].className.includes('filter-tone-blue'));
   assert(h.$('#customers').children[0].textContent.includes('Proposta principale dal backend'));
   assert(h.$('#customers').children[0].textContent.includes('Alternativa corrispondente'));
   let opened; h.context.recordOpen = item => {opened = item;}; vm.runInContext('openPlan = recordOpen;', h.context);

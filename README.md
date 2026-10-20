@@ -259,6 +259,8 @@ Follow-up e Risultati restano inattive; Regole presenta i percorsi di retention 
 
 Retention offre schede di attività, ricerca e filtri Strategia, Prodotto acquistato, Priorità e Profilo cliente. Nei filtri avanzati, Stato del piano e Ambito della ricerca permettono anche la consultazione di piani secondari e chiusi. L'ambito predefinito filtra la proposta principale mostrata; `scope=all_plans` conserva la ricerca estesa. Prodotti e conteggi sono derivati dal backend e i parametri restano nell'URL.
 
+L'ordine consigliato di Retention è calcolato nel backend dopo i filtri: risposte, follow-up dovuti, primi contatti Mirati, primi contatti solo Da testare, nessuna azione oggi. I primi contatti alternano i prodotti principali, conservando prima i piani più vecchi per ogni prodotto. Legenda numerata, colori e note sui piani misti rendono visibile la priorità senza separare le proposte della stessa mail. Piani, prezzi e valore potenziale restano quelli del motore.
+
 ## Pubblicazione su Render
 
 Il repository GitHub può restare privato. Creare un **Web Service Python 3** sul branch `main` con:

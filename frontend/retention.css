@@ -71,6 +71,11 @@ body[data-page="retention"] .workspace {min-width:0}
 .retention-queue .table-heading h2 {flex:1;min-width:0;font-size:20px;line-height:28px}
 .retention-list-icon {display:flex;align-items:center;justify-content:center;width:32px;height:32px;flex:none;border-radius:10px;background:var(--retention-band)}
 .retention-sort {display:flex;align-items:center;gap:8px;color:var(--secondary);font-size:12px;line-height:18px}
+.urgency-legend {display:flex;flex-wrap:wrap;gap:7px;padding:2px 8px 8px}
+.urgency-badge {display:inline-flex;align-items:center;width:fit-content;max-width:100%;padding:5px 8px;border:1px solid var(--filter-border);border-radius:8px;background:var(--filter-soft);color:var(--filter-color);font-size:11px;line-height:16px;font-weight:600;white-space:normal}
+.urgency-row>td:first-child {border-left:3px solid var(--filter-color);padding-left:10px}
+.urgency-row .urgency-badge {margin-top:6px}
+.urgency-row .mixed-plan-note {font-size:11px;line-height:16px;color:var(--secondary);white-space:normal}
 .retention-queue .qualified-table {min-width:1104px}
 .retention-queue .qualified-table th {height:56px;border-radius:0;padding:8px 8px 8px 0;font-size:13px;line-height:20px;font-weight:500;background:var(--canvas);white-space:normal}
 .retention-queue .qualified-table th:first-child {width:12.65%;padding-left:20px;border-radius:10px 0 0 10px}
