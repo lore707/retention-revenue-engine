@@ -1157,6 +1157,7 @@ def overview_summary(store, as_of, period="30d", *, evaluation=None):
     if evaluation is None:
         evaluation = retention_summary(store, as_of)
     rows = filter_retention(evaluation)
+    activity_views = [view for view in evaluation["activity_views"] if view["key"] != "working"]
     chart = revenue_summary(store, as_of, starts_on=start.isoformat(), include_series=True,
                             customer_ids={row["customer_id"] for row in evaluation["customers"]})
     if period in {"6m", "12m"}:
@@ -1169,9 +1170,9 @@ def overview_summary(store, as_of, period="30d", *, evaluation=None):
     return {"date": as_of, "active": evaluation["active"], "period": period,
             "product_images": evaluation["product_images"],
             "starts_on": start.isoformat(), "chart": chart, "rows": rows,
-            "activity_views": evaluation["activity_views"],
+            "activity_views": activity_views,
             "analyzed_customers": evaluation["analyzed_customers"],
-            "activity_unassigned_customers": evaluation["activity_unassigned_customers"],
+            "activity_unassigned_customers": evaluation["analyzed_customers"] - sum(view["count"] for view in activity_views),
             "metrics": evaluation["metrics"],
             "history_scope": "imported_orders_only"}
 

@@ -130,6 +130,8 @@ function harness(search = '', page = 'retention') {
       {key: 'none', label: 'Nessuna azione immediata', description: 'Attese o blocchi', tone: 'amber', count: 5}
     ]};
   if (page === 'overview') {
+    data.activity_unassigned_customers += data.activity_views.find(view => view.key === 'working').count;
+    data.activity_views = data.activity_views.filter(view => view.key !== 'working');
     Object.assign(data.metrics, {potential_value_minor: 14995, registered_contacts: 6, attributed_revenue_minor: 2400, verified_orders: 1});
     Object.assign(data, {period: '30d', starts_on: '2026-09-16', chart: {attributed_revenue_minor: 2400, verified_orders: 1,
       series: [{date: '2026-09-16', amount_minor: 0}, {date: '2026-10-15', amount_minor: 2400}]}});
@@ -367,17 +369,17 @@ test('Retention matches activity cards and advanced controls, preserving product
   assert.equal(h.$('#advanced-filters').hidden, false);
 });
 
-test('Overview displays backend KPI, four activity cards, consent base and chart values', async () => {
+test('Overview displays backend KPI, three activity cards, consent base and chart values', async () => {
   const h = harness('', 'overview'); await h.settle();
   assert.equal(h.calls[0], '/api/overview?period=30d');
   assert.equal(h.$('#ready-count').textContent, '8'); assert.equal(h.$('#potential').textContent, '€ 149,95');
   assert.equal(h.$('#contacts').textContent, '6'); assert.equal(h.$('#revenue').textContent, '€ 24,00');
   assert.equal(h.$('#chart-total').textContent, '€ 24,00');
   const cards = h.$('#operational-views').children;
-  assert.equal(cards.map(card => card.href).join(','), '/retention?activity=today,/retention?activity=opportunities,/retention?activity=working,/retention?activity=history');
-  assert.equal(cards.map(card => card.querySelector('strong').textContent).join(','), '2,4,3,1');
+  assert.equal(cards.map(card => card.href).join(','), '/retention?activity=today,/retention?activity=opportunities,/retention?activity=history');
+  assert.equal(cards.map(card => card.querySelector('strong').textContent).join(','), '2,4,1');
   assert.equal(h.$('#operational-note').textContent, '13 clienti con consenso email valido');
-  assert(h.$('#retention-base-other').textContent.includes('3 altri clienti'));
+  assert(h.$('#retention-base-other').textContent.includes('6 altri clienti'));
   assert.equal(h.$('#customers').children[0].children[0].colSpan, 8);
   const points = h.$('#chart').querySelectorAll('.hit'); assert.equal(points.length, 2);
   h.fire(points[1], 'focus'); assert(h.$('#chart-tooltip').textContent.includes('€ 24,00'));

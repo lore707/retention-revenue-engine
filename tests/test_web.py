@@ -85,10 +85,10 @@ class OverviewTests(unittest.TestCase):
         self.assertEqual(retention["metrics"], data["metrics"])
         self.assertEqual(retention["profile_counts"]["ready"]["first_purchase"], 1)
         self.assertIsNone(retention["profile_counts"]["ready"]["possible_b2b"])
-        self.assertEqual(data["activity_views"], retention["activity_views"])
+        self.assertEqual(data["activity_views"], [v for v in retention["activity_views"] if v["key"] != "working"])
         self.assertEqual(data["analyzed_customers"], 1)
         self.assertEqual({view["key"]: view["count"] for view in data["activity_views"]},
-                         {"today": 0, "opportunities": 0, "working": 0, "history": 1})
+                         {"today": 0, "opportunities": 0, "history": 1})
         for consent in ("no", "unknown"):
             state = self.store.load_state()
             state["profiles"]["CUST_000001"]["orders"]["1"]["marketing_signal"] = consent
@@ -325,7 +325,8 @@ class OverviewTests(unittest.TestCase):
                 self.assertEqual(len(filter_retention(data)), expected)
                 self.assertEqual(sum(view["count"] for view in data["operational_views"]), expected)
                 self.assertEqual(len(self.store.load_state()["profiles"]), 1)
-                self.assertEqual(overview_summary(self.store, "2026-10-05")["activity_views"], data["activity_views"])
+                self.assertEqual(overview_summary(self.store, "2026-10-05")["activity_views"],
+                                 [v for v in data["activity_views"] if v["key"] != "working"])
 
     def test_activity_cards_follow_maturity_actual_contacts_waiting_and_due_followup(self):
         customer = "CUST_000001"
@@ -573,6 +574,10 @@ class OverviewTests(unittest.TestCase):
         plan, _ = self.first_contact()
         waiting = check("2026-10-02", "waiting")
         self.assertEqual(waiting["metrics"]["ready_customers"], 0)
+        self.assertEqual({v["key"]: v["count"] for v in waiting["activity_views"]},
+                         {"today": 0, "opportunities": 0, "history": 0})
+        self.assertEqual(waiting["activity_unassigned_customers"], 1)
+        self.assertEqual(len(waiting["rows"]), 1)
         check("2026-10-16", "follow_up")
         record_event(self.store, "CUST_000001", {"id": "REPLY", "type": "reply", "date": "2026-10-16",
                      "plan_key": plan["plan_key"], "rule_id": plan["primary_opportunity"]["rule_id"]})

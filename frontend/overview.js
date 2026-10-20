@@ -45,7 +45,7 @@ async function loadOverview() {
     renderChart(data);
     renderOperationalViews(data.activity_views, data.analyzed_customers);
     $('#retention-base-other').hidden = !data.activity_unassigned_customers;
-    $('#retention-base-other').textContent = `${data.activity_unassigned_customers} altri clienti: piani futuri, verifiche o nessuna proposta attuale. Consultabili in Retention.`;
+    $('#retention-base-other').textContent = `${data.activity_unassigned_customers} altri clienti: contatti in attesa, piani futuri, verifiche o nessuna proposta attuale. Consultabili in Retention.`;
     renderRows();
   } catch (error) {
     if (sequence === requestSequence) {$('#notice').textContent = error.message; $('#notice').hidden = false;}
@@ -58,7 +58,6 @@ function renderOperationalViews(views, analyzedCustomers) {
     const presentation = {
       today: {icon: 'message', tone: 'rose', action: 'Apri in Retention'},
       opportunities: {icon: 'target', tone: 'blue', action: 'Esplora opportunità'},
-      working: {icon: 'send', tone: 'green', action: 'Visualizza piani'},
       history: {icon: 'archive', tone: 'slate', action: 'Esamina storico'}
     }[view.key];
     const card = element('a', undefined, `card operational-card filter-tone-${presentation.tone}`);
