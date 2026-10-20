@@ -446,17 +446,29 @@ test('Overview still opens client detail and expands the backend queue', async (
     source_product: 'Laifen Fonte sintetica', source_date: '2026-08-01', elapsed_days: 75,
     proposal: 'Proposta canonica', alternatives_count: 2, strategy_label: 'Completamenti funzionali',
     strategy: 'completion', eligible_from_date: '2026-08-16', reason: 'Motivazione ricevuta', value_minor: 2400,
+    urgency: {key: 'first_targeted', rank: 3, label: 'Primo contatto · Mirata', tone: 'blue', date: '2026-08-16', date_label: 'Maturo dal', mixed_plan: true},
+    contactable: true, status_label: 'Da contattare',
     target_sku: 'SYNTHETIC_SKU', plan_key: ['synthetic', 'accessories']};
   h.state.data = {...h.data, rows: Array.from({length: 5}, (_, index) => ({...row, customer_id: `${row.customer_id}_${index}`}))};
   await vm.runInContext('activePage.refresh()', h.context);
   assert.equal(h.$('#customers').children.length, 4);
   assert.equal(h.$('#customers').children[0].children[3].dataset.label, 'Proposta principale');
   assert.equal(h.$('#customers').children[0].children[6].dataset.label, 'Valore');
+  assert.equal(h.$('#customers').querySelector('.urgency-badge').textContent, '3 · Primo contatto · Mirata');
+  assert(h.$('#customers').textContent.includes('Mirate e Da testare nella stessa mail'));
+  assert(h.$('#customers').textContent.includes('Attuabile oggi'));
   h.fire(h.$('#show-all'), 'click'); assert.equal(h.$('#customers').children.length, 5);
   let opened; h.context.recordOpen = item => {opened = item;}; vm.runInContext('openPlan = recordOpen;', h.context);
   h.fire(h.$('#customers').querySelector('.open-button'), 'click'); assert.equal(opened.customer_id, 'SYNTHETIC_OVERVIEW_0');
   assert.equal(opened.proposal, row.proposal);
   h.fire(h.$('#show-all'), 'click'); assert.equal(h.$('#customers').children.length, 4);
+  h.state.data = {...h.data, rows: [{...row, contactable: false, value_minor: null, status_label: 'Nessuna azione immediata',
+    urgency: {key: 'waiting', rank: 5, tone: 'slate', label: 'Nessuna azione oggi'}}]};
+  await vm.runInContext('activePage.refresh()', h.context);
+  assert(h.$('#customers').textContent.includes('5 · Nessuna azione oggi'));
+  assert(h.$('#customers').textContent.includes('Nessuna azione immediata'));
+  assert.equal(h.$('#customers').children[0].children[6].children[0].textContent, '—');
+  assert(!h.$('#customers').textContent.includes('Attuabile oggi'));
 });
 
 test('Rules renders all backend relations and guides as accessible tables without old cards', async () => {

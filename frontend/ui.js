@@ -1,4 +1,7 @@
 const $ = (selector) => document.querySelector(selector);
+function urgencyBadge(urgency) {
+  return element('span', `${urgency.rank} · ${urgency.label}`, `urgency-badge filter-tone-${urgency.tone}`);
+}
 const pageFactories = new Map(), pageDocuments = new Map(), pageScripts = new Map();
 const pagePaths = {overview: '/', retention: '/retention', rules: '/rules'};
 const pageLocations = new Map();

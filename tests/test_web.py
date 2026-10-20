@@ -561,6 +561,28 @@ class OverviewTests(unittest.TestCase):
         record_event(self.store, "CUST_000001", event)
         return plan, event
 
+    def test_overview_preview_reuses_retention_rows_for_ready_waiting_follow_up_and_replies(self):
+        def check(day, urgency):
+            retention = retention_summary(self.store, day)
+            overview = overview_summary(self.store, day, evaluation=retention)
+            self.assertEqual(overview["rows"], filter_retention(retention))
+            self.assertEqual(overview["metrics"], retention["metrics"])
+            self.assertEqual(overview["rows"][0]["urgency"]["key"], urgency)
+            return overview
+        check("2026-10-01", "first_targeted")
+        plan, _ = self.first_contact()
+        waiting = check("2026-10-02", "waiting")
+        self.assertEqual(waiting["metrics"]["ready_customers"], 0)
+        check("2026-10-16", "follow_up")
+        record_event(self.store, "CUST_000001", {"id": "REPLY", "type": "reply", "date": "2026-10-16",
+                     "plan_key": plan["plan_key"], "rule_id": plan["primary_opportunity"]["rule_id"]})
+        reply = check("2026-10-16", "reply")
+        self.assertFalse(reply["rows"][0]["contactable"])
+        state = self.store.load_state()
+        state["profiles"]["CUST_000001"]["orders"]["1"]["marketing_signal"] = "no"
+        self.store.save_state(state)
+        self.assertEqual(overview_summary(self.store, "2026-10-16")["rows"], [])
+
     def test_retention_retry_moves_once_and_exhaustion_does_not_mean_rejection(self):
         plan, contact = self.first_contact()
         pending = retention_summary(self.store, "2026-10-02")
@@ -997,7 +1019,10 @@ class OverviewServerTests(unittest.TestCase):
                         self.assertEqual(json.load(urlopen(request, timeout=10))["imported_files"], 1)
                     data = json.load(urlopen(base + "/api/overview", timeout=10))
                     self.assertFalse(data["active"])
-                    self.assertEqual(data["rows"], [])
+                    retention = json.load(urlopen(base + "/api/retention", timeout=10))
+                    self.assertEqual(data["rows"], retention["rows"])
+                    self.assertTrue(all(not row["contactable"] for row in data["rows"]))
+                    self.assertEqual(data["metrics"]["ready_customers"], 0)
                     exports = list((Path(directory) / "uploads").glob("*.csv"))
                     self.assertEqual(len(exports), 2)
                     for export in exports:

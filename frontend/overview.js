@@ -74,35 +74,40 @@ function renderOperationalViews(views, analyzedCustomers) {
 
 function renderRows() {
   const rows = expanded ? overview.rows : overview.rows.slice(0, 4);
-  $('#queue-title').textContent = `Da contattare oggi · ${overview.rows.length} clienti`;
+  $('#queue-title').textContent = `Priorità Retention · ${overview.rows.length} clienti`;
   $('#show-all').textContent = expanded ? 'Mostra meno' : `Vedi tutti i ${overview.rows.length} clienti`;
   $('#show-all').hidden = overview.rows.length <= 4;
   $('#customers').replaceChildren();
   if (!rows.length) {
     const row = element('tr');
-    const cell = element('td', 'Nessun cliente da contattare oggi.', 'empty');
+    const cell = element('td', 'Nessun cliente con consenso valido nello storico.', 'empty');
     cell.colSpan = 8;
     row.append(cell); $('#customers').append(row);
   }
   for (const item of rows) {
-    const row = element('tr');
+    const row = element('tr', undefined, `urgency-row filter-tone-${item.urgency.tone}`);
     const cells = [
       [item.customer_id, `${item.contact_count} contatti registrati`],
       null,
-      [`${item.source_product.replace(/^Laifen /, '')} · ${dateLabel(item.source_date)}`, `${item.elapsed_days} giorni dall’acquisto`],
-      [item.proposal, item.alternatives_count ? `+ ${item.alternatives_count} opzioni compatibili` : 'Proposta del piano'],
+      [`${item.source_product.replace(/^Laifen /, '')} · ${dateLabel(item.source_date)}`],
+      [item.proposal, item.contactable ? 'Attuabile oggi' : item.status_label],
       [item.strategy_label],
-      [`Disponibile dal ${dateLabel(item.eligible_from_date)}`, item.reason],
-      [money(item.value_minor), 'Valore nominale'],
+      [item.reason],
+      [item.value_minor == null ? '—' : money(item.value_minor), 'Valore nominale'],
     ];
     cells.forEach((values, index) => {
       const cell = element('td', undefined, index === 6 ? 'numeric' : '');
-      cell.dataset.label = ['Cliente', 'Profilo e comportamento', 'Acquisto fonte', 'Proposta principale', 'Strategia', 'Perché ora', 'Valore'][index];
+      cell.dataset.label = ['Cliente / urgenza', 'Profilo e comportamento', 'Acquisto fonte', 'Proposta principale', 'Strategia', 'Prossimo passo', 'Valore'][index];
       if (index === 1) { cell.append(profileBadges(item.customer_profile)); row.append(cell); return; }
       const [primary, secondary] = values;
       const title = element('span', primary, 'primary-text'); title.title = primary;
       if (index === 4) title.classList.add('strategy-badge', `strategy-${item.strategy}`);
       cell.append(title);
+      if (index === 0) {
+        cell.append(urgencyBadge(item.urgency));
+        if (item.urgency.date) cell.append(element('small', `${item.urgency.date_label} ${dateLabel(item.urgency.date)}`));
+        if (item.urgency.mixed_plan) cell.append(element('small', 'Mirate e Da testare nella stessa mail', 'mixed-plan-note'));
+      }
       if (secondary) { const note = element('small', secondary); note.title = secondary; cell.append(note); }
       if (index === 2 && item.order_number) cell.append(element('small', item.order_number));
       if (index === 3) attachProductImage(cell, overview.product_images[item.target_sku]);
@@ -115,7 +120,7 @@ function renderRows() {
     open.addEventListener('click', () => openPlan(item));
     cell.append(open); row.append(cell); $('#customers').append(row);
   }
-  $('#table-summary').textContent = `Mostrati ${rows.length} di ${overview.rows.length} clienti · una proposta principale per cliente · alternative nel dettaglio.`;
+  $('#table-summary').textContent = `Mostrati ${rows.length} di ${overview.rows.length} clienti · stesso ordine di Retention: risposte, follow-up, primi contatti e attese. Filtri completi in Retention.`;
 }
 
 function renderChart(data) {

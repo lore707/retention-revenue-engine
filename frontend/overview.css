@@ -879,3 +879,8 @@ body[data-page="overview"] .workspace {min-width:0}
   .customer-summary {min-height:44px}
   .customer-history table .product-with-image {align-items:flex-start}
 }
+
+.urgency-badge {display:inline-flex;align-items:center;width:fit-content;max-width:100%;padding:5px 8px;border:1px solid var(--filter-border);border-radius:8px;background:var(--filter-soft);color:var(--filter-color);font-size:11px;line-height:16px;font-weight:600;white-space:normal}
+.urgency-row>td:first-child {border-left:3px solid var(--filter-color);padding-left:10px}
+.urgency-row .urgency-badge {margin-top:6px}
+.urgency-row .mixed-plan-note {font-size:11px;line-height:16px;color:var(--secondary);white-space:normal}

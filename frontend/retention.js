@@ -237,10 +237,6 @@ async function previewPlan(item, row, origin) {
   } catch (error) { if (request === quickRequest) content.replaceChildren(element('p', error.message)); }
 }
 
-function urgencyBadge(urgency) {
-  return element('span', `${urgency.rank} · ${urgency.label}`, `urgency-badge filter-tone-${urgency.tone}`);
-}
-
 function renderRetentionRows(rows) {
   $('#columns').replaceChildren(...['Cliente / urgenza', 'Profilo', 'Acquisto fonte', 'Raccomandazione principale', 'Strategia', 'Corrispondenze / motivo', 'Valore', 'Azione'].map((label, i) => {
     const heading = element('th', undefined, i === 6 ? 'numeric' : i === 7 ? 'action' : ''); heading.scope = 'col';

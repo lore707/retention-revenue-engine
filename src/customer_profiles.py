@@ -1156,7 +1156,7 @@ def overview_summary(store, as_of, period="30d", *, evaluation=None):
         raise ValueError("Periodo non supportato.")
     if evaluation is None:
         evaluation = retention_summary(store, as_of)
-    rows = evaluation["sections"]["ready"]
+    rows = filter_retention(evaluation)
     chart = revenue_summary(store, as_of, starts_on=start.isoformat(), include_series=True,
                             customer_ids={row["customer_id"] for row in evaluation["customers"]})
     if period in {"6m", "12m"}:
