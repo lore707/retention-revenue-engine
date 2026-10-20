@@ -166,6 +166,8 @@ La presentazione segue lo stile della Retention: card leggere, icone e colori se
 
 ## Retention operativa
 
+La navigazione non include una sezione Follow-up separata: risposte, solleciti, attese e storico dei contatti si gestiscono in Retention e nella scheda cliente condivisa.
+
 - Retention, aperta dalla barra laterale, mostra una sola volta i clienti con consenso email valido. Consensi negati, mancanti o discordanti sono esclusi da lista, ricerca e conteggi delle categorie di Overview e Retention; gli acquisti e gli eventi non vengono cancellati. I contatti storici restano nel KPI attività; il KPI ricavi, il numero di ordini verificati e il grafico includono solo vendite dei clienti con consenso email valido alla data di valutazione. Le vendite escluse restano conservate nello storico; un consenso tornato valido nei dati importati rende nuovamente visibile il cliente. I quattro filtri sono categoria commerciale attuale, stato del piano, strategia e profilo cliente. La ricerca include ID cliente, numeri di tutti gli ordini osservati fino alla data di valutazione e prodotti. Categoria e profilo riguardano il cliente; stato e strategia devono corrispondere allo stesso piano/opportunità. Per default stato e strategia riguardano soltanto la proposta principale; con ambito Tutti i piani includono anche secondarie, piani accodati e chiusi. Il risultato conserva la raccomandazione globale e mostra separatamente le corrispondenze.
 
 - Il selettore Profilo cliente restringe la lista per un segnale alla volta; i badge mostrano tutti i segnali coesistenti. B2B e alto valore sono disabilitati perché non valutabili. I profili non cambiano la categoria commerciale.
