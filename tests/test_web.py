@@ -382,7 +382,8 @@ class OverviewTests(unittest.TestCase):
         original = self.store.load_state()
         for skus, day, expected in [(["CP96308"], "2026-10-05", "test"),
                                      (["CP96308", "30103-000019"], "2027-02-01", "targeted"),
-                                     (["CL97510"], "2027-02-01", "test")]:
+                                     (["CL97510"], "2027-02-01", "targeted"),
+                                     (["CL97510", "CR95042"], "2027-02-01", "test")]:
             with self.subTest(skus=skus):
                 state = json.loads(json.dumps(original))
                 order = state["profiles"]["CUST_000001"]["orders"]["1"]
@@ -706,7 +707,9 @@ class QueueActionsTests(unittest.TestCase):
         order = state["profiles"][self.row["customer_id"]]["orders"]["QUEUE-1"]
         order["date"] = "2026-01-01"
         order["lines"] = [{"id": "WAVE", "order_id": "QUEUE-1", "sku": "CL97510",
-                           "date": order["date"], "validity": "valid", "quantity": 1}]
+                           "date": order["date"], "validity": "valid", "quantity": 1},
+                          {"id": "HEADS", "order_id": "QUEUE-1", "sku": "CR95042",
+                           "date": "2026-09-01", "validity": "valid", "quantity": 1}]
         self.store.save_state(state)
         plan = next(item["plan"] for item in evaluate_day(self.store, "2026-10-05")["ready"])
         self.assertEqual(plan["primary_opportunity"]["rule_id"], "toothbrush_to_neo_category_expansion")
@@ -722,6 +725,27 @@ class QueueActionsTests(unittest.TestCase):
         detail = plan_detail(self.store, row["customer_id"], row["plan_key"], "2026-10-05")
         self.assertTrue(all(product["sku"] for product in detail["contacts"][0]["products"]))
         self.assertNotIn("CL97510", {product["sku"] for product in detail["contacts"][0]["products"]})
+
+    def test_legacy_wave_heads_reach_overview_retention_detail_and_rulebook(self):
+        state = self.store.load_state()
+        order = state["profiles"][self.row["customer_id"]]["orders"]["QUEUE-1"]
+        order["date"] = "2026-01-01"
+        order["lines"] = [{"id": "WAVE", "order_id": "QUEUE-1", "sku": "CL97510", "date": "2026-01-01",
+                           "validity": "valid", "quantity": 1}]
+        self.store.save_state(state)
+        data = self.get("/api/retention?compact=1&strategy=replenishment")
+        self.assertEqual(len(data["rows"]), 1)
+        row = data["rows"][0]
+        self.assertEqual(row["category"], "targeted")
+        self.assertEqual(self.get("/api/overview")["rows"][0]["strategy"], "replenishment")
+        detail = plan_detail(self.store, row["customer_id"], row["plan_key"], "2026-10-05")
+        self.assertIn("contact", detail["event_templates"])
+        self.assertEqual(detail["event_templates"]["contact"]["cycle_reference_purchase_id"], "WAVE")
+        rule = next(r for r in self.get("/api/rules")["rules"] if r["id"] == "wave_pro_heads_replenishment")
+        self.assertEqual({source["product_key"] for source in rule["sources"]}, {"laifen_wave_legacy", "laifen_wave_pro"})
+        order["marketing_signal"] = "no"
+        self.store.save_state(state)
+        self.assertEqual(self.get("/api/retention?compact=1&strategy=replenishment")["rows"], [])
 
     def test_contact_is_idempotent_and_refreshes_queue_without_leaking_email_to_lists(self):
         detail = self.detail()

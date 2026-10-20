@@ -65,7 +65,7 @@ Follow-up/Risultati sono pulsanti disabilitati; Regole è sola consultazione; SK
 | D07 | Revenue verificata manualmente, ordine non confrontato automaticamente con import | Possibili errori operatore su titolare/importo/prodotto; audit del processo e confronto ordini necessario |
 | D08 | Nessuna finestra massima di attribuzione; un ordine una sola volta | Sequenze lontane attribuibili; ordini multiprodotto non suddivisi; decidere orizzonte e base economica |
 | D09 | Nessuna misura causale o margine | Ricavo attribuito non prova incremento; costo operatore/sconti/costo prodotto non valutati |
-| D10 | SKU e compatibilità mancanti in stand-by | Travel Box Alluminio, diffusore storico Dark Gray, Wave precedente/testine, Air/ugelli, Neo Special/diffusore, supporto altri modelli. Non colmare per analogia |
+| D10 | SKU e compatibilità mancanti in stand-by | Travel Box Alluminio, diffusore storico Dark Gray, Air/ugelli, Neo Special/diffusore, supporto altri modelli. Non colmare per analogia |
 
 Fonti: `src/shopify_orders.py::import_orders`, `customer_profiles.py::engine_snapshot`, `review_cases`, `_validate_revenue_event`, `revenue_summary`; `engine.py::_evaluate_replenishment`; `catalog.json::standby_checks`; `project-docs/PRODUCT.md`.
 

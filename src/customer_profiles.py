@@ -995,6 +995,8 @@ def rules_summary():
             conditions.append(f"Escluso se nello storico risultano già {category}.")
         if rule["relationship_type"] == "REPLENISHMENT":
             conditions.append("Un acquisto del ricambio aggiorna la data del ciclo; l'usura effettiva non è conosciuta.")
+            if rule.get("preferred_source_product"):
+                conditions.append(f"Un solo ciclo: se presente un acquisto valido di {products[rule['preferred_source_product']]['name']}, questo resta la fonte; altrimenti si usa l'altro modello ammesso.")
         sources = []
         for source in rule["sources"]:
             product = products[source["product"]]

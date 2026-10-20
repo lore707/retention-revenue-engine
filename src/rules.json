@@ -1,5 +1,5 @@
 {
-  "version": 31,
+  "version": 32,
   "overview_activity": {
     "recent_days": 30
   },
@@ -955,7 +955,7 @@
     },
     {
       "id": "wave_pro_heads_replenishment",
-      "version": 2,
+      "version": 3,
       "status": "approved_for_manual_pilot",
       "relationship_type": "REPLENISHMENT",
       "commercial_track": "oral_care",
@@ -965,19 +965,18 @@
         "6976973852011",
         "CR94994"
       ],
-      "rationale": "Ricorda il ricambio delle testine Wave Pro, raggruppate senza distinguere i tipi.",
+      "rationale": "Ricorda il ricambio delle testine compatibili con Wave e Wave Pro, raggruppate senza distinguere i tipi.",
       "benefit_product_key": "laifen_wave_pro_replacement_heads",
       "evidence": {
         "compatibility": "business_confirmed_wave_and_wave_pro",
-        "replacement_interval": "business_approved_after_official_guidance",
-        "initial_box_contains_two_heads": "shopify_product_confirmed"
+        "replacement_interval": "business_approved_shared_wave_and_wave_pro_timing"
       },
       "nominal_value": {
         "source": "target_variants_observed_price",
         "meaning": "Valore nominale di una confezione scelta; non revenue attribuita."
       },
       "timing": {
-        "initial_reference": "wave_pro_purchase_date",
+        "initial_reference": "source_wave_or_wave_pro_purchase_date",
         "initial_after_calendar_days": 150,
         "repeat_reference": "latest_replacement_pack_purchase_date",
         "repeat_after_calendar_days": 240,
@@ -987,7 +986,7 @@
         "first_cycle": "customer_choice_among_all_variants",
         "repeat_cycle": "prefer_latest_purchased_variant_and_keep_all_variants_available"
       },
-      "source_order_selection": "earliest_valid_wave_pro_purchase_or_operator_review_if_unknown",
+      "source_order_selection": "earliest_valid_preferred_product_otherwise_earliest_valid_source_or_operator_review_if_unknown",
       "opportunity_scope": "one_per_customer_rule_and_replenishment_cycle",
       "order_validity": {
         "cancelled_or_fully_returned": "ignore",
@@ -997,11 +996,16 @@
         {
           "product": "laifen_wave_pro",
           "configuration": "two_heads_case_wireless_charger"
+        },
+        {
+          "product": "laifen_wave_legacy",
+          "configuration": "travel_box_three_heads"
         }
       ],
       "plan_rank": 400,
       "plan_rank_reason": "Ricambio maturo necessario a mantenere la routine del prodotto.",
-      "approval": "Confermato dall'utente: prima proposta a 150 giorni con scelta tra quattro varianti; dopo un acquisto, nuova proposta a 240 giorni con preferenza per la variante già scelta. Conferma 16 ottobre 2026: gli acquisti di tutti i codici testine del contenitore aggiornano il ciclo Wave Pro; i nuovi codici privi di prezzo confermato sono riconosciuti nello storico, senza essere aggiunti alle destinazioni proposte. Nessuna soglia di ricambio approvata per il precedente Wave."
+      "approval": "Estensione approvata il 20 ottobre 2026: anche chi possiede solo Wave precedente segue la regola esistente, prima proposta a 150 giorni e nuovo ciclo a 240 giorni dall’ultimo acquisto di testine. Un solo ciclo per cliente: un acquisto valido di Wave Pro mantiene la precedenza come fonte, preservando i cicli esistenti. Tutti gli otto codici testine aggiornano il ciclo; i codici privi di prezzo confermato restano di solo riconoscimento. Destinazioni, due tentativi e distanza minima di 15 giorni invariati.",
+      "preferred_source_product": "laifen_wave_pro"
     }
   ]
 }

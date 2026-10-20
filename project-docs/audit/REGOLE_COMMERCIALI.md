@@ -46,7 +46,7 @@ Le 13 voci di ogni scheda vanno lette insieme alle politiche comuni seguenti, ch
 - 12. `p3_travel_case_cross_sell` · Astuccio P3 / P3 Pro
 - 13. `p3_pro_head_replenishment` · Testina P3 Pro
 - 14. `wave_legacy_to_wave_pro_replacement` · Da Wave precedente a Wave Pro
-- 15. `wave_pro_heads_replenishment` · Testine Wave Pro
+- 15. `wave_pro_heads_replenishment` · Testine Wave e Wave Pro
 
 ## 1. Concentratore magnetico
 
@@ -691,13 +691,15 @@ Stato delle evidenze dichiarate: `source_model_discontinued`: `business_confirme
 
 13. **Dopo contatto/acquisto/chiusura:** Una sola opportunità cliente/regola; nessuna riapertura automatica dopo esaurimento o chiusura del piano. Contatti, risposte, acquisto ed esclusioni seguono le politiche comuni; le secondarie condividono i tentativi. L’esito economico richiede registrazione manuale distinta dall’acquisto importato.
 
-## 15. Testine Wave Pro
+## 15. Testine Wave e Wave Pro
 
-1. **ID e stato:** `wave_pro_heads_replenishment`, versione 2, `approved_for_manual_pilot`. Valutazione: `src/engine.py::_evaluate_replenishment`; coordinamento: `evaluate_portfolio`.
+1. **ID e stato:** `wave_pro_heads_replenishment`, versione 3, `approved_for_manual_pilot`. Valutazione: `src/engine.py::_evaluate_replenishment`; coordinamento: `evaluate_portfolio`.
 
 2. **Strategia:** Ricambi (`REPLENISHMENT`); categoria opportunità **Mirata** quando lavorabile; percorso `oral_care`.
 
 3. **Fonti esatte:**
+
+- **Laifen Wave precedente con Travel Box** (`travel_box_three_heads`): `CL97510`, `CL97511`, `CL97508X`, `CP34472X`, `CL97509`, `C027164`, `C027165`. Se presente anche Wave Pro valido, conserva la precedenza come fonte dell’unico ciclo.
 
 - **Laifen Wave Pro - Spazzolino Elettrico · Due testine, custodia da viaggio e caricatore wireless** (`two_heads_case_wireless_charger`): `CR95008`, `CR95009`, `CR95024`, `CR95017`, `CR95041`, `CR95016`
 
@@ -708,13 +710,13 @@ Stato delle evidenze dichiarate: `source_model_discontinued`: `business_confirme
 - `6976973852011` · Testine di Ricambio Laifen Wave Pro · Pro Gum Care · prezzo osservato € 19.99
 - `CR94994` · Testine di Ricambio Laifen Wave Pro · Pro Max Brush · prezzo osservato € 19.99
 
-5. **Motivo commerciale:** Ricorda il ricambio delle testine del Wave Pro e consente di scegliere tra le quattro confezioni compatibili.
+5. **Motivo commerciale:** Ricorda il ricambio delle testine di Wave e Wave Pro e consente di scegliere tra le quattro confezioni compatibili.
 
 6. **Compatibilità ed evidenze:**
 
-- Testine di Ricambio Laifen Wave Pro: Wave Pro · confermata compatibile (fonte `wave_pro_replacement_heads_shopify_screenshots`).
+- Testine di Ricambio Laifen Wave Pro: Wave e Wave Pro · compatibilità confermata dal business.
 
-Stato delle evidenze dichiarate: `compatibility`: `shopify_product_confirmed`; `replacement_interval`: `business_approved_after_official_guidance`; `initial_box_contains_two_heads`: `shopify_product_confirmed`. Le fonti sono quelle registrate nel catalogo, non una nuova verifica esterna eseguita nell’audit.
+Stato delle evidenze dichiarate: `compatibility`: `business_confirmed_wave_and_wave_pro`; `replacement_interval`: `business_approved_shared_wave_and_wave_pro_timing`. Le fonti sono quelle registrate nel catalogo, non una nuova verifica esterna eseguita nell’audit.
 
 7. **Timing:** Primo ciclo: 150 giorni dall’acquisto dispositivo. Cicli successivi: 240 giorni dall’ultimo acquisto valido di ricambio successivo o contemporaneo alla fonte; quantità non considerate. Giorni calendario Europe/Rome; maturazione non autorizza da sola l’invio.
 
@@ -769,7 +771,6 @@ Ogni riga seguente è un prodotto censito; presenza nel catalogo non significa r
 ## Verifiche lasciate in stand-by
 
 - `wave_legacy_travel_box_aluminum_identifiers`: Recuperare SKU e codice a barre della variante Alluminio della Travel Box del precedente Wave. **Effetto:** La variante Alluminio non può essere riconosciuta automaticamente negli acquisti finché mancano gli identificativi.
-- `wave_legacy_replacement_heads_compatibility`: Confermare se le testine di ricambio Wave Pro siano compatibili con il precedente modello Wave. **Effetto:** Il precedente Wave non genera opportunità testine finché la compatibilità non è confermata; resta indipendente la proposta di sostituzione con Wave Pro.
 - `neo_special_magnetic_diffuser_compatibility`: Confermare se il diffusore magnetico venduto separatamente sia compatibile con Neo Special. **Effetto:** Nessuna opportunità diffusore per Neo Special finché la compatibilità non è confermata.
 - `air_magnetic_concentrator_compatibility`: Confermare se il concentratore magnetico CP34473 sia compatibile con Air. **Effetto:** Nessuna opportunità concentratore per Air finché la compatibilità non è confermata.
 - `air_magnetic_diffuser_compatibility`: Confermare se il diffusore magnetico venduto separatamente sia compatibile con Air. **Effetto:** Nessuna opportunità diffusore per Air finché la compatibilità non è confermata.

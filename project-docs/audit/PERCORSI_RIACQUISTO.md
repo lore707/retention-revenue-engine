@@ -86,13 +86,13 @@ Nessun completamento concentratore/diffusore finché compatibilità non conferma
 
 ### 2.1 Wave precedente, con Travel Box
 
-**T0 Wave storico → T+90 Neo se nessun phon osservato → T+180 Wave Pro se non già acquistato → dopo acquisto Wave Pro, testine +150 giorni.**
+**T0 Wave storico → T+90 Neo se nessun phon osservato → T+150 testine → T+180 upgrade Wave Pro se non già acquistato. Un acquisto testine apre un nuovo ciclo a +240 giorni.**
 
 - Neo: `toothbrush_to_neo_category_expansion`, piano `category_expansion`, tutte sei varianti, tre ugelli in evidenza nell'ordine opzioni; valore prudenziale minimo della gamma, non necessariamente prezzo della variante preferita.
 - Wave Pro: `wave_legacy_to_wave_pro_replacement`, piano `oral_care`, separato dal piano Neo per percorso/data. È da testare, non ricambio certo; tutte sei varianti.
 - A T+180 non c'è obbligo di proporre prima Neo se entrambi nuovi e maturi: prevalgono criteri globali/promozioni/valore; se Neo già contattato il piano resta prioritario fino a risoluzione.
-- Nessuna proposta testine Wave Pro per il Wave precedente: compatibilità in stand-by. Nessun invio per cavo o Travel Box standalone, già senza relazione commerciale.
-- L'acquisto Wave Pro esclude la sostituzione e apre percorso Wave Pro. Un phon acquistato esclude l'espansione Neo.
+- Testine compatibili confermate anche per Wave precedente: regola condivisa a 150/240 giorni. Se ricambio e upgrade sono maturi e mai contattati, il ricambio Mirato precede l’upgrade Da testare. Nessun invio per cavo o Travel Box standalone, già senza relazione commerciale.
+- L'acquisto Wave Pro esclude la sostituzione e diventa la fonte preferita dell’unico ciclo testine; non si duplicano i cicli dei due dispositivi. Un phon acquistato esclude l'espansione Neo.
 
 ### 2.2 Wave Pro
 

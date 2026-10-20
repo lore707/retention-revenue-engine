@@ -173,7 +173,10 @@ def _evaluate_replenishment(customer, evaluation_date, today, catalog, definitio
         return base
 
     confirmed_sources = [item for item in sources if item[3] == "valid"]
-    source = min(confirmed_sources or sources)
+    source_candidates = confirmed_sources or sources
+    preferred_sources = [item for item in source_candidates
+                         if variants[item[2]][0]["key"] == rule.get("preferred_source_product")]
+    source = min(preferred_sources or source_candidates)
     source_day, source_id, source_sku, source_validity, source_order_id = source
     eligible_replacements = [item for item in replacements if item[0] >= source_day]
     confirmed_replacements = [item for item in eligible_replacements if item[3] == "valid"]

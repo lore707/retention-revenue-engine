@@ -1157,7 +1157,7 @@ class EngineTests(unittest.TestCase):
                 snapshot = customer(purchase(sku=variant["sku"], day="2026-01-01"))
                 self.assertEqual(
                     evaluate(snapshot, "2026-09-23", WAVE_HEADS_RULE)["status"],
-                    "no_action",
+                    "first_contact_review",
                 )
                 before = evaluate(snapshot, "2026-06-29", WAVE_REPLACEMENT_RULE)
                 self.assertEqual(before["status"], "deferred")
@@ -1316,7 +1316,7 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(evaluate(heads_without_wave, "2026-09-23", WAVE_HEADS_RULE)["status"],
                          "no_action")
 
-    def test_all_wave_head_codes_share_product_and_update_only_wave_pro_cycle(self):
+    def test_all_wave_head_codes_share_product_and_update_wave_and_wave_pro_cycles(self):
         catalog = json.loads((Path(__file__).resolve().parents[1] / "src" / "catalog.json").read_text(encoding="utf-8"))
         heads = next(p for p in catalog["products"] if p["key"] == "laifen_wave_pro_replacement_heads")
         self.assertEqual(len(heads["variants"]), 8)
@@ -1332,7 +1332,10 @@ class EngineTests(unittest.TestCase):
                 self.assertIsNone(result["preferred_target_sku"])
                 self.assertNotIn(sku, {x["sku"] for x in result["target_options"]})
                 snapshot["purchases"][0]["sku"] = "CL97510"
-                self.assertEqual(evaluate(snapshot, "2026-08-29", WAVE_HEADS_RULE)["status"], "no_action")
+                self.assertEqual(evaluate(snapshot, "2026-08-28", WAVE_HEADS_RULE)["status"], "deferred")
+                legacy = evaluate(snapshot, "2026-08-29", WAVE_HEADS_RULE)
+                self.assertEqual(legacy["status"], "first_contact_review")
+                self.assertEqual(legacy["cycle_reference_purchase_id"], "PACK")
 
     def test_wave_pro_heads_follow_up_uses_current_cycle(self):
         snapshot = customer(purchase("WAVE", "CR95008", "2026-01-01"))
@@ -1347,6 +1350,36 @@ class EngineTests(unittest.TestCase):
         result = evaluate(snapshot, "2026-06-15", WAVE_HEADS_RULE)
         self.assertEqual(result["status"], "second_contact_review")
         self.assertEqual(result["contact_count"], 1)
+
+    def test_legacy_wave_heads_mature_at_150_days_and_precede_uncontacted_upgrade(self):
+        catalog = json.loads((Path(__file__).resolve().parents[1] / "src" / "catalog.json").read_text(encoding="utf-8"))
+        legacy = next(p for p in catalog["products"] if p["key"] == "laifen_wave_legacy")
+        for variant in legacy["variants"]:
+            with self.subTest(sku=variant["sku"]):
+                snapshot = customer(purchase("WAVE", variant["sku"], "2026-01-01"))
+                self.assertEqual(evaluate(snapshot, "2026-05-30", WAVE_HEADS_RULE)["status"], "deferred")
+                ready = evaluate(snapshot, "2026-05-31", WAVE_HEADS_RULE)
+                self.assertEqual(ready["status"], "first_contact_review")
+                self.assertEqual(ready["eligible_from_date"], "2026-05-31")
+                portfolio = evaluate_portfolio(snapshot, "2026-06-30")
+                self.assertEqual(portfolio["primary_contact_plan"]["primary_opportunity"]["rule_id"], WAVE_HEADS_RULE)
+                self.assertEqual(portfolio, evaluate_portfolio(snapshot, "2026-06-30"))
+                self.assertIn(WAVE_REPLACEMENT_RULE, [p["primary_opportunity"]["rule_id"] for p in portfolio["queued_contact_plans"]])
+                snapshot["marketing_consent"]["email"]["status"] = "unsubscribed"
+                self.assertEqual(evaluate_portfolio(snapshot, "2026-06-30")["portfolio_status"], "blocked_consent")
+
+    def test_adding_legacy_wave_preserves_existing_pro_cycle_and_contact_count(self):
+        snapshot = customer(purchase("PRO", "CR95008", "2026-01-01"))
+        snapshot["events"] = [{**event("CONTACT", day="2026-05-31", rule_id=WAVE_HEADS_RULE),
+                                "cycle_reference_purchase_id": "PRO"}]
+        before = evaluate(snapshot, "2026-06-15", WAVE_HEADS_RULE)
+        snapshot["purchases"].append(purchase("LEGACY", "CL97510", "2025-01-01"))
+        after = evaluate(snapshot, "2026-06-15", WAVE_HEADS_RULE)
+        self.assertEqual(after, before)
+        self.assertEqual(after["contact_count"], 1)
+        self.assertEqual(after["status"], "second_contact_review")
+        snapshot["purchases"][0]["validity"] = "returned"
+        self.assertEqual(evaluate(snapshot, "2026-06-15", WAVE_HEADS_RULE)["source_purchase_id"], "LEGACY")
 
     def test_wave_pro_heads_repeat_after_240_days_and_prefer_latest_type(self):
         snapshot = customer(
@@ -1407,6 +1440,7 @@ class EngineTests(unittest.TestCase):
     def test_shaver_expansion_value_precedes_replacement_without_commercial_occasion(self):
         snapshot = customer(
             purchase("LEGACY", "CL97510", "2026-01-01", order_id="ORDER_WAVE"),
+            purchase("HEADS", "CR95042", "2026-09-01"),
             purchase("NEO", "CR05272", "2026-01-01", order_id="ORDER_NEO"),
             purchase("CONCENTRATOR", "CP34473", "2026-01-10"),
             purchase("POUCH", "CL51809", "2026-01-10"),
