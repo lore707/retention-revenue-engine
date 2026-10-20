@@ -209,6 +209,8 @@ class OverviewTests(unittest.TestCase):
         self.assertEqual(data, retention_summary(self.store, "2026-10-05"))
         label = next(option["label"] for option in data["purchased_product_options"] if option["value"] == brush)
         self.assertEqual(len(filter_retention(data, search=label)), 1)
+        self.assertEqual(len(filter_retention(data, search="#synthetic-second")), 1)
+        self.assertEqual(filter_retention(data, search="#missing-order"), [])
         for validity, day in (("unknown", "2026-09-01"), ("cancelled", "2026-09-01"), ("valid", "2026-10-06")):
             orders["2"]["date"] = orders["2"]["lines"][0]["date"] = day
             orders["2"]["lines"][0]["validity"] = validity
@@ -216,6 +218,49 @@ class OverviewTests(unittest.TestCase):
             excluded = retention_summary(self.store, "2026-10-05")
             self.assertEqual(filter_retention(excluded, product=brush), [])
             self.assertNotIn(brush, [option["value"] for option in excluded["purchased_product_options"]])
+        self.assertEqual(filter_retention(excluded, search="#SYNTHETIC-SECOND"), [])
+
+    def test_filters_preserve_accessory_and_replenishment_compatibility_for_every_device_variant(self):
+        catalog = json.loads((Path(__file__).resolve().parents[1] / "src/catalog.json").read_text(encoding="utf-8"))
+        expected = {
+            "laifen_neo": {"neo_wall_mount_completion"},
+            "laifen_neo_special": {"magnetic_concentrator_completion"},
+            "laifen_swift_premium": {"magnetic_concentrator_completion"},
+            "laifen_se_lite": {"se_lite_diffuser_completion"},
+            "laifen_mini": {"mini_wall_mount_completion"},
+            "laifen_gift_edition": set(), "laifen_se_special": set(), "laifen_air": set(),
+            "laifen_wave_legacy": {"wave_pro_heads_replenishment"},
+            "laifen_wave_pro": {"wave_pro_heads_replenishment"},
+            "laifen_p3": set(), "laifen_p3_pro": {"p3_pro_head_replenishment"},
+        }
+        checked_rules = set().union(*expected.values())
+        orders, contacts, cases = [], {}, {}
+        for product in catalog["products"]:
+            if product["key"] not in expected:
+                continue
+            for variant in product["variants"]:
+                sku = variant["sku"]
+                orders.append({"id": sku, "number": "#SYNTHETIC-" + sku, "date": "2026-01-01", "marketing_signal": "yes",
+                               "lines": [{"id": sku, "order_id": sku, "sku": sku, "date": "2026-01-01", "validity": "valid", "quantity": 1}]})
+                contacts[sku] = {"email": sku.lower() + "@example.invalid"}
+                allowed = expected[product["key"]].copy()
+                if product["key"] == "laifen_neo" and variant["configuration"] == "two_nozzles":
+                    allowed.add("magnetic_concentrator_completion")
+                cases[sku] = (product["key"], allowed)
+        self.store.save_state(merge_orders(None, {"orders": orders, "order_contacts": contacts}))
+        data = retention_summary(self.store, "2026-06-30")
+        self.assertEqual(len(data["customers"]), len(cases))
+        for row in data["customers"]:
+            sku = row["order_number"].removeprefix("#SYNTHETIC-")
+            product, allowed = cases[sku]
+            with self.subTest(sku=sku):
+                actual = {op["rule_id"] for plan in row["plans"] for op in plan["opportunities"]} & checked_rules
+                self.assertEqual(actual, allowed)
+                self.assertIn(row["customer_id"], {r["customer_id"] for r in filter_retention(data, product=product)})
+                for strategy in ("completion", "replenishment"):
+                    matches = filter_retention(data, product=product, strategy=strategy, scope="all_plans")
+                    self.assertEqual(row["customer_id"] in {r["customer_id"] for r in matches},
+                                     any(op["strategy"] == strategy for p in row["plans"] for op in p["opportunities"]))
 
     def test_unmature_unknown_and_unsubscribed_do_not_become_workable_views(self):
         for day, consent, validity, purchase_day in [("2026-10-05", "yes", "valid", "2026-10-01"),

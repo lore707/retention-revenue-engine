@@ -126,7 +126,9 @@ async function loadRetention() {
     if (request !== retentionRequest) return;
     retention = data;
     if (selectedActivity && !data.activity_views.some(view => view.key === selectedActivity)) {selectedActivity = ''; syncRetentionUrl();}
-    if (!data.operational_views.some(view => view.key === selectedView)) selectedView = '';
+    if (selectedView && !data.operational_views.some(view => view.key === selectedView)) {
+      selectedView = ''; syncRetentionUrl(); return loadRetention();
+    }
     $('#operational-filter').replaceChildren(new Option('Tutte', ''), ...data.operational_views.map(view => new Option(view.label, view.key)));
     $('#operational-filter').value = selectedView;
     const selectedProduct = $('#product-filter').value;

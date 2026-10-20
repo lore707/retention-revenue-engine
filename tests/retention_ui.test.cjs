@@ -234,6 +234,15 @@ test('invalid and unavailable URL values do not become selected; legacy category
   const request = new URLSearchParams(h.calls[0].split('?')[1]); assert.equal(request.get('profile'), ''); assert.equal(request.get('state'), '');
 });
 
+test('obsolete priority links reload all customers instead of leaving a silently empty filtered list', async () => {
+  const h = harness('?view=obsolete&search=cliente'); await h.settle();
+  assert.equal(h.calls.length, 2);
+  assert.equal(new URLSearchParams(h.calls[1].split('?')[1]).get('category'), '');
+  assert.equal(new URLSearchParams(h.calls[1].split('?')[1]).get('search'), 'cliente');
+  assert.equal(h.controls()[0].select.value, '');
+  assert.equal(h.location.searchParams.has('view'), false);
+});
+
 test('popup geometry stays inside a narrow viewport and flips above when needed', async () => {
   const h = harness(); await h.settle(); const control = h.controls()[0];
   h.document.documentElement.clientWidth = 375; h.window.innerHeight = 400;

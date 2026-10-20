@@ -685,6 +685,8 @@ def retention_summary(store, as_of):
                 for order in state["profiles"][customer_id]["orders"].values() if order["date"] <= as_of
                 for line in order["lines"] if line["date"] <= as_of and line["validity"] == "valid"
                 and line["quantity"] > 0 and line["sku"] in product_keys})
+            row["order_numbers"] = sorted({order["number"] for order in state["profiles"][customer_id]["orders"].values()
+                                           if order["date"] <= as_of})
             operational_rows.append(row)
         if not active or customer_id in uncertain:
             continue
@@ -951,6 +953,7 @@ def filter_retention(data, *, category="", state="", strategy="", profile="", se
         if (state or strategy) and not matches:
             continue
         if search and search.casefold() not in " ".join([row["customer_id"], row.get("order_number") or "",
+                *row.get("order_numbers", []),
                 row["source_product"], *[option["label"] for option in data["purchased_product_options"]
                     if option["value"] in row["purchased_products"]],
                 *[op["proposal"] for plan in matches for op in plan["opportunities"]]]).casefold():
