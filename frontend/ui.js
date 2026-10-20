@@ -1,4 +1,83 @@
 const $ = (selector) => document.querySelector(selector);
+const pageFactories = new Map(), pageDocuments = new Map(), pageScripts = new Map();
+const pagePaths = {overview: '/', retention: '/retention', rules: '/rules'};
+const pageLocations = new Map();
+let activePage, activePageName, navigationSequence = 0;
+
+function mountPage(name) {
+  const cleanup = [];
+  const lifecycle = {
+    listen(target, type, listener) {
+      const guarded = event => {if (location.pathname === pagePaths[name]) listener(event);};
+      target.addEventListener(type, guarded);
+      cleanup.push(() => target.removeEventListener(type, guarded));
+    },
+    interval(callback, delay) {const timer = setInterval(callback, delay); cleanup.push(() => clearInterval(timer));}
+  };
+  const controller = pageFactories.get(name)(document.body, lifecycle);
+  activePageName = name;
+  activePage = {...controller, dispose() {controller.dispose(); cleanup.forEach(dispose => dispose());}};
+  $('#detail-back')?.addEventListener('click', closePlan);
+  $('#outcome-dialog')?.addEventListener('close', () => $('#outcome-content').replaceChildren());
+}
+function registerPage(name, factory) {
+  pageFactories.set(name, factory);
+  if (!activePage && document.body.dataset.page === name) mountPage(name);
+}
+async function navigatePage(url, push = true, restoreFilters = false) {
+  const name = Object.keys(pagePaths).find(key => pagePaths[key] === url.pathname);
+  if (restoreFilters && !url.search && !url.hash && pageLocations.has(name)) url = new URL(pageLocations.get(name));
+  if (push && activePageName) pageLocations.set(activePageName, location.href);
+  const sequence = ++navigationSequence;
+  document.documentElement.setAttribute('aria-busy', 'true');
+  try {
+    if (!pageDocuments.has(name)) {
+      const response = await fetch(url.pathname);
+      if (!response.ok) throw new Error('Pagina non disponibile');
+      const parsed = new DOMParser().parseFromString(await response.text(), 'text/html');
+      if (parsed.body.dataset.page !== name) throw new Error('Pagina non valida');
+      pageDocuments.set(name, parsed);
+    }
+    const parsed = pageDocuments.get(name);
+    await Promise.all([...parsed.querySelectorAll('link[rel="stylesheet"]')].map(link => {
+      if ([...document.querySelectorAll('link[rel="stylesheet"]')].some(current => current.href === link.href)) return;
+      return new Promise((resolve, reject) => {
+        const style = link.cloneNode(); style.onload = resolve; style.onerror = reject; document.head.append(style);
+      });
+    }));
+    if (!pageFactories.has(name)) {
+      if (!pageScripts.has(name)) pageScripts.set(name, new Promise((resolve, reject) => {
+        const script = element('script'); script.src = `/${name}.js`; script.onload = resolve;
+        script.onerror = () => {pageScripts.delete(name); script.remove(); reject(new Error('Script non disponibile'));};
+        document.head.append(script);
+      }));
+      await pageScripts.get(name);
+    }
+    if (sequence !== navigationSequence) return;
+    openFloatingSelect?.close(); ++detailRequest;
+    activePage?.dispose(); activePage = null;
+    document.body.replaceWith(parsed.body.cloneNode(true));
+    document.body.dataset.page = name; document.title = parsed.title;
+    if (push) history.pushState(null, '', url.pathname + url.search + url.hash);
+    mountPage(name);
+    window.scrollTo(0, 0);
+    const heading = $('.workspace > main h1');
+    if (heading) {heading.tabIndex = -1; heading.focus({preventScroll: true});}
+  } catch {
+    if (sequence === navigationSequence) {if (push) location.assign(url.href); else location.reload();}
+  } finally {if (sequence === navigationSequence) document.documentElement.removeAttribute('aria-busy');}
+}
+document.addEventListener('click', event => {
+  const link = event.target.closest?.('a[href]');
+  if (!link || event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || link.target || link.hasAttribute('download')) return;
+  const url = new URL(link.href, location.href);
+  if (url.origin !== location.origin || !Object.values(pagePaths).includes(url.pathname)) return;
+  event.preventDefault(); navigatePage(url, true, Boolean(link.closest('.sidebar')));
+});
+window.addEventListener('popstate', () => {
+  if (pagePaths[activePageName] !== location.pathname) navigatePage(new URL(location.href), false);
+  else {++navigationSequence; document.documentElement.removeAttribute('aria-busy');}
+});
 const money = (minor) => `€ ${(minor / 100).toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 const dateLabel = (value, year = false) => new Intl.DateTimeFormat('it-IT', {day: '2-digit', month: 'short', ...(year ? {year: 'numeric'} : {}), timeZone: 'UTC'}).format(new Date(`${value}T12:00:00Z`));
 function element(tag, content, className) {
@@ -264,8 +343,6 @@ function closePlan() {
   else { const heading = $('.workspace > main h1'); heading.tabIndex = -1; heading.focus({preventScroll: true}); }
 }
 
-$('#detail-back')?.addEventListener('click', closePlan);
-$('#outcome-dialog')?.addEventListener('close', () => $('#outcome-content').replaceChildren());
 
 async function openPlan(row, savedMessage = '') {
   const request = ++detailRequest;
@@ -633,8 +710,7 @@ function eventForm(data, row, kinds) {
     try {
       await api('/api/events', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({customer_id: data.customer_id, event})});
       message.textContent = 'Attività salvata.';
-      if (typeof loadRetention === 'function') await loadRetention();
-      if (typeof loadOverview === 'function') await loadOverview();
+      await activePage.refresh?.();
       if (!$('#detail').hidden && detailRequest === ownerRequest) await openPlan(row, 'Attività salvata. Coda e risultati aggiornati.');
     } catch (error) { message.textContent = error.message; }
     finally { submit.disabled = false; }

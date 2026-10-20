@@ -1,3 +1,6 @@
+registerPage('retention', (root, lifecycle) => {
+const $ = selector => root.querySelector(selector);
+let disposed = false;
 let retention, page = 0, retentionRequest = 0, quickRequest = 0, quickOrigin, refreshTimer;
 let selectedView = '', selectedActivity = '';
 const pageSize = 25;
@@ -107,13 +110,14 @@ function applyRetentionFilters() {
   clearTimeout(refreshTimer); selectedView = $('#operational-filter').value; page = 0;
   floatingFilters.forEach(filter => filter.update()); renderFilterChips(); syncRetentionUrl(); loadRetention();
 }
-window.addEventListener('popstate', () => {clearTimeout(refreshTimer); openFloatingSelect?.close(); restoreRetentionFilters(); page = 0; loadRetention();});
-document.addEventListener('keydown', event => {if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k' && $('#detail').hidden) {event.preventDefault(); openFloatingSelect?.close(); $('#search').focus();}});
+lifecycle.listen(window, 'popstate', () => {clearTimeout(refreshTimer); openFloatingSelect?.close(); restoreRetentionFilters(); page = 0; loadRetention();});
+lifecycle.listen(document, 'keydown', event => {if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k' && $('#detail').hidden) {event.preventDefault(); openFloatingSelect?.close(); $('#search').focus();}});
 restoreRetentionFilters();
 
 async function loadRetention() {
+  if (disposed) return;
   const request = ++retentionRequest;
-  const params = new URLSearchParams({category: selectedView, state: $('#state-filter').value,
+  const params = new URLSearchParams({compact: '1', category: selectedView, state: $('#state-filter').value,
     strategy: $('#strategy').value, profile: $('#profile-filter').value, search: $('#search').value.trim(), activity: selectedActivity,
     product: $('#product-filter').value, scope: $('#scope-filter').value});
   try {
@@ -304,4 +308,7 @@ $('#quick-detail').addEventListener('keydown', event => {if (event.key === 'Esca
 $('#previous').addEventListener('click', () => {page--; closeQuickDetail(false); renderRetention();});
 $('#next').addEventListener('click', () => {page++; closeQuickDetail(false); renderRetention();});
 loadRetention();
-setInterval(() => {if (!document.hidden && $('#quick-detail').hidden && $('#detail').hidden) loadRetention();}, 60000);
+lifecycle.interval(() => {if (!document.hidden && $('#quick-detail').hidden && $('#detail').hidden) loadRetention();}, 60000);
+
+return {refresh: loadRetention, controls: floatingFilters, dispose() {disposed = true; ++retentionRequest; ++quickRequest; clearTimeout(refreshTimer);}};
+});

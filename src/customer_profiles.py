@@ -1138,7 +1138,7 @@ def rules_summary():
             "guides": guides, "categories": categories, "flows": flows}
 
 
-def overview_summary(store, as_of, period="30d"):
+def overview_summary(store, as_of, period="30d", *, evaluation=None):
     """Dati dell'Overview: decisioni correnti e ricavi verificati nel periodo."""
     today = date.fromisoformat(as_of)
     if period in {"30d", "90d"}:
@@ -1149,7 +1149,8 @@ def overview_summary(store, as_of, period="30d"):
         start = date(year, month + 1, min(today.day, monthrange(year, month + 1)[1])) + timedelta(days=1)
     else:
         raise ValueError("Periodo non supportato.")
-    evaluation = retention_summary(store, as_of)
+    if evaluation is None:
+        evaluation = retention_summary(store, as_of)
     rows = evaluation["sections"]["ready"]
     chart = revenue_summary(store, as_of, starts_on=start.isoformat(), include_series=True,
                             customer_ids={row["customer_id"] for row in evaluation["customers"]})

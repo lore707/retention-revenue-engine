@@ -8,6 +8,7 @@ from email.parser import BytesParser
 from email.policy import default
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import gzip
 import mimetypes
 import os
 from pathlib import Path
@@ -72,6 +73,21 @@ def demo_store(path):
 
 def make_handler(store, *, demo=False, as_of=None, credentials=None, public_origin=None):
     write_lock = Lock()
+    # One evaluation per committed dataset/day/configuration; never persist customer data in a browser cache.
+    read_lock = Lock()
+    cached_key, cached_evaluation = None, None
+    cached_overviews = {}
+
+    def evaluation_for(current_store, day):
+        nonlocal cached_key, cached_evaluation
+        configuration = tuple(Path(__file__).with_name(name).stat().st_mtime_ns
+                              for name in ("catalog.json", "rules.json", "promotions.json"))
+        key = (day, current_store.revision(), configuration)
+        if key != cached_key:
+            cached_evaluation = retention_summary(current_store, day)
+            cached_overviews.clear()
+            cached_key = key
+        return cached_evaluation
     authorization = b"Basic " + b64encode(":".join(credentials).encode("utf-8")) if credentials else None
 
     class Handler(BaseHTTPRequestHandler):
@@ -94,11 +110,18 @@ def make_handler(store, *, demo=False, as_of=None, credentials=None, public_orig
                     self._store.close()
 
         def reply(self, status, payload, content_type="application/json; charset=utf-8", headers=None):
-            body = json.dumps(payload, ensure_ascii=False).encode() if isinstance(payload, dict) else payload
+            body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode() if isinstance(payload, dict) else payload
+            compress = (len(body) > 1024 and "gzip" in [value.strip().lower() for value in self.headers.get("Accept-Encoding", "").split(",")]
+                        and (content_type.startswith(("application/json", "text/")) or content_type == "image/svg+xml"))
+            if compress:
+                body = gzip.compress(body, compresslevel=1)
             self.send_response(status)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
+            self.send_header("Vary", "Accept-Encoding")
+            if compress:
+                self.send_header("Content-Encoding", "gzip")
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("Referrer-Policy", "same-origin")
             for name, value in (headers or {}).items():
@@ -126,14 +149,24 @@ def make_handler(store, *, demo=False, as_of=None, credentials=None, public_orig
             try:
                 query = parse_qs(parsed.query)
                 if parsed.path == "/api/overview":
-                    data = overview_summary(self.store, day, query.get("period", ["30d"])[0])
-                    data["demo"] = demo
+                    with read_lock:
+                        evaluation = evaluation_for(self.store, day)
+                        period = query.get("period", ["30d"])[0]
+                        if period not in cached_overviews:
+                            cached_overviews[period] = overview_summary(self.store, day, period, evaluation=evaluation)
+                        data = {**cached_overviews[period], "demo": demo}
                     self.reply(200, data)
                 elif parsed.path == "/api/order":
                     self.reply(200, explain_order(self.store, query["customer"][0], query["order"][0], day))
                 elif parsed.path == "/api/retention":
-                    data = retention_summary(self.store, day)
-                    data["rows"] = filter_retention(data, **{key: query.get(key, [""])[0]
+                    with read_lock:
+                        evaluation = evaluation_for(self.store, day)
+                    data = dict(evaluation)
+                    if query.get("compact") == ["1"]:
+                        # These collections duplicate the filtered rows and are not used by the Retention page.
+                        for key in ("sections", "summaries", "profile_counts", "operational_sections", "customers"):
+                            data.pop(key, None)
+                    data["rows"] = filter_retention(evaluation, **{key: query.get(key, [""])[0]
                         for key in ("category", "state", "strategy", "profile", "search", "activity", "product", "scope")})
                     data["demo"] = demo
                     self.reply(200, data)

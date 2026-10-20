@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import sqlite3
 import tempfile
+from uuid import uuid4
 
 
 TABLE_COLUMNS = {
@@ -91,6 +92,15 @@ class Store:
     def close(self):
         self.connection.close()
 
+    def revision(self):
+        """Changes committed by any Store writer, including the local importer."""
+        row = self._execute("SELECT value FROM settings WHERE key='data_revision'").fetchone()
+        return row[0] if row else "initial"
+
+    def _mark_changed(self):
+        self._execute("INSERT INTO settings(key, value) VALUES ('data_revision', ?) "
+                      "ON CONFLICT(key) DO UPDATE SET value=excluded.value", (uuid4().hex,))
+
     def load_state(self):
         profiles = {
             profile_id: {"customer_id": profile_id, "orders": json.loads(orders_json)}
@@ -136,6 +146,7 @@ class Store:
             self._executemany(
                 "INSERT INTO imports(filename, sha256) VALUES (?, ?)", imports,
             )
+            self._mark_changed()
 
     def import_history(self):
         return [dict(sequence=sequence, filename=filename, sha256=digest)
@@ -164,6 +175,7 @@ class Store:
                 "INSERT INTO settings(key, value) VALUES ('activation_date', ?) ON CONFLICT(key) DO NOTHING",
                 (day,),
             )
+            self._mark_changed()
 
     def events_for(self, profile_id):
         return [json.loads(row[0]) for row in self._execute(
@@ -216,6 +228,7 @@ class Store:
                 "INSERT INTO events(id, profile_id, event_json) VALUES (?, ?, ?)",
                 (event["id"], profile_id, payload),
             )
+            self._mark_changed()
 
     def _snapshot(self):
         result = {}

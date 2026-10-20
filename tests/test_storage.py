@@ -23,6 +23,31 @@ def imported(order_id="1", *, email="one@example.invalid", marketing="yes",
 
 
 class StorageTests(unittest.TestCase):
+    def test_revision_tracks_committed_writes_and_preserves_idempotency_and_rollback(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = Store(Path(directory) / "revision.sqlite3")
+            try:
+                initial = store.revision()
+                store.save_state(merge_orders(None, imported()))
+                saved = store.revision()
+                self.assertNotEqual(initial, saved)
+                store.activate("2026-09-29")
+                activated = store.revision()
+                self.assertNotEqual(saved, activated)
+                event = {"id": "ONE", "type": "contact", "date": "2026-09-29"}
+                store.add_event("CUST_000001", event)
+                committed = store.revision()
+                self.assertNotEqual(activated, committed)
+                store.add_event("CUST_000001", event)
+                self.assertEqual(store.revision(), committed)
+                with patch.object(store, "_mark_changed", side_effect=ValueError("synthetic failure")):
+                    with self.assertRaises(ValueError):
+                        store.add_event("CUST_000001", {**event, "id": "ROLLBACK"})
+                self.assertIsNone(store.event_by_id("ROLLBACK"))
+                self.assertEqual(store.revision(), committed)
+            finally:
+                store.close()
+
     def test_shopify_verified_sale_is_attributed_once_and_correction_is_auditable(self):
         with tempfile.TemporaryDirectory() as directory:
             store = Store(Path(directory) / "retention.sqlite3")
@@ -384,7 +409,7 @@ class MigrationTests(unittest.TestCase):
                 self.assertEqual(source._snapshot(), before)
                 self.assertTrue(Path(result["backup"]).is_file())
                 self.assertEqual(result["rows"], {"profiles": 1, "contacts": 1, "unassigned_orders": 1,
-                                                "events": 2, "settings": 1, "imports": 1})
+                                                "events": 2, "settings": 2, "imports": 1})
                 self.assertEqual([row[0] for row in before["events"]], ["Z-FIRST", "A-SECOND"])
                 with self.assertRaisesRegex(ValueError, "non vuota"):
                     migrate_sqlite(source.path, target)

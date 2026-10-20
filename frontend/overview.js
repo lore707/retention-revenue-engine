@@ -1,3 +1,6 @@
+registerPage('overview', (root, lifecycle) => {
+const $ = selector => root.querySelector(selector);
+let disposed = false;
 let overview, period = '30d', expanded = false, requestSequence = 0;
 const periodSelect = $('#period-filter');
 function restoreOverviewPeriod() {
@@ -14,6 +17,7 @@ document.querySelectorAll('.overview-metric-heading').forEach(heading => heading
 $('#chart-heading-icon').append(filterIcon('bars', 'green'));
 
 async function loadOverview() {
+  if (disposed) return;
   const sequence = ++requestSequence;
   $('.revenue-chart').setAttribute('aria-busy', 'true');
   if (!overview) {
@@ -160,7 +164,7 @@ periodSelect.addEventListener('change', () => {
   const params = new URLSearchParams(location.search); params.set('period', period);
   history.replaceState(null, '', `${location.pathname}?${params}${location.hash}`); loadOverview();
 });
-window.addEventListener('popstate', () => {periodPicker.close(); restoreOverviewPeriod(); periodPicker.update(); loadOverview();});
+lifecycle.listen(window, 'popstate', () => {periodPicker.close(); restoreOverviewPeriod(); periodPicker.update(); loadOverview();});
 $('#show-all').addEventListener('click', () => {expanded = !expanded; renderRows();});
 $('#upload').addEventListener('click', () => {
   const demo = overview?.demo;
@@ -179,4 +183,7 @@ $('#import-form').addEventListener('submit', async (event) => {
   finally { $('#import-submit').disabled = false; }
 });
 loadOverview();
-setInterval(() => {if (!document.hidden) loadOverview();}, 60000);
+lifecycle.interval(() => {if (!document.hidden) loadOverview();}, 60000);
+
+return {refresh: loadOverview, controls: [periodPicker], dispose() {disposed = true; ++requestSequence;}};
+});

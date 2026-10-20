@@ -1,3 +1,6 @@
+registerPage('rules', (root, lifecycle) => {
+const $ = selector => root.querySelector(selector);
+let disposed = false;
 let rulebook, selectedFlow = 'hair_dryer';
 const rulePickers = [
   {id: 'rule-strategy', icon: 'grid', tone: 'purple', search: 'Cerca una strategia…'},
@@ -86,7 +89,9 @@ function renderRuleGuides() {
 }
 async function loadRules() {
   try {
-    rulebook = await api('/api/rules');
+    const data = await api('/api/rules');
+    if (disposed) return;
+    rulebook = data;
     $('#notice').hidden = true; $('#mode').textContent = 'Consultazione'; $('#evaluation-date').textContent = `Versione ${rulebook.version}`;
     const stats = $('#rule-stats'); stats.replaceChildren();
     for (const [value, title, detail] of [[rulebook.rules.length, 'Regole commerciali', 'Prodotti e tempi di maturazione'],
@@ -107,7 +112,7 @@ async function loadRules() {
       }); $('#rule-flow-tabs').append(button);
     }
     rulePickers.forEach(picker => picker.update()); renderRuleGuides(); renderRules();
-  } catch (error) {$('#notice').hidden = false; $('#notice').textContent = error.message;}
+  } catch (error) {if (disposed) return; $('#notice').hidden = false; $('#notice').textContent = error.message;}
 }
 $('#rule-filters').addEventListener('submit', event => event.preventDefault());
 $('#rule-filters').addEventListener('change', () => {
@@ -120,3 +125,6 @@ $('#rule-filters').addEventListener('reset', event => {
   rulePickers.forEach(picker => {picker.select.value = ''; picker.update();}); renderRules();
 });
 loadRules();
+
+return {refresh: loadRules, controls: rulePickers, dispose() {disposed = true;}};
+});

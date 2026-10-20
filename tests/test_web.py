@@ -618,6 +618,7 @@ class QueueActionsTests(unittest.TestCase):
         self.assertEqual(self.get("/api/retention?category=targeted&strategy=complement&state=open")["rows"], [])
         data = self.get("/api/retention?category=targeted&strategy=complement&state=open&scope=all_plans")
         self.assertEqual(len(data["rows"]), 1)
+
         self.assertEqual(data["rows"][0]["strategy"], "completion")
         self.assertEqual(self.get("/api/retention?category=test&strategy=complement")["rows"], [])
         self.assertEqual(data["metrics"], self.get("/api/retention")["metrics"])
@@ -631,6 +632,74 @@ class QueueActionsTests(unittest.TestCase):
         with urlopen(self.base + "/rules") as response:
             self.assertEqual(response.status, 200)
             self.assertIn(b"/rules.js", response.read())
+
+    def test_read_cache_shares_evaluation_and_never_reuses_old_committed_data(self):
+        # setUp has warmed the cache. Filters/periods reuse it; external Store writes invalidate it.
+        with patch("src.web.retention_summary", wraps=retention_summary) as evaluate:
+            original = self.get("/api/retention")
+            self.get("/api/overview?period=30d")
+            self.get("/api/overview?period=90d")
+            self.get("/api/retention?strategy=expansion")
+            self.assertEqual(evaluate.call_count, 0)
+            self.assertEqual(self.get("/api/retention"), original)
+            state = self.store.load_state()
+            state["profiles"][self.row["customer_id"]]["orders"]["QUEUE-1"]["marketing_signal"] = "no"
+            self.store.save_state(state)
+            self.assertEqual(self.get("/api/retention")["rows"], [])
+            self.assertEqual(self.get("/api/overview")["metrics"]["ready_customers"], 0)
+            self.assertEqual(evaluate.call_count, 1)
+
+    def test_compact_compressed_response_keeps_filtering_and_removes_duplicate_collections(self):
+        import gzip
+        full = self.get("/api/retention?category=targeted")
+        request = Request(self.base + "/api/retention?category=targeted&compact=1", headers={"Accept-Encoding": "gzip"})
+        with urlopen(request, timeout=10) as response:
+            body = response.read()
+            self.assertEqual(response.headers["Content-Encoding"], "gzip")
+            self.assertEqual(response.headers["Cache-Control"], "no-store")
+            compact = json.loads(gzip.decompress(body))
+        self.assertLess(len(body), len(json.dumps(full).encode()))
+        for key in ("rows", "metrics", "activity_views", "operational_views", "purchased_product_options", "urgency_legend"):
+            self.assertEqual(compact[key], full[key])
+        for key in ("sections", "customers", "operational_sections", "summaries", "profile_counts"):
+            self.assertNotIn(key, compact)
+        self.assertEqual(self.get("/api/retention?category=targeted"), full)
+        for encoding in ("br", "gzip;q=0"):
+            with urlopen(Request(self.base + "/api/retention?compact=1", headers={"Accept-Encoding": encoding}), timeout=10) as response:
+                self.assertIsNone(response.headers.get("Content-Encoding"))
+                self.assertEqual(json.load(response)["metrics"], full["metrics"])
+
+    def test_concurrent_cold_requests_evaluate_the_portfolio_once(self):
+        from concurrent.futures import ThreadPoolExecutor
+        self.server.RequestHandlerClass = make_handler(self.store, as_of="2026-10-05")
+        with patch("src.web.retention_summary", wraps=retention_summary) as evaluate:
+            with ThreadPoolExecutor(max_workers=4) as pool:
+                responses = list(pool.map(self.get, ["/api/overview", "/api/retention?compact=1",
+                                                    "/api/overview?period=90d", "/api/retention?strategy=expansion"]))
+            self.assertEqual(evaluate.call_count, 1)
+            self.assertTrue(all(response["date"] == "2026-10-05" for response in responses))
+
+    def test_day_and_configuration_changes_invalidate_cached_evaluation(self):
+        import os
+        self.server.RequestHandlerClass = make_handler(self.store)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name in ("catalog.json", "rules.json", "promotions.json"):
+                (root / name).write_text("{}", encoding="utf-8")
+            with patch("src.web.__file__", str(root / "web.py")), patch("src.web.datetime") as clock, \
+                    patch("src.web.retention_summary", wraps=retention_summary) as evaluate:
+                clock.now.return_value.date.return_value.isoformat.return_value = "2026-10-05"
+                self.get("/api/retention")
+                self.get("/api/overview")
+                self.assertEqual(evaluate.call_count, 1)
+                clock.now.return_value.date.return_value.isoformat.return_value = "2026-10-06"
+                self.assertEqual(self.get("/api/overview")["date"], "2026-10-06")
+                self.assertEqual(evaluate.call_count, 2)
+                path = root / "rules.json"
+                stat = path.stat()
+                os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns + 1000000000))
+                self.get("/api/retention")
+                self.assertEqual(evaluate.call_count, 3)
 
     def test_upgrade_contact_history_has_real_wave_pro_variants(self):
         state = self.store.load_state()

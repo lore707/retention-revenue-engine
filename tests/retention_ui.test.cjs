@@ -42,10 +42,23 @@ function harness(search = '', page = 'retention') {
       }
     }
     replaceChildren(...nodes) {this.childNodes = []; this._text = ''; this.append(...nodes);}
+    replaceWith(node) {
+      const index = this.parent.childNodes.indexOf(this); this.parent.childNodes[index] = node; node.parent = this.parent;
+      if (this === document.body) document.body = node;
+    }
     after(...nodes) {const index = this.parent.childNodes.indexOf(this); for (const node of nodes) node.parent = this.parent; this.parent.childNodes.splice(index + 1, 0, ...nodes);}
     setAttribute(name, value) {this.attributes[name] = String(value); if (name === 'class') this.className = String(value);}
     removeAttribute(name) {delete this.attributes[name];}
+    hasAttribute(name) {return Object.hasOwn(this.attributes, name);}
     addEventListener(type, listener) {(this.events[type] ||= []).push(listener);}
+    removeEventListener(type, listener) {this.events[type] = (this.events[type] || []).filter(item => item !== listener);}
+    cloneNode(deep = false) {
+      const copy = new Node(this.tagName); Object.assign(copy, {attributes: {...this.attributes}, dataset: {...this.dataset}, className: this.className, _text: this._text});
+      for (const key of ['id', 'href', 'src', 'rel', 'hidden', 'disabled', '_value', 'type']) if (this[key] !== undefined) copy[key] = this[key];
+      if (deep) copy.append(...this.childNodes.map(node => node.cloneNode(true)));
+      return copy;
+    }
+    closest(selector) {return this.matches(selector) ? this : this.parent?.closest(selector);}
     dispatchEvent(event) {
       event.target ||= this;
       for (const listener of this.events[event.type] || []) listener(event);
@@ -54,7 +67,11 @@ function harness(search = '', page = 'retention') {
     }
     contains(node) {return this.all().includes(node);}
     all() {return [this, ...this.childNodes.flatMap(node => node.all())];}
-    matches(selector) {return selector[0] === '#' ? this.id === selector.slice(1) : selector[0] === '.' ? this.className.split(' ').includes(selector.slice(1)) : this.tagName === selector.toUpperCase();}
+    matches(selector) {
+      const attribute = selector.match(/^([\w-]+)\[([\w-]+)(?:="([^"]*)")?\]$/);
+      if (attribute) return this.tagName === attribute[1].toUpperCase() && this.hasAttribute(attribute[2]) && (attribute[3] === undefined || this[attribute[2]] === attribute[3]);
+      return selector[0] === '#' ? this.id === selector.slice(1) : selector[0] === '.' ? this.className.split(' ').includes(selector.slice(1)) : this.tagName === selector.toUpperCase();
+    }
     querySelectorAll(selector) {return this.all().filter(node => node.matches(selector));}
     querySelector(selector) {return this.querySelectorAll(selector)[0] || null;}
     focus() {document.activeElement = this; this.dispatchEvent(new UIEvent('focusin'));}
@@ -66,8 +83,9 @@ function harness(search = '', page = 'retention') {
   class Option extends Node {
     constructor(title, value) {super('option'); this.textContent = title; this.value = value;}
   }
+  function parseHTML(html) {
   const root = new Node('html'), stack = [root];
-  for (const part of fs.readFileSync(path.join(frontend, `${page}.html`), 'utf8').match(/<[^>]*>|[^<]+/g)) {
+  for (const part of html.match(/<[^>]*>|[^<]+/g)) {
     if (part.startsWith('<!')) continue;
     if (part.startsWith('</')) {stack.pop(); continue;}
     if (!part.startsWith('<')) {if (part.trim()) stack.at(-1).append(part.trim()); continue;}
@@ -83,10 +101,16 @@ function harness(search = '', page = 'retention') {
     stack.at(-1).append(node);
     if (!['input', 'img', 'meta', 'link', 'br'].includes(match[1])) stack.push(node);
   }
+  root.body = root.querySelector('body'); root.title = root.querySelector('title').textContent;
+  return root;
+  }
+  const root = parseHTML(fs.readFileSync(path.join(frontend, `${page}.html`), 'utf8'));
   root.clientWidth = 1440;
-  document = new Node('document'); document.append(root); document.body = root.querySelector('body'); document.documentElement = root;
+  document = new Node('document'); document.append(root); document.body = root.querySelector('body'); document.head = root.querySelector('head'); document.documentElement = root;
+  // The styles are already available in the simulated browser; actual loading is tested through server MIME tests.
+  for (const name of ['retention', 'rules']) {const style = new Node('link'); style.rel = 'stylesheet'; style.href = `/${name}.css`; style.setAttribute('rel', 'stylesheet'); document.head.append(style);}
   document.createElement = tag => new Node(tag); document.createElementNS = (_, tag) => new Node(tag);
-  const location = new URL(`http://localhost/${page === 'retention' ? 'retention' : ''}${search}`), calls = [], timers = new Map(); let timerId = 0;
+  const location = new URL(`http://localhost/${page === 'overview' ? '' : page}${search}`), calls = [], timers = new Map(); let timerId = 0;
   const data = {active: true, demo: true, date: '2026-10-15', analyzed_customers: 13,
     urgency_legend: [
       {rank: 1, label: 'Risposta da gestire', tone: 'rose'}, {rank: 2, label: 'Follow-up dovuto', tone: 'amber'},
@@ -115,11 +139,15 @@ function harness(search = '', page = 'retention') {
     {cwd: path.join(__dirname, '..'), encoding: 'utf8'})));
   const window = new Node('window'); window.innerHeight = 900;
   const state = {data, calls, fail: false, pending: null, importResult: {active: true, imported_files: 1}};
-  const context = vm.createContext({document, window, Option, Event: UIEvent, URLSearchParams, Intl, Date, JSON, Set, Map,
-    location, history: {replaceState: (_, __, url) => {location.href = new URL(url, location).href;}}, console, encodeURIComponent,
+  const updateURL = (_, __, url) => {location.href = new URL(url, location).href;};
+  window.scrollTo = () => {};
+  const context = vm.createContext({document, window, Option, Event: UIEvent, URL, URLSearchParams, Intl, Date, JSON, Set, Map,
+    DOMParser: class {parseFromString(html) {return parseHTML(html);}},
+    location, history: {replaceState: updateURL, pushState: updateURL}, console, encodeURIComponent,
     FormData: class {constructor(form) {this.form = form;}},
-    setInterval() {}, setTimeout: callback => {timers.set(++timerId, callback); return timerId;}, clearTimeout: id => timers.delete(id),
+    setInterval() {}, clearInterval() {}, setTimeout: callback => {timers.set(++timerId, callback); return timerId;}, clearTimeout: id => timers.delete(id),
     fetch: async url => {
+      if (!url.startsWith('/api/')) {calls.push(url); return {ok: true, text: async () => fs.readFileSync(path.join(frontend, `${url === '/' ? 'overview' : url.slice(1)}.html`), 'utf8')};}
       calls.push(url); const responseData = structuredClone(state.fail ? {error: 'Errore sintetico'} : url === '/api/import' ? state.importResult : state.data);
       const response = {ok: !state.fail, json: async () => responseData};
       return state.pending ? await new Promise(resolve => state.pending.push(() => resolve(response))) : response;
@@ -128,7 +156,7 @@ function harness(search = '', page = 'retention') {
   vm.runInContext(fs.readFileSync(path.join(frontend, `${page}.js`), 'utf8'), context);
   const $ = selector => document.querySelector(selector);
   const fire = (node, type, options) => node.dispatchEvent(new UIEvent(type, options));
-  const controls = () => vm.runInContext(page === 'retention' ? 'floatingFilters' : page === 'rules' ? 'rulePickers' : '[periodPicker]', context);
+  const controls = () => vm.runInContext('activePage.controls', context);
   const settle = () => new Promise(setImmediate);
   return {...state, state, $, fire, controls, document, window, location, context, settle,
     flush: async () => {for (const [id, callback] of [...timers]) {timers.delete(id); await callback();} await settle();}};
@@ -234,7 +262,7 @@ test('keyboard skips unavailable profile options and refresh preserves focused c
   assert.equal(input.attributes['aria-activedescendant'], activeId);
   h.fire(input, 'keydown', {key: 'Escape'});
   const chip = h.$('#filter-chips').querySelector('.retention-filter-chip'); chip.focus();
-  await vm.runInContext('loadRetention()', h.context);
+  await vm.runInContext('activePage.refresh()', h.context);
   assert.equal(h.$('#filter-chips').querySelector('.retention-filter-chip'), chip);
   assert.equal(h.document.activeElement, chip);
   h.fire(profile.trigger, 'click'); h.fire(input, 'keydown', {key: 'Tab', shiftKey: true});
@@ -264,10 +292,10 @@ test('debounced search, API errors and stale-response guard remain functional', 
   h.$('#search').value = 'prima'; h.fire(h.$('#search'), 'input');
   h.$('#search').value = 'dopo'; h.fire(h.$('#search'), 'input'); await h.flush();
   assert.equal(h.calls.length, 2); assert.equal(h.location.searchParams.get('search'), 'dopo');
-  h.state.fail = true; await vm.runInContext('loadRetention()', h.context);
+  h.state.fail = true; await vm.runInContext('activePage.refresh()', h.context);
   assert.equal(h.$('#notice').textContent, 'Errore sintetico'); h.state.fail = false;
-  h.state.pending = []; const old = vm.runInContext('loadRetention()', h.context);
-  h.state.data = {...h.data, analyzed_customers: 21}; const latest = vm.runInContext('loadRetention()', h.context);
+  h.state.pending = []; const old = vm.runInContext('activePage.refresh()', h.context);
+  h.state.data = {...h.data, analyzed_customers: 21}; const latest = vm.runInContext('activePage.refresh()', h.context);
   h.state.pending[1](); await latest; h.state.pending[0](); await old;
   assert(h.controls()[0].trigger.textContent.includes('21 clienti'));
 });
@@ -283,7 +311,7 @@ test('filtered backend rows keep their main proposal, client action and paginati
       {state: 'open', opportunities: [{proposal: 'Alternativa corrispondente', strategy_label: 'Complementi d’uso'}]}
     ]};
   h.state.data = {...h.data, rows: Array.from({length: 26}, (_, index) => ({...row, customer_id: `SYNTHETIC_UI_${index}`}))};
-  await vm.runInContext('loadRetention()', h.context);
+  await vm.runInContext('activePage.refresh()', h.context);
   assert.equal(h.$('#customers').children.length, 25);
   assert.deepEqual(h.$('#customers').children[0].children.slice(0, 7).map(cell => cell.dataset.label),
     ['Cliente / urgenza', 'Profilo', 'Acquisto fonte', 'Raccomandazione principale', 'Strategia', 'Corrispondenze / motivo', 'Valore']);
@@ -384,11 +412,11 @@ test('Overview period popup searches and selects by keyboard while preserving KP
 test('Overview validates periods and ignores stale errors from older requests', async () => {
   const h = harness('?period=unsupported', 'overview'); await h.settle();
   assert.equal(h.controls()[0].select.value, '30d'); assert.equal(h.calls[0], '/api/overview?period=30d');
-  h.state.pending = []; h.state.fail = true; const older = vm.runInContext('loadOverview()', h.context);
-  h.state.fail = false; const latest = vm.runInContext('loadOverview()', h.context);
+  h.state.pending = []; h.state.fail = true; const older = vm.runInContext('activePage.refresh()', h.context);
+  h.state.fail = false; const latest = vm.runInContext('activePage.refresh()', h.context);
   h.state.pending[1](); await latest; h.state.pending[0](); await older;
   assert.equal(h.$('#notice').hidden, true); assert.equal(h.$('.revenue-chart').attributes['aria-busy'], undefined);
-  h.state.pending = null; h.state.fail = true; await vm.runInContext('loadOverview()', h.context);
+  h.state.pending = null; h.state.fail = true; await vm.runInContext('activePage.refresh()', h.context);
   assert.equal(h.$('#notice').textContent, 'Errore sintetico'); assert.equal(h.$('#notice').hidden, false);
 });
 
@@ -396,7 +424,7 @@ test('Overview preserves CSV dialog, demo restrictions and import refresh', asyn
   const h = harness('', 'overview'); await h.settle();
   h.fire(h.$('#upload'), 'click'); assert.equal(h.$('#import-dialog').open, true);
   assert.equal(h.$('#import-form').hidden, true); assert(h.$('#import-help').textContent.includes('dati sintetici'));
-  h.state.data = {...h.data, demo: false}; await vm.runInContext('loadOverview()', h.context);
+  h.state.data = {...h.data, demo: false}; await vm.runInContext('activePage.refresh()', h.context);
   h.fire(h.$('#upload'), 'click'); assert.equal(h.$('#import-form').hidden, false);
   h.fire(h.$('#import-form'), 'submit'); await h.settle();
   assert(h.calls.includes('/api/import')); assert.equal(h.calls.at(-1), '/api/overview?period=30d');
@@ -411,7 +439,7 @@ test('Overview still opens client detail and expands the backend queue', async (
     strategy: 'completion', eligible_from_date: '2026-08-16', reason: 'Motivazione ricevuta', value_minor: 2400,
     target_sku: 'SYNTHETIC_SKU', plan_key: ['synthetic', 'accessories']};
   h.state.data = {...h.data, rows: Array.from({length: 5}, (_, index) => ({...row, customer_id: `${row.customer_id}_${index}`}))};
-  await vm.runInContext('loadOverview()', h.context);
+  await vm.runInContext('activePage.refresh()', h.context);
   assert.equal(h.$('#customers').children.length, 4);
   assert.equal(h.$('#customers').children[0].children[3].dataset.label, 'Proposta principale');
   assert.equal(h.$('#customers').children[0].children[6].dataset.label, 'Valore');
@@ -492,4 +520,57 @@ test('Retention flows distinguish timed phases, seasonal branch, repeated cycles
   assert(h.$('#rule-list').textContent.includes('240 giorni'));
   assert.equal(h.$('#rule-flow-tabs').children.filter(button => button.attributes['aria-pressed'] === 'true').length, 1);
   assert.equal(h.calls.filter(url => url === '/api/rules').length, 1);
+});
+
+
+test('internal navigation reuses the document, restores URLs on Back and cleans page listeners', async () => {
+  const h = harness('?strategy=completion'); await h.settle();
+  const originalDocument = h.document;
+  vm.runInContext(fs.readFileSync(path.join(frontend, 'rules.js'), 'utf8'), h.context);
+  const rules = JSON.parse(execFileSync('python', ['-c', 'import json; from src.customer_profiles import rules_summary; print(json.dumps(rules_summary()))'], {encoding: 'utf8'}));
+  h.state.data = rules;
+  const sidebarLink = h.$('.sidebar').querySelectorAll('a').find(link => link.href === '/rules');
+  const clicked = new h.context.Event('click', {button: 0}); sidebarLink.dispatchEvent(clicked);
+  await h.settle(); await h.settle();
+  assert.equal(clicked.defaultPrevented, true);
+  assert.equal(h.document, originalDocument);
+  assert.equal(h.document.body.dataset.page, 'rules');
+  assert.equal(h.location.pathname, '/rules');
+  assert.equal(h.window.events.popstate.length, 1);
+  assert.equal(h.document.events.keydown.length, 0);
+  h.state.data = h.data;
+  h.location.href = 'http://localhost/retention?strategy=completion';
+  h.fire(h.window, 'popstate'); await h.settle(); await h.settle();
+  assert.equal(h.document.body.dataset.page, 'retention');
+  assert.equal(h.controls()[2].select.value, 'completion');
+  assert.equal(h.window.events.popstate.length, 2);
+  assert.equal(h.document.events.keydown.length, 1);
+  const retained = h.$('#customers');
+  h.state.data = rules;
+  await vm.runInContext("navigatePage(new URL('http://localhost/rules'))", h.context); await h.settle();
+  assert.notEqual(h.$('#customers'), retained);
+  assert.equal(h.calls.filter(url => url === '/rules').length, 1);
+  const requests = h.calls.length;
+  const modified = new h.context.Event('click', {button: 0, ctrlKey: true});
+  h.$('.brand').dispatchEvent(modified); await h.settle();
+  assert.equal(modified.defaultPrevented, undefined); assert.equal(h.calls.length, requests);
+  h.state.data = h.data;
+  h.fire(h.$('.sidebar').querySelectorAll('a').find(link => link.href === '/retention'), 'click', {button: 0});
+  await h.settle(); await h.settle();
+  assert.equal(h.document.body.dataset.page, 'retention');
+  assert.equal(h.controls()[2].select.value, 'completion');
+  assert.equal(h.location.searchParams.get('strategy'), 'completion');
+  assert.equal(h.document.events.keydown.length, 1);
+});
+
+test('leaving a page ignores outstanding responses and disposes repeated refreshes', async () => {
+  const h = harness(); await h.settle();
+  h.state.pending = [];
+  const pending = vm.runInContext('activePage.refresh()', h.context);
+  const oldPage = vm.runInContext('activePage', h.context);
+  oldPage.dispose();
+  h.state.pending[0](); await pending;
+  assert.equal(h.$('#customers').attributes['aria-busy'], 'true');
+  const count = h.calls.length; await oldPage.refresh();
+  assert.equal(h.calls.length, count);
 });
