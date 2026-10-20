@@ -7,6 +7,40 @@ const pagePaths = {overview: '/', retention: '/retention', rules: '/rules'};
 const pageLocations = new Map();
 let activePage, activePageName, navigationSequence = 0;
 
+function setupNavigation(root, lifecycle) {
+  const sidebar = root.querySelector('.sidebar'), toggle = root.querySelector('.navigation-toggle');
+  const close = root.querySelector('.navigation-close'), backdrop = root.querySelector('.navigation-backdrop');
+  const workspace = root.querySelector('.workspace');
+  let opened = false;
+  const mobile = () => window.matchMedia ? window.matchMedia('(max-width: 900px)').matches : document.documentElement.clientWidth <= 900;
+  function setOpen(value, restoreFocus = true) {
+    opened = Boolean(value && mobile());
+    root.classList.toggle('navigation-open', opened);
+    toggle.setAttribute('aria-expanded', String(opened));
+    sidebar.inert = mobile() && !opened;
+    workspace.inert = opened;
+    if (opened) {openFloatingSelect?.close(); sidebar.setAttribute('role', 'dialog'); sidebar.setAttribute('aria-modal', 'true'); close.focus();}
+    else {sidebar.removeAttribute('role'); sidebar.removeAttribute('aria-modal'); if (restoreFocus && mobile()) toggle.focus();}
+  }
+  lifecycle.listen(toggle, 'click', () => setOpen(!opened));
+  lifecycle.listen(close, 'click', () => setOpen(false));
+  lifecycle.listen(backdrop, 'click', () => setOpen(false));
+  lifecycle.listen(sidebar, 'click', event => {if (event.target.closest?.('a[href]')) setOpen(false, false);});
+  lifecycle.listen(window, 'resize', () => {if (!mobile()) setOpen(false, false); else sidebar.inert = !opened;});
+  lifecycle.listen(document, 'keydown', event => {
+    if (!opened) return;
+    if (event.key === 'Escape') {event.preventDefault(); setOpen(false);}
+    if (event.key === 'Tab') {
+      const targets = [...sidebar.querySelectorAll('a[href], button')].filter(node => !node.disabled);
+      const first = targets[0], last = targets.at(-1);
+      if (event.shiftKey && document.activeElement === first) {event.preventDefault(); last.focus();}
+      else if (!event.shiftKey && document.activeElement === last) {event.preventDefault(); first.focus();}
+    }
+  });
+  setOpen(false, false);
+  return () => setOpen(false, false);
+}
+
 function mountPage(name) {
   const cleanup = [];
   const lifecycle = {
@@ -17,9 +51,10 @@ function mountPage(name) {
     },
     interval(callback, delay) {const timer = setInterval(callback, delay); cleanup.push(() => clearInterval(timer));}
   };
+  const disposeNavigation = setupNavigation(document.body, lifecycle);
   const controller = pageFactories.get(name)(document.body, lifecycle);
   activePageName = name;
-  activePage = {...controller, dispose() {controller.dispose(); cleanup.forEach(dispose => dispose());}};
+  activePage = {...controller, dispose() {disposeNavigation(); controller.dispose(); cleanup.forEach(dispose => dispose());}};
   $('#detail-back')?.addEventListener('click', closePlan);
   $('#outcome-dialog')?.addEventListener('close', () => $('#outcome-content').replaceChildren());
 }
@@ -340,7 +375,7 @@ function closePlan() {
   $('#detail').hidden = true;
   $('#detail-content').replaceChildren();
   $('.workspace > main').hidden = false;
-  $('.topbar > span').textContent = detailBreadcrumb;
+  $('.workspace-breadcrumb').textContent = detailBreadcrumb;
   window.scrollTo(0, detailScroll);
   if (detailOrigin?.isConnected) detailOrigin.focus({preventScroll: true});
   else { const heading = $('.workspace > main h1'); heading.tabIndex = -1; heading.focus({preventScroll: true}); }
@@ -352,14 +387,14 @@ async function openPlan(row, savedMessage = '') {
   if ($('#detail').hidden) {
     detailOrigin = document.activeElement;
     detailScroll = window.scrollY;
-    detailBreadcrumb = $('.topbar > span').textContent;
+    detailBreadcrumb = $('.workspace-breadcrumb').textContent;
   }
   $('#outcome-dialog').close();
   $('#detail-title').textContent = `Cliente · ${row.customer_id}`;
   $('#detail-back').textContent = document.body.dataset.page === 'retention' ? '← Retention' : '← Overview';
   $('.workspace > main').hidden = true;
   $('#detail').hidden = false;
-  $('.topbar > span').textContent = `${detailBreadcrumb} / Cliente`;
+  $('.workspace-breadcrumb').textContent = `${detailBreadcrumb} / Cliente`;
   $('#detail-content').replaceChildren(element('p', 'Caricamento…'));
   window.scrollTo(0, 0);
   try {

@@ -97,7 +97,7 @@ body[data-page="rules"] .workspace {min-width:0}
 @media(max-width:600px) {.rules-flow-tabs {grid-template-columns:1fr;gap:8px}.rules-flow-button {flex-wrap:nowrap}.rules-flow-button small {width:auto;margin-left:auto}.rules-flow-intro {padding:18px}.rules-flow-timeline {padding-left:20px}.rules-flow-stage::before {left:-20px}.rules-flow-timeline::before {left:6px}.rules-flow-stage .rules-group-heading {padding:16px}.rules-stage-description {padding:0 16px 14px}}
 @media(prefers-reduced-motion:reduce) {.rules-index a,.rules-flow-button {transition:none}}
 
-@media(max-width:700px) {
+@media(max-width:900px) {
   .rules-main .page-heading {flex-wrap:wrap;gap:8px}
   .rules-index a,.rules-advanced>summary,.rules-details>summary {min-height:44px;display:flex;align-items:center}
   .rules-section-heading h2 {font-size:22px;line-height:30px}

@@ -132,7 +132,6 @@ body[data-page="retention"] .workspace {min-width:0}
 @media(min-width:1760px) {body[data-page="retention"] main:has(#quick-detail:not([hidden])) {padding-right:440px}.quick-detail {box-shadow:none}}
 
 @media(max-width:700px) {
-  .retention-queue .qualified-table {min-width:0}
   .retention-main .page-heading {min-height:0}
   .retention-main .retention-filters {gap:16px}
   .retention-main .retention-reset {width:100%;min-height:44px}
@@ -152,3 +151,5 @@ body[data-page="retention"] .workspace {min-width:0}
   .quick-close {min-width:44px;min-height:44px;top:4px;right:4px;background:white}
   #quick-title {font-size:22px;line-height:30px;padding-right:36px}
 }
+
+@media(max-width:900px) {.retention-queue .qualified-table {min-width:0}.retention-queue td:nth-child(6) .primary-text {-webkit-line-clamp:unset}.retention-queue .qualified-table td:nth-child(5),.retention-queue .qualified-table td:nth-child(6) {padding-right:0}}

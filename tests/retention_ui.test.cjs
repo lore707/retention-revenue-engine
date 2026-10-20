@@ -72,7 +72,7 @@ function harness(search = '', page = 'retention') {
       if (attribute) return this.tagName === attribute[1].toUpperCase() && this.hasAttribute(attribute[2]) && (attribute[3] === undefined || this[attribute[2]] === attribute[3]);
       return selector[0] === '#' ? this.id === selector.slice(1) : selector[0] === '.' ? this.className.split(' ').includes(selector.slice(1)) : this.tagName === selector.toUpperCase();
     }
-    querySelectorAll(selector) {return this.all().filter(node => node.matches(selector));}
+    querySelectorAll(selector) {return this.all().filter(node => selector.split(',').some(part => node.matches(part.trim())));}
     querySelector(selector) {return this.querySelectorAll(selector)[0] || null;}
     focus() {document.activeElement = this; this.dispatchEvent(new UIEvent('focusin'));}
     scrollIntoView() {this.scrolled = true;}
@@ -544,6 +544,30 @@ test('Retention flows distinguish timed phases, seasonal branch, repeated cycles
 });
 
 
+test('mobile drawer traps focus, closes accessibly and resets when returning to desktop', async () => {
+  const h = harness(); await h.settle();
+  const sidebar = h.$('.sidebar'), workspace = h.$('.workspace'), toggle = h.$('.navigation-toggle');
+  h.document.documentElement.clientWidth = 390; h.fire(h.window, 'resize');
+  assert.equal(sidebar.inert, true);
+  h.fire(toggle, 'click');
+  assert.equal(toggle.attributes['aria-expanded'], 'true'); assert.equal(sidebar.inert, false);
+  assert.equal(workspace.inert, true); assert.equal(sidebar.attributes['aria-modal'], 'true');
+  assert.equal(h.document.activeElement, h.$('.navigation-close'));
+  const targets = sidebar.querySelectorAll('a[href], button').filter(node => !node.disabled);
+  targets.at(-1).focus(); h.fire(h.document, 'keydown', {key: 'Tab'});
+  assert.equal(h.document.activeElement, targets[0]);
+  h.fire(h.document, 'keydown', {key: 'Tab', shiftKey: true});
+  assert.equal(h.document.activeElement, targets.at(-1));
+  h.fire(h.document, 'keydown', {key: 'Escape'});
+  assert.equal(workspace.inert, false); assert.equal(h.document.activeElement, toggle);
+  assert.equal(toggle.attributes['aria-expanded'], 'false');
+  h.fire(toggle, 'click'); h.fire(h.$('.navigation-backdrop'), 'click');
+  assert.equal(toggle.attributes['aria-expanded'], 'false');
+  h.fire(toggle, 'click'); h.document.documentElement.clientWidth = 1440; h.fire(h.window, 'resize');
+  assert.equal(sidebar.inert, false); assert.equal(workspace.inert, false);
+  assert.equal(toggle.attributes['aria-expanded'], 'false'); assert.equal(sidebar.attributes['role'], undefined);
+});
+
 test('internal navigation reuses the document, restores URLs on Back and cleans page listeners', async () => {
   const h = harness('?strategy=completion'); await h.settle();
   const originalDocument = h.document;
@@ -558,14 +582,14 @@ test('internal navigation reuses the document, restores URLs on Back and cleans 
   assert.equal(h.document.body.dataset.page, 'rules');
   assert.equal(h.location.pathname, '/rules');
   assert.equal(h.window.events.popstate.length, 1);
-  assert.equal(h.document.events.keydown.length, 0);
+  assert.equal(h.document.events.keydown.length, 1);
   h.state.data = h.data;
   h.location.href = 'http://localhost/retention?strategy=completion';
   h.fire(h.window, 'popstate'); await h.settle(); await h.settle();
   assert.equal(h.document.body.dataset.page, 'retention');
   assert.equal(h.controls()[2].select.value, 'completion');
   assert.equal(h.window.events.popstate.length, 2);
-  assert.equal(h.document.events.keydown.length, 1);
+  assert.equal(h.document.events.keydown.length, 2);
   const retained = h.$('#customers');
   h.state.data = rules;
   await vm.runInContext("navigatePage(new URL('http://localhost/rules'))", h.context); await h.settle();
@@ -581,7 +605,7 @@ test('internal navigation reuses the document, restores URLs on Back and cleans 
   assert.equal(h.document.body.dataset.page, 'retention');
   assert.equal(h.controls()[2].select.value, 'completion');
   assert.equal(h.location.searchParams.get('strategy'), 'completion');
-  assert.equal(h.document.events.keydown.length, 1);
+  assert.equal(h.document.events.keydown.length, 2);
 });
 
 test('leaving a page ignores outstanding responses and disposes repeated refreshes', async () => {

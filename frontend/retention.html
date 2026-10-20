@@ -7,7 +7,8 @@
   <script src="/ui.js" defer></script><script src="/retention.js" defer></script>
 </head>
 <body data-page="retention">
-  <aside class="sidebar">
+  <aside class="sidebar" id="primary-sidebar" aria-label="Menu principale">
+    <button class="navigation-close" type="button" aria-label="Chiudi menu">×</button>
     <a class="brand" href="/"><span class="brand-mark">R</span><span>Retention<br>Revenue Engine</span></a>
     <div class="workspace-label">WORKSPACE</div>
     <nav aria-label="Navigazione principale">
@@ -18,8 +19,9 @@
     </nav>
     <div class="workspace-footer"><span id="workspace-mode">Laifen · Workspace locale</span><small id="data-scope">Storico ordini disponibile</small><small class="deterministic">Motore deterministico</small></div>
   </aside>
+  <button class="navigation-backdrop" type="button" aria-label="Chiudi menu" tabindex="-1"></button>
   <div class="workspace">
-    <header class="topbar"><span>Workspace / Retention</span><div class="context"><span class="badge" id="mode">Caricamento…</span><time id="evaluation-date"></time><span class="avatar">OP</span></div></header>
+    <header class="topbar"><div class="workspace-heading"><button class="navigation-toggle" type="button" aria-label="Apri menu" aria-controls="primary-sidebar" aria-expanded="false"><span aria-hidden="true">☰</span></button><span class="workspace-breadcrumb">Workspace / Retention</span></div><div class="context"><span class="badge" id="mode">Caricamento…</span><time id="evaluation-date"></time><span class="avatar">OP</span></div></header>
     <main class="retention-main">
       <div class="page-heading"><div><h1>Retention</h1><p>Scegli chi contattare, con quale proposta e perché.</p><p id="customer-scope" class="small" role="status"></p></div></div>
       <p id="notice" role="status">Caricamento dello storico e valutazione delle opportunità in corso…</p>

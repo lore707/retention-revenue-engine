@@ -15,7 +15,7 @@ Il motore è implementato in Python 3.12. Valuta completamenti accessorio, compl
 | Raggruppamento degli ordini, snapshot per il motore, segnali del profilo, conteggi dei clienti distinti, stato delle viste operative, eventi, liste di Overview/Retention e relativi aggregati | `src/customer_profiles.py` |
 | Server HTTP locale/Render, configurazione di rete e storage, accesso HTTP Basic, health check, aggregati, dettaglio, eventi e caricamento CSV tramite funzioni canoniche | `src/web.py` |
 | Stili comuni delle pagine e stile dell'Overview | `frontend/overview.css` |
-| Navigazione interna e ciclo di vita delle sezioni, formattazione, chiamate HTTP, selettori flottanti ed etichette di urgenza condivisi fra Overview e Retention, scheda cliente con acquisti, percorso commerciale, storico e moduli per contatti ed esiti | `frontend/ui.js` |
+| Navigazione interna, menu laterale responsive accessibile e ciclo di vita delle sezioni, formattazione, chiamate HTTP, selettori flottanti ed etichette di urgenza condivisi fra Overview e Retention, scheda cliente con acquisti, percorso commerciale, storico e moduli per contatti ed esiti | `frontend/ui.js` |
 | Struttura e interazioni dell'Overview desktop | `frontend/overview.html`, `frontend/overview.js` |
 | Lista clienti Retention, filtri combinati e consultazione di piani e alternative | `frontend/retention.html`, `frontend/retention.css`, `frontend/retention.js` |
 | Presentazione consultabile di regole, configurazioni, tempi e politiche | `frontend/rules.html`, `frontend/rules.css`, `frontend/rules.js` |
