@@ -686,7 +686,7 @@ dialog::backdrop {
 .qualified-table th:nth-child(8) {width:6.3%;border-radius:0 6px 6px 0}
 .qualified-table td {height:96px;font-size:12px;line-height:18px;padding:12px 12px 12px 6px}
 .qualified-table td small,.qualified-table td .primary-text {white-space:normal;overflow-wrap:anywhere}
-.qualified-table .strategy-badge {display:inline-block;padding:4px 6px;border-radius:8px;white-space:normal;font-weight:600}
+.qualified-table td .primary-text.strategy-badge {display:inline-flex;align-items:center;width:fit-content;max-width:100%;padding:6px 10px;border:1px solid color-mix(in srgb,currentColor 12%,transparent);border-radius:10px;font-size:12px;line-height:17px;font-weight:600;white-space:normal;overflow:visible;overflow-wrap:normal;word-break:normal;text-wrap:balance;-webkit-line-clamp:unset}
 .strategy-completion {background:var(--blue-soft);color:var(--blue-dark)}
 .strategy-complement {background:var(--purple-soft);color:var(--purple)}
 .strategy-expansion {background:var(--purple-soft);color:var(--purple)}
@@ -783,7 +783,6 @@ body[data-page="overview"] .workspace {min-width:0}
 .overview-main .qualified-table td small {font-size:12px;line-height:18px}
 .overview-main .qualified-table tbody tr:last-child td {border-bottom:0}
 .overview-main .qualified-table .product-thumbnail {width:46px;height:46px;flex-basis:46px;border-radius:10px}
-.overview-main .qualified-table .strategy-badge {font-size:12px;line-height:18px;font-weight:500}
 .overview-main .profile-badge {font-weight:500}
 .overview-main .open-button {display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:36px;width:72px;padding:8px 10px;border-radius:9px;background:var(--blue);color:white;font-size:13px;font-weight:500}
 .overview-main .open-button img {width:6px;height:10px}
