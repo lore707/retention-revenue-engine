@@ -8,6 +8,12 @@ Il progetto combina un motore di regole commerciali deterministiche con una dash
 
 **[Apri la demo online](https://retention-revenue-engine-demo.onrender.com)** — accesso libero, senza registrazione, con dati sintetici.
 
+## Il problema aziendale
+
+Lo storico degli ordini di un e-commerce contiene informazioni utili per proporre acquisti successivi. Trasformarle in attività commerciali richiede però analisi manuali, conoscenza del catalogo e coordinamento dei contatti: quali accessori sono compatibili, cosa possiede già il cliente e quando è opportuno ricontattarlo?
+
+Il progetto struttura questo processo attraverso regole verificabili e una lista operativa ordinata e motivata, mantenendo traccia delle azioni e degli esiti.
+
 ## Cosa fa
 
 | Area | Funzionalità |
@@ -18,6 +24,19 @@ Il progetto combina un motore di regole commerciali deterministiche con una dash
 | **Gestione attività** | Registrazione manuale di invii, risposte, interessi, rifiuti, acquisti verificati e correzioni degli importi. |
 
 Il motore coordina i piani in base ad acquisti, dotazioni, compatibilità, consenso, maturazione e contatti già registrati. Le decisioni commerciali vivono nel backend; il frontend ne presenta risultati e motivazioni.
+
+## Un caso concreto: dall’acquisto al contatto
+
+Il cliente sintetico **DEMO-01842**, mostrato nelle schermate sotto, illustra il percorso:
+
+1. **Acquisto:** il 17 settembre 2026 acquista un Laifen Neo nella configurazione a due ugelli.
+2. **Analisi:** il motore riconosce la configurazione e verifica nello storico disponibile dotazioni e acquisti successivi. Il concentratore magnetico è compatibile e non risulta incluso o già acquistato.
+3. **Proposta:** la regola individua il concentratore come completamento funzionale **Mirato**, con una motivazione consultabile nella scheda cliente.
+4. **Controlli:** la proposta matura dopo 15 giorni, il 2 ottobre. Il contatto è consentito solo se sono soddisfatti anche consenso, qualità dei dati, esclusioni e limiti tra comunicazioni.
+5. **Lista operativa:** alla valutazione del 21 ottobre, il cliente è tra le **Nuove opportunità**. L’operatore trova proposta principale, alternative compatibili e spiegazione della scelta.
+6. **Contatto ed esito:** l’operatore invia l’email fuori dal sistema e ne registra la data effettiva. Il sistema aggiorna lo stato del piano e l’eventuale follow-up; risposte e acquisti verificati vengono registrati successivamente. Un acquisto confermato può alimentare i ricavi attribuiti, senza trasformare il valore potenziale in una vendita presunta.
+
+Il caso segue le regole implementate; contatto ed esito descrivono le azioni che puoi provare nella demo, non risultati commerciali reali.
 
 ## Anteprima della dashboard
 
