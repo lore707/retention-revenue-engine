@@ -138,6 +138,7 @@ La fase successiva consiste nel raccogliere e analizzare gli esiti dei contatti 
 - Quali proposte si traducono in acquisti.
 - Quali intervalli temporali risultano più efficaci.
 - Quali regole richiedono modifiche o devono essere eliminate.
+- Dopo che il sistema e la logica generale sarà validata manualmente, si potrà procedere ad automatizzare l'invio delle comunicazioni ai clienti
 
 La valutazione dovrà distinguere le vendite associate ai contatti da quelle effettivamente incrementali.
 
