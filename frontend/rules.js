@@ -101,7 +101,7 @@ function renderProfiles() {
   $('#profile-note').textContent = rulebook.profile_note;
 }
 function renderCalendar() {
-  const headers = ['Fase', 'Percorso standard', 'Primo contatto in ritardo / ordine vecchio'];
+  const headers = ['Fase', 'Percorso standard', 'Ordini vecchi da recuperare'];
   const {scroll, body} = rulesTable(headers, 'Calendario standard e recupero ordini'); scroll.classList.add('rules-calendar-table');
   for (const phase of rulebook.contact_calendar.rows) {
     const row = element('tr'), title = element('th'); title.scope = 'row'; title.dataset.label = headers[0];

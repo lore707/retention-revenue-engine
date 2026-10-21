@@ -545,10 +545,10 @@ test('Retention flows distinguish timed phases, seasonal branch, repeated cycles
   assert.equal(h.$('#rule-list').querySelectorAll('.rules-flow-stage').length, 4);
   const hair = h.$('#rule-list').querySelectorAll('.rules-flow-stage');
   assert(hair[0].textContent.includes('Da 15 giorni'));
-  assert(hair[1].textContent.includes('Da 45 giorni dall’acquisto'));
+  assert(hair[1].textContent.includes('da 45 giorni dall’acquisto'));
   assert(hair[1].textContent.includes('autocurl_cross_sell'));
   assert(!hair[1].textContent.includes('hair_dryer_to_wave_pro_category_expansion'));
-  assert(hair[2].textContent.includes('Da 75 giorni dall’acquisto'));
+  assert(hair[2].textContent.includes('da 75 giorni dall’acquisto'));
   assert(hair[3].textContent.includes('Percorso parallelo'));
   assert.equal(h.$('#rule-flow-tabs').children[0].attributes['aria-pressed'], 'true');
   h.fire(h.$('#rule-flow-tabs').children[1], 'click');
@@ -603,7 +603,7 @@ test('future plans show backend day thresholds and keep seasonal windows distinc
   assert.equal(section.querySelectorAll('.customer-timing-label').map(node => node.textContent).join(','), 'Da 45 gg,Stagionale');
   assert(section.textContent.includes('Data di contatto da rivalutare'));
   assert(section.querySelector('.customer-next-date').title.includes('non data di invio'));
-  h.context.timingDetail.operator_timeline[0].timing = {label: '30 gg dal contatto accessori',
+  h.context.timingDetail.operator_timeline[0].timing = {label: '45 gg dal contatto accessori',
     description: 'Dopo il primo contatto accessori', awaiting_first_contact: true, eligible_from_date: null};
   const pending = vm.runInContext('nextOpportunities(timingDetail)', h.context);
   assert(pending.textContent.includes('Dopo il primo contatto accessori'));

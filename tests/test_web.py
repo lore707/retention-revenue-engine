@@ -183,9 +183,9 @@ class OverviewTests(unittest.TestCase):
         self.assertEqual(detail["event_templates"]["contact"]["date"], "2026-10-21")
         by_rule = {p["rule_id"]: plan for plan in detail["operator_timeline"] for p in plan["proposals"]}
         auto = by_rule["autocurl_cross_sell"]
-        self.assertEqual(auto["timing"]["label"], "30 gg dal contatto accessori")
-        self.assertTrue(auto["timing"]["awaiting_first_contact"])
-        self.assertIsNone(auto["timing"]["eligible_from_date"])
+        self.assertEqual(auto["timing"]["label"], "Da 45 gg")
+        self.assertFalse(auto["timing"]["awaiting_first_contact"])
+        self.assertEqual(auto["timing"]["eligible_from_date"], "2026-10-22")
         self.assertIsNone(auto["next_contact_date"])
         self.assertEqual(by_rule["hair_dryer_to_shavers_category_expansion"]["timing"]["days"], 75)
         mini = by_rule["mini_travel_cross_sell"]
@@ -199,8 +199,8 @@ class OverviewTests(unittest.TestCase):
         saved = plan_detail(self.store, "CUST_000001", detail["plan_key"], "2026-10-21")
         self.assertEqual(saved["contacts"][0]["date"], "2026-10-21")
         auto = next(p for p in saved["operator_timeline"] if p["timing"]["days"] == 45)
-        self.assertEqual(auto["timing"]["reference_date"], "2026-10-21")
-        self.assertEqual(auto["timing"]["eligible_from_date"], "2026-11-20")
+        self.assertEqual(auto["timing"]["reference_date"], "2026-09-07")
+        self.assertEqual(auto["timing"]["eligible_from_date"], "2026-10-22")
         self.assertIn("do_not_contact", saved["event_templates"])
         with self.assertRaises(ValueError):
             record_event(self.store, "CUST_000001", {**detail["event_templates"]["contact"], "date": "2026-10-22", "id": "EARLY"})
@@ -534,9 +534,9 @@ class OverviewTests(unittest.TestCase):
         calendar = book["contact_calendar"]
         self.assertEqual(len(calendar["rows"]), 3)
         self.assertIn("45", calendar["rows"][1]["standard"])
-        self.assertIn("30 giorni", calendar["rows"][1]["delayed"])
+        self.assertIn("45 giorni", calendar["rows"][1]["delayed"])
         self.assertIn("75", calendar["rows"][2]["standard"])
-        self.assertIn("60 giorni", calendar["rows"][2]["delayed"])
+        self.assertIn("75 giorni", calendar["rows"][2]["delayed"])
 
         self.assertEqual({key for strategy in book["strategies"] for key in strategy["rule_ids"]},
                          {rule["id"] for rule in book["rules"]})

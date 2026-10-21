@@ -987,11 +987,11 @@ def _rule_timing(rule, definitions, opportunity=None):
         label = f"Da {days} gg"
         description = f"Da {days} giorni dall'acquisto di partenza."
     contact_timing = (opportunity or {}).get("contact_timing")
-    delay = contact_sequence_delay(rule, definitions)
+    delay = contact_sequence_delay(rule)
     if delay is not None:
         label = f"{delay} gg dal contatto accessori"
-        description = (f"Da {days} giorni dall’acquisto nel percorso standard; se il primo contatto accessori slitta, "
-                       f"la fase matura dopo {delay} giorni da quell’invio, senza anticipare la soglia dall’acquisto reale. "
+        description = (f"Nuovi ordini: da {days} giorni dall’acquisto reale. Ordini vecchi da recuperare: "
+                       f"dopo {delay} giorni dal primo contatto accessori registrato. "
                        "Attende la conclusione delle fasi precedenti applicabili, senza obbligo di acquisto. "
                        "Se non esistono accessori applicabili né contatti accessori, resta la soglia dall’acquisto.")
     result = {"label": label, "days": days, "description": description,
@@ -1088,7 +1088,7 @@ def rules_summary():
                               " / ".join(dict.fromkeys(target["name"] for target in members[0]["targets"])))
             stage_rule = next(rule for rule in definitions["rules"] if rule["id"] == members[0]["id"])
             stage["when"] = ("Finestre stagionali" if stage["seasonal"] else
-                             f"Giorno {stage['days']} · percorso standard" if contact_sequence_delay(stage_rule, definitions) is not None else
+                             f"Giorno {stage['days']} · percorso standard" if contact_sequence_delay(stage_rule) is not None else
                              _rule_timing(stage_rule, definitions)["label"])
             stage["description"] = (members[0]["timing"] if len(members) == 1 else
                                     "Una mail con le proposte applicabili al modello acquistato, escluse quelle già presenti. " + members[0]["timing"])
@@ -1136,11 +1136,11 @@ def rules_summary():
         rule = next(rule for rule in definitions["rules"] if rule["id"] == stage[0])
         days = rule["timing"]["minimum_days_inclusive"]
         calendar_rows.append({"label": "AutoCurl" if rule["relationship_type"] == "USE_CASE_COMPLEMENT" else "Espansione di categoria",
-                              "standard": f"Giorno {days} del percorso, se gli accessori sono stati comunicati al giorno {accessory_days}",
-                              "delayed": f"Dopo {contact_sequence_delay(rule, definitions)} giorni dal primo contatto accessori registrato"})
+                              "standard": f"Da {days} giorni dall’acquisto reale",
+                              "delayed": f"Dopo {contact_sequence_delay(rule)} giorni dal primo contatto accessori registrato"})
     return {"version": definitions["version"], "rules": rules, "flows": flows, "strategies": strategies,
             "contact_calendar": {"rows": calendar_rows,
-                "note": "Un solo percorso: se il primo contatto accessori arriva in ritardo, slittano insieme le fasi successive mantenendo le stesse distanze. Le date degli acquisti restano reali. Ogni fase attende la conclusione delle precedenti applicabili, senza obbligo di acquisto. Il secondo tentativo non riavvia il calendario. Restano consenso e distanza minima fra contatti. Se non esistono accessori applicabili né contatti accessori, restano le soglie dall’acquisto."},
+                "note": f"Per i nuovi ordini i tempi decorrono dall’acquisto; per gli ordini vecchi da recuperare decorrono dal primo contatto accessori. Un piano accessori mai contattato entra nello storico dopo {definitions['overview_activity']['recent_days']} giorni dalla maturazione. Il criterio viene valutato alla data del primo contatto e non cambia con il secondo tentativo. Le date degli acquisti restano reali. Ogni fase attende la conclusione delle precedenti applicabili, senza obbligo di acquisto. Restano consenso e distanza minima fra contatti. Se non esistono accessori applicabili né contatti accessori, restano le soglie dall’acquisto."},
             "profiles": profiles,
             "profile_note": "I profili possono sovrapporsi e descrivono soltanto gli acquisti importati. Non cambiano la categoria commerciale e non autorizzano da soli un contatto.",
             "proposal_change": {"title": "Perché la proposta può cambiare?",

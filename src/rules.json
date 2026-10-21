@@ -1,5 +1,5 @@
 {
-  "version": 35,
+  "version": 36,
   "overview_activity": {
     "recent_days": 30
   },
@@ -116,7 +116,7 @@
           "hair_dryer_to_shavers_category_expansion"
         ]
       ],
-      "approval": "Percorso standard 15 → 45 → 75 giorni dall’acquisto. Accessori dal giorno 15 dell’acquisto reale; AutoCurl dopo 30 giorni e espansione dopo 60 giorni dal primo contatto accessori salvato. Ogni fase attende la conclusione delle precedenti applicabili, senza obbligo di acquisto e senza deroga promozionale. Se non esiste un piano accessori né un suo contatto, restano le soglie dall’acquisto; le fasi non applicabili vengono saltate. Piani già contattati conservano eventi e identità."
+      "approval": "Nuovi ordini: accessori dal giorno 15, AutoCurl dal giorno 45, espansione dal giorno 75 dall’acquisto reale. Ordini vecchi da recuperare: AutoCurl dopo 45 giorni ed espansione dopo 75 giorni dal primo contatto accessori salvato. Il recupero usa la soglia già configurata in overview_activity.recent_days dalla maturazione accessori, valutata al primo contatto. Ogni fase attende la conclusione delle precedenti applicabili, senza obbligo di acquisto e senza deroga promozionale. In assenza di accessori applicabili e contatti accessori restano le soglie dall’acquisto. Piani già contattati conservano eventi, tentativi e identità."
     }
   },
   "rules": [
@@ -290,7 +290,7 @@
     },
     {
       "id": "autocurl_cross_sell",
-      "version": 7,
+      "version": 8,
       "status": "approved_for_manual_pilot",
       "relationship_type": "USE_CASE_COMPLEMENT",
       "commercial_track": "category_expansion",
@@ -460,7 +460,7 @@
     },
     {
       "id": "hair_dryer_to_wave_pro_category_expansion",
-      "version": 6,
+      "version": 7,
       "status": "approved_for_manual_pilot",
       "relationship_type": "CATEGORY_EXPANSION",
       "commercial_track": "category_expansion",
@@ -547,7 +547,7 @@
     },
     {
       "id": "hair_dryer_to_shavers_category_expansion",
-      "version": 5,
+      "version": 6,
       "status": "approved_for_manual_pilot",
       "relationship_type": "CATEGORY_EXPANSION",
       "commercial_track": "category_expansion",

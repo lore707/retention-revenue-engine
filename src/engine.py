@@ -716,12 +716,12 @@ def commercial_category(rule, definitions):
             definitions["operational_views"]["targeted_rule_types"] else "test")
 
 
-def contact_sequence_delay(rule, definitions):
-    """Distanza dalla fase accessori, mantenendo il ritmo standard dall'acquisto."""
+def contact_sequence_delay(rule):
+    """Attesa dal primo contatto accessori per il recupero degli ordini storici."""
     timing = rule.get("timing", {})
     if timing.get("reference") != "first_accessory_contact_or_source_purchase_without_applicable_accessories":
         return None
-    return timing["minimum_days_inclusive"] - definitions["shared_policies"]["accessory_timing"]["minimum_days_inclusive"]
+    return timing["minimum_days_inclusive"]
 
 
 def evaluate(customer, evaluation_date, rule_id="magnetic_concentrator_completion"):
@@ -966,19 +966,25 @@ def evaluate_portfolio(customer, evaluation_date, *, catalog=None, definitions=N
         blockers = [other for other in plans if other is not plan
                     and other["source_order_id"] == plan["source_order_id"]
                     and any(key[1] in preceding for key in other["included_opportunity_keys"])]
-        anchor_contacts = [day for day, event in visible_events if event["type"] == "contact"
+        anchor_contacts = [(day, event) for day, event in visible_events if event["type"] == "contact"
                            and event.get("plan_key", [None])[0] == plan["source_order_id"]
                            and any(key[1] in sequence[0] for key in
                                    event.get("included_opportunity_keys", [[None, event.get("rule_id")]]))]
         accessory_pending = any(any(key[1] in sequence[0] for key in other["included_opportunity_keys"])
                                 for other in blockers)
-        anchor = min(anchor_contacts).isoformat() if anchor_contacts else None
-        pending = not anchor and accessory_pending and not plan["contact_count"]
+        first_accessory_contact = min(anchor_contacts, key=lambda item: (item[0], item[1]["id"])) if anchor_contacts else None
+        accessory_maturity = (_day(first_accessory_contact[1]["plan_key"][2]) if first_accessory_contact else
+                              min((_day(other["eligible_from_date"]) for other in blockers
+                                   if any(key[1] in sequence[0] for key in other["included_opportunity_keys"])), default=None))
+        reference_day = first_accessory_contact[0] if first_accessory_contact else today
+        recovery = bool(accessory_maturity and (reference_day - accessory_maturity).days >= definitions["overview_activity"]["recent_days"])
+        anchor = first_accessory_contact[0].isoformat() if recovery and first_accessory_contact else None
+        pending = recovery and not anchor and accessory_pending and not plan["contact_count"]
         for proposal in [plan["primary_opportunity"], *plan["secondary_opportunities"],
                          *plan["other_available_opportunities"]]:
             proposal["contact_timing"] = {"reference_date": anchor, "awaiting_first_contact": pending}
             if anchor:
-                days = contact_sequence_delay(rules_by_id[proposal["rule_id"]], definitions)
+                days = contact_sequence_delay(rules_by_id[proposal["rule_id"]])
                 eligible = max(_day(proposal["eligible_from_date"]), _day(anchor) + timedelta(days=days))
                 if plan["contact_count"] and _day(plan["first_contact_date"]) < eligible:
                     # Invio storico già avvenuto: non applicare il nuovo ritardo retroattivamente.
