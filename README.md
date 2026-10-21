@@ -1,18 +1,77 @@
 # Retention Revenue Engine
 
-Sistema operativo per identificare, monitorare e misurare opportunità di retention commerciale sui clienti Shopify.
+Dashboard per trasformare lo storico degli acquisti Shopify in opportunità di riacquisto: **chi contattare, cosa proporre, quando e perché**.
 
-## Stato
+Il progetto combina un motore di regole commerciali deterministiche con una dashboard responsive. Il caso applicativo è il catalogo Laifen: accessori compatibili, complementi d’uso, espansione di categoria, ricambi e upgrade.
 
-Progetto in sviluppo. Disponibili il motore deterministico delle regole Laifen, l'import degli ordini Shopify, i profili persistenti in SQLite e la dashboard locale con Overview, tre categorie commerciali esclusive, Retention con filtri combinati, sezione Regole e registrazione manuale dei contatti ed esiti. Le proposte mirate precedono i test anche in promozione; l'invio di email avviene fuori dal sistema.
+**Stato:** prototipo operativo con demo interattiva. L’efficacia commerciale delle regole resta da validare sui risultati reali.
+
+## Cosa fa
+
+| Area | Funzionalità |
+| --- | --- |
+| **Overview** | Opportunità contattabili, valore nominale delle proposte, contatti registrati e ricavi verificati; accessi a Da seguire, Nuove opportunità e Storico da recuperare. |
+| **Retention** | Ricerca e filtri combinati, ordine di urgenza, proposte principali e alternative, scheda cliente e storico. |
+| **Regole** | Percorsi per asciugacapelli, rasoi e spazzolini; strategie, compatibilità, profili cliente, calendari e limiti espliciti. |
+| **Gestione attività** | Registrazione manuale di invii, risposte, interessi, rifiuti, acquisti verificati e correzioni degli importi. |
+
+Il motore coordina i piani in base ad acquisti, dotazioni, compatibilità, consenso, maturazione e contatti già registrati. Le decisioni commerciali vivono nel backend; il frontend ne presenta risultati e motivazioni.
+
+## Prova la demo
+
+Richiede **Python 3.12**. Dalla cartella del progetto:
+
+```sh
+python -m pip install -r requirements.txt
+python -m src.web --demo --as-of 2026-10-21
+```
+
+Apri **http://localhost:8000**.
+
+**La demo utilizza esclusivamente clienti, ordini e recapiti sintetici.** Puoi esplorare le sezioni, filtrare i clienti e registrare contatti ed esiti. Le Regole sono le stesse della modalità operativa.
+
+- La data di valutazione è fissata per rendere riproducibile la dimostrazione.
+- Le modifiche restano nel database temporaneo e si azzerano al riavvio.
+- Il caricamento CSV è disabilitato nella demo.
+- Per avviare la demo, lascia non configurate `DATABASE_URL` e `DATABASE_PATH`.
+
+Per pubblicarla senza login su un **servizio Render separato**, usa `pip install -r requirements.txt` come build command e `python -m src.web --demo --as-of 2026-10-21` come start command. Non configurare credenziali o database operativi nel servizio demo.
+
+## Tecnologie e scelte progettuali
+
+| Livello | Stack |
+| --- | --- |
+| **Backend** | Python, server HTTP e motore deterministico di valutazione e coordinamento. |
+| **Frontend** | HTML, CSS e JavaScript senza framework; layout responsive e navigazione interna senza ricaricare il documento. |
+| **Persistenza** | SQLite in locale e PostgreSQL tramite `psycopg` per il database remoto. |
+| **Configurazione commerciale** | Catalogo, regole e promozioni in JSON; idoneità e calcoli nel backend. |
+| **Verifiche** | `unittest` per il backend e test delle interazioni con Node.js, usando dati sintetici. |
+
+## Ambito e limiti
+
+L’obiettivo è aumentare il riacquisto attraverso proposte pertinenti e una gestione ordinata dei contatti; non sono dichiarati incrementi di conversione già dimostrati.
+
+- **Le email vengono inviate fuori dalla dashboard.** Il sistema registra il contatto effettuato.
+- Gli ordini arrivano da export CSV; non c’è sincronizzazione automatica con Shopify o newsletter.
+- Il **valore potenziale è nominale**, non una previsione di ricavi o una probabilità di acquisto.
+- I ricavi attribuiti richiedono una verifica registrata dall’operatore; non misurano da soli un effetto causale.
+- La qualità delle proposte dipende da completezza dello storico, regole approvate e registrazione degli esiti.
+
+Export, database e segreti operativi restano esclusi da Git tramite `.gitignore`. L’installazione remota con dati reali richiede autenticazione; l’accesso pubblico senza login riguarda la sola demo sintetica.
 
 ## Documentazione
 
-- [project-docs/PRODUCT.md](project-docs/PRODUCT.md) — visione, obiettivi e decisioni di prodotto.
-- [project-docs/ARCHITECTURE.md](project-docs/ARCHITECTURE.md) — mappa delle responsabilità e formato dei dati in ingresso al motore.
-- [AGENTS.md](AGENTS.md) — regole vincolanti per modificare il repository.
+- [Prodotto e decisioni](project-docs/PRODUCT.md)
+- [Architettura e responsabilità del codice](project-docs/ARCHITECTURE.md)
+- [Audit funzionale](project-docs/audit/AUDIT_DASHBOARD.md)
+- [Regole del repository](AGENTS.md)
 
-## Sviluppo
+## Approfondimenti tecnici
+
+<details>
+<summary>Importazione ordini, attivazione e diagnostica CLI</summary>
+
+### Importazione e strumenti da terminale
 
 Python 3.12; `tzdata` è necessario su Windows per convertire i timestamp Shopify in Europe/Rome.
 
@@ -64,10 +123,10 @@ Se un ordine compare in più file, l'ultima versione sostituisce la precedente. 
 Quando gli export disponibili sono stati importati, attivare il programma:
 
 ```powershell
-python -m src.customer_profiles activate --date 2026-09-29
+python -m src.customer_profiles activate --date AAAA-MM-GG
 ```
 
-La data è il punto zero dei contatti gestiti da questo sistema. Prima dell'attivazione nessun profilo appare nella lista lavorabile. Lo storico è considerato completo **rispetto ai soli CSV disponibili**; nuovi file ampliano i profili e cambiano le valutazioni. Un acquisto precedente assente dai file non può essere escluso con certezza.
+Sostituire `AAAA-MM-GG` con la data di attivazione scelta per l’installazione; non eseguire il comando a ogni avvio. La data è il punto zero dei contatti gestiti da questo sistema. Prima dell'attivazione nessun profilo appare nella lista lavorabile. Lo storico è considerato completo **rispetto ai soli CSV disponibili**; nuovi file ampliano i profili e cambiano le valutazioni. Un acquisto precedente assente dai file non può essere escluso con certezza.
 
 Per ottenere la lista giornaliera dei piani lavorabili e dei casi da verificare:
 
@@ -92,20 +151,6 @@ python -m src.customer_profiles explain-order --customer CUST_000001 --order ORD
 ```
 
 Il JSON non contiene email. Mostra l'ordine, il consenso, il piano corrente con proposta principale e alternative, i piani in attesa, le esclusioni attribuibili all'ordine e i motivi prodotti dal motore. Indica esplicitamente che la probabilità di acquisto non è stimata e che lo storico riguarda i soli ordini importati. I profili da verificare non espongono piani lavorabili.
-
-Test con dati sintetici, dalla root:
-
-```powershell
-python -m unittest discover -s tests -v
-```
-
-Per Overview e Retention, i controlli delle interazioni e dei selettori condivisi su DOM simulato usano Node senza pacchetti aggiuntivi:
-
-```powershell
-node --test tests/retention_ui.test.cjs
-```
-
-Questi controlli non sostituiscono la verifica visiva nel browser.
 
 Valutazione di un file cliente nel formato descritto in `ARCHITECTURE.md`:
 
@@ -155,7 +200,7 @@ Per valutare l'espansione da asciugacapelli a Wave Pro:
 python src/engine.py local-data/customer.json --as-of 2026-09-23 --rule hair_dryer_to_wave_pro_category_expansion
 ```
 
-Per diagnosticare la componente rasoi del piano condiviso a 45 giorni dal phon (con AutoCurl e Wave Pro):
+Per diagnosticare la componente rasoi del piano di espansione, separato dalla mail AutoCurl:
 
 ```powershell
 python src/engine.py local-data/customer.json --as-of 2026-09-23 --rule hair_dryer_to_shavers_category_expansion
@@ -217,11 +262,16 @@ python src/engine.py local-data/customer.json --as-of 2026-09-23 --rule wave_leg
 
 I comandi leggono il file e stampano la decisione in JSON; non registrano follow-up e non inviano contatti. Il file cliente va fornito separatamente e non è l'export CSV Shopify grezzo.
 
-## Dati locali
+</details>
+
+<details>
+<summary>Dashboard operativa e dati locali</summary>
+
+### Dati locali
 
 Git esclude `local-data/`; l'import usa soltanto i CSV ridotti dallo script locale.
 
-## Overview desktop
+### Dashboard operativa
 
 Riferimento di design: [Customer Retention engine — Figma](https://www.figma.com/design/J7V1NPhw8pEtPaBoq542Lh/Customer-Retention-engine.-design?node-id=0-1).
 
@@ -239,7 +289,7 @@ Per scegliere un altro database locale:
 python -m src.web --database local-data/retention.sqlite3
 ```
 
-La demo separata è disponibile solo su richiesta esplicita:
+La modalità sintetica separata si avvia con:
 
 ```powershell
 python -m src.web --demo
@@ -251,17 +301,22 @@ L'interfaccia vive in `frontend/overview.html`, `frontend/overview.css` e `front
 
 Il grafico offre 30/90 giorni e 6/12 mesi, tooltip e aggiornamento ogni minuto mentre la pagina è visibile. I KPI sono cumulativi o riferiti alla valutazione corrente; il selettore modifica soltanto il grafico. Apri mostra la scheda cliente condivisa, con recapito email su richiesta, tutti gli acquisti disponibili, proposta corrente, logica e prossime opportunità, contatti ed esiti.
 
-Sotto ai ricavi, quattro riquadri riepilogano Da gestire oggi, Nuove opportunità, In lavorazione e Storico da recuperare. I primi contatti pronti passano nello storico da 30 giorni dopo la maturazione del piano; non vengono modificate le date reali o le regole delle proposte. Conteggi e filtro contestuale `activity` provengono dal backend. La base con consenso valido include anche i clienti fuori dai gruppi, indicati separatamente. I pulsanti aprono Retention con un chip rimovibile, combinabile con i filtri già presenti.
+Sotto ai ricavi, tre riquadri riepilogano Da seguire, Nuove opportunità e Storico da recuperare. Da seguire comprende clienti già contattati con piani aperti: risposte, solleciti dovuti e attese. I primi contatti pronti passano nello storico da 30 giorni dopo la maturazione del piano; non vengono modificate le date reali o le regole delle proposte. Conteggi e filtro contestuale `activity` provengono dal backend. La base con consenso valido include anche i clienti fuori dai gruppi, indicati separatamente. I pulsanti aprono Retention con un chip rimovibile, combinabile con i filtri già presenti.
 
-La sezione http://127.0.0.1:8000/retention offre schede Da gestire, Nuove opportunità, Storico da recuperare e Tutti i clienti, con ricerca, filtri e paginazione. Legge gli stessi ordini ed eventi dell'Overview. Struttura e comportamento vivono in `frontend/retention.html`, `frontend/retention.css`, `frontend/retention.js`; formattazione e riepilogo condivisi sono in `frontend/ui.js`, lo stile comune in `frontend/overview.css`. `retention_summary` in `src/customer_profiles.py` espone gli aggregati; `evaluate_portfolio` in `src/engine.py` mantiene la decisione canonica di chiusura e lo storico dei piani contattati. Riepiloghi e totale restano globali quando si filtra la tabella.
+La sezione http://127.0.0.1:8000/retention offre schede Da seguire, Nuove opportunità, Storico da recuperare e Tutti i clienti, con ricerca, filtri e paginazione. Legge gli stessi ordini ed eventi dell'Overview. Struttura e comportamento vivono in `frontend/retention.html`, `frontend/retention.css`, `frontend/retention.js`; formattazione e riepilogo condivisi sono in `frontend/ui.js`, lo stile comune in `frontend/overview.css`. `retention_summary` in `src/customer_profiles.py` espone gli aggregati; `evaluate_portfolio` in `src/engine.py` mantiene la decisione canonica di chiusura e lo storico dei piani contattati. Riepiloghi e totale restano globali quando si filtra la tabella.
 
-Follow-up e Risultati restano inattive; Regole presenta i percorsi di retention e le politiche comuni. Nella scheda cliente puoi registrare un'email già inviata e aggiornare risposte, interessi, rifiuti, acquisti verificati e correzioni degli importi. Dopo il salvataggio, scheda e liste leggono nuovamente il backend. Le registrazioni in demo riguardano soltanto il database sintetico temporaneo.
+La gestione dei follow-up è inclusa in Retention, senza una sezione separata. La voce Risultati non è ancora attiva; Regole presenta percorsi prodotto, strategie, profili cliente, calendario e limiti del sistema. Nella scheda cliente puoi registrare un'email già inviata e aggiornare risposte, interessi, rifiuti, acquisti verificati e correzioni degli importi. Dopo il salvataggio, scheda e liste leggono nuovamente il backend. Le registrazioni in demo riguardano soltanto il database sintetico temporaneo.
 
 Retention offre schede di attività, ricerca e filtri Strategia, Prodotto acquistato, Priorità e Profilo cliente. Nei filtri avanzati, Stato del piano e Ambito della ricerca permettono anche la consultazione di piani secondari e chiusi. L'ambito predefinito filtra la proposta principale mostrata; `scope=all_plans` conserva la ricerca estesa. Prodotti e conteggi sono derivati dal backend e i parametri restano nell'URL.
 
 L'ordine consigliato di Retention è calcolato nel backend dopo i filtri: risposte, follow-up dovuti, primi contatti Mirati, primi contatti solo Da testare, nessuna azione oggi. I primi contatti alternano i prodotti principali, conservando prima i piani più vecchi per ogni prodotto. Legenda numerata, colori e note sui piani misti rendono visibile la priorità senza separare le proposte della stessa mail. Piani, prezzi e valore potenziale restano quelli del motore.
 
-## Pubblicazione su Render
+</details>
+
+<details>
+<summary>Installazione su Render e migrazione del database</summary>
+
+### Installazione operativa su Render
 
 Il repository GitHub può restare privato. Creare un **Web Service Python 3** sul branch `main` con:
 
@@ -284,7 +339,7 @@ SQLite resta disponibile per l'uso locale. Per usarlo su Render occorre invece u
 
 Render fornisce `RENDER`, `PORT` e `RENDER_EXTERNAL_URL`. Il server ascolta su `0.0.0.0` e sulla porta assegnata; l'URL pubblico HTTPS è l'origine ammessa per le scritture. Non bisogna usare Gunicorn: questo progetto espone direttamente un server HTTP, non un'applicazione WSGI. HTTPS è terminato da Render; non esporre direttamente il server su Internet via HTTP.
 
-L'accesso avviene tramite la finestra credenziali del browser (HTTP Basic), per un singolo operatore: pagine, asset, API, import e registrazioni richiedono la password. `/healthz` restituisce soltanto lo stato del processo senza credenziali. Non sono previsti account multipli o un sistema di sessioni; la chiusura di una scheda non garantisce che il browser dimentichi le credenziali. Il server rifiuta l'avvio remoto senza credenziali e, su Render in modalità reale, senza `DATABASE_URL` o `DATABASE_PATH`. Le credenziali non vanno inserite nel repository o negli URL.
+L'accesso avviene tramite la finestra credenziali del browser (HTTP Basic), per un singolo operatore: pagine, asset, API, import e registrazioni richiedono la password. `/healthz` restituisce soltanto lo stato del processo senza credenziali. Non sono previsti account multipli o un sistema di sessioni; la chiusura di una scheda non garantisce che il browser dimentichi le credenziali. Il server rifiuta l'avvio remoto sui dati reali senza credenziali e, su Render in modalità reale, senza `DATABASE_URL` o `DATABASE_PATH`. Le credenziali non vanno inserite nel repository o negli URL.
 
 Il primo deploy non contiene i dati del PC e non avvia l'attività pianificata Windows. Per conservare tutti gli ordini e gli eventuali contatti già presenti, migrare **prima** il database locale verso il progetto Supabase vuoto. Non limitarsi a ricaricare i CSV: non ricostruiscono gli eventi manuali.
 
@@ -314,3 +369,24 @@ Test PostgreSQL reali: impostare `RRE_TEST_DATABASE_URL` su un database dedicato
 Per una sola prova gratuita con dati sintetici usare `python -m src.web --demo`, omettendo `RRE_USERNAME`, `RRE_PASSWORD`, `DATABASE_PATH` e `DATABASE_URL` per una demo pubblica senza login. I dati della demo e le sue registrazioni sono temporanei e vengono ricreati a ogni riavvio. Non usare questa modalità per l'operatività reale.
 
 La modalità `--demo` può essere pubblicata senza autenticazione perché usa esclusivamente il database sintetico temporaneo. L’avvio rifiuta `DATABASE_URL` o `DATABASE_PATH` configurati insieme alla demo. La modalità operativa con dati reali continua a richiedere username e password per l’accesso remoto. Le credenziali restano facoltative per proteggere una demo se desiderato.
+
+</details>
+
+<details>
+<summary>Eseguire i test</summary>
+
+Dalla cartella del progetto:
+
+```sh
+python -m unittest discover -s tests -v
+```
+
+Per i test delle interazioni frontend, con Node.js e senza pacchetti aggiuntivi:
+
+```sh
+node --test tests/retention_ui.test.cjs
+```
+
+I test PostgreSQL reali usano soltanto un database di test dedicato configurato con `RRE_TEST_DATABASE_URL`; in sua assenza vengono saltati. I test delle interazioni non sostituiscono la verifica visiva nel browser.
+
+</details>
