@@ -14,16 +14,17 @@ Lo storico degli ordini di un e-commerce contiene informazioni utili per proporr
 
 Il progetto struttura questo processo attraverso regole verificabili e una lista operativa ordinata e motivata, mantenendo traccia delle azioni e degli esiti.
 
-## Cosa fa
+## Le scelte dietro il sistema
 
-| Area | Funzionalità |
+| Scelta | Perché |
 | --- | --- |
-| **Overview** | Opportunità contattabili, valore nominale delle proposte, contatti registrati e ricavi verificati; accessi a Da seguire, Nuove opportunità e Storico da recuperare. |
-| **Retention** | Ricerca e filtri combinati, ordine di urgenza, proposte principali e alternative, scheda cliente e storico. |
-| **Regole** | Percorsi per asciugacapelli, rasoi e spazzolini; strategie, compatibilità, profili cliente, calendari e limiti espliciti. |
-| **Gestione attività** | Registrazione manuale di invii, risposte, interessi, rifiuti, acquisti verificati e correzioni degli importi. |
+| **Regole esplicite e deterministiche** | Rendere compatibilità, esclusioni e tempi verificabili, senza attribuire al cliente un interesse non osservato. Stessi dati, data e regole producono la stessa decisione. |
+| **Una proposta principale per cliente** | Coordinare piani concorrenti e limitare contatti sovrapposti. Le alternative restano consultabili nella stessa scheda. |
+| **Controllo dell’operatore** | Validare il processo prima di automatizzare gli invii. L’operatore verifica la proposta, invia l’email e registra l’esito. |
+| **Logica commerciale nel backend** | Mantenere coerenti Overview, filtri Retention e scheda cliente, con un solo punto responsabile delle decisioni. |
+| **Valore potenziale separato dai ricavi** | Distinguere opportunità nominali e acquisti verificati, evitando di presentare una proposta come risultato economico. |
 
-Il motore coordina i piani in base ad acquisti, dotazioni, compatibilità, consenso, maturazione e contatti già registrati. Le decisioni commerciali vivono nel backend; il frontend ne presenta risultati e motivazioni.
+Il percorso collega **analisi del problema → definizione delle regole → gestione dei contatti → verifica degli esiti**. Le schermate sotto mostrano come queste scelte diventano attività operative.
 
 ## Un caso concreto: dall’acquisto al contatto
 
