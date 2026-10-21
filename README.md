@@ -1,65 +1,149 @@
-# Retention Revenue Engine
+# Dall'analisi dei dati alla progettazione di un sistema CRM
 
-Dashboard per trasformare lo storico degli acquisti Shopify in opportunità di riacquisto: **chi contattare, cosa proporre, quando e perché**.
+**Retention Revenue Engine** · Prototipo operativo per la retention e-commerce.
 
-Il progetto combina un motore di regole commerciali deterministiche con una dashboard responsive. Il caso applicativo è il catalogo Laifen: accessori compatibili, complementi d’uso, espansione di categoria, ricambi e upgrade.
+**[Apri la demo online](https://retention-revenue-engine-demo.onrender.com)** — accesso libero, senza registrazione, con clienti e ordini sintetici.
 
-**Stato:** prototipo operativo con demo interattiva. L’efficacia commerciale delle regole resta da validare sui risultati reali.
+## 1. Il punto di partenza: un'opportunità di retention
 
-**[Apri la demo online](https://retention-revenue-engine-demo.onrender.com)** — accesso libero, senza registrazione, con dati sintetici.
+Il progetto nasce dall'analisi delle performance e-commerce di Laifen, brand di elettronica di consumo specializzato in asciugacapelli, spazzolini elettrici e rasoi.
 
-## Il problema aziendale
+Analizzando i dati Shopify, ho osservato che gran parte dei clienti effettuava un solo acquisto e che la frequenza dei riacquisti nei mesi successivi risultava contenuta.
 
-Lo storico degli ordini di un e-commerce contiene informazioni utili per proporre acquisti successivi. Trasformarle in attività commerciali richiede però analisi manuali, conoscenza del catalogo e coordinamento dei contatti: quali accessori sono compatibili, cosa possiede già il cliente e quando è opportuno ricontattarlo?
+Questa osservazione mi ha portato a una domanda commerciale:
 
-Il progetto struttura questo processo attraverso regole verificabili e una lista operativa ordinata e motivata, mantenendo traccia delle azioni e degli esiti.
+**Come possiamo sfruttare lo storico degli acquisti per individuare opportunità di vendita successive al primo ordine?**
 
-## Le scelte dietro il sistema
+L'obiettivo non era semplicemente aumentare il numero di comunicazioni inviate, ma capire quali clienti potessero ricevere proposte pertinenti, sulla base dei prodotti già acquistati.
 
-| Scelta | Perché |
-| --- | --- |
-| **Regole esplicite e deterministiche** | Rendere compatibilità, esclusioni e tempi verificabili, senza attribuire al cliente un interesse non osservato. Stessi dati, data e regole producono la stessa decisione. |
-| **Una proposta principale per cliente** | Coordinare piani concorrenti e limitare contatti sovrapposti. Le alternative restano consultabili nella stessa scheda. |
-| **Controllo dell’operatore** | Validare il processo prima di automatizzare gli invii. L’operatore verifica la proposta, invia l’email e registra l’esito. |
-| **Logica commerciale nel backend** | Mantenere coerenti Overview, filtri Retention e scheda cliente, con un solo punto responsabile delle decisioni. |
-| **Valore potenziale separato dai ricavi** | Distinguere opportunità nominali e acquisti verificati, evitando di presentare una proposta come risultato economico. |
+## 2. L'analisi dei comportamenti d'acquisto
 
-Il percorso collega **analisi del problema → definizione delle regole → gestione dei contatti → verifica degli esiti**. Le schermate sotto mostrano come queste scelte diventano attività operative.
+Il primo approccio è stato analizzare lo storico degli ordini Shopify, cercando combinazioni ricorrenti tra primo e successivo acquisto.
 
-## Un caso concreto: dall’acquisto al contatto
+Volevo identificare comportamenti sufficientemente frequenti da poter costruire strategie di cross-selling e retention basate su evidenze storiche.
 
-Il cliente sintetico **DEMO-01842**, mostrato nelle schermate sotto, illustra il percorso:
+Sono però emersi alcuni limiti:
 
-1. **Acquisto:** il 17 settembre 2026 acquista un Laifen Neo nella configurazione a due ugelli.
-2. **Analisi:** il motore riconosce la configurazione e verifica nello storico disponibile dotazioni e acquisti successivi. Il concentratore magnetico è compatibile e non risulta incluso o già acquistato.
-3. **Proposta:** la regola individua il concentratore come completamento funzionale **Mirato**, con una motivazione consultabile nella scheda cliente.
-4. **Controlli:** la proposta matura dopo 15 giorni, il 2 ottobre. Il contatto è consentito solo se sono soddisfatti anche consenso, qualità dei dati, esclusioni e limiti tra comunicazioni.
-5. **Lista operativa:** alla valutazione del 21 ottobre, il cliente è tra le **Nuove opportunità**. L’operatore trova proposta principale, alternative compatibili e spiegazione della scelta.
-6. **Contatto ed esito:** l’operatore invia l’email fuori dal sistema e ne registra la data effettiva. Il sistema aggiorna lo stato del piano e l’eventuale follow-up; risposte e acquisti verificati vengono registrati successivamente. Un acquisto confermato può alimentare i ricavi attribuiti, senza trasformare il valore potenziale in una vendita presunta.
+- Il brand disponeva di uno storico commerciale relativamente breve, circa due anni e 10.000 ordini.
+- Molti clienti avevano effettuato un solo acquisto.
+- Le combinazioni di riacquisto disponibili non mostravano pattern abbastanza solidi da giustificare regole predittive affidabili.
+- I prodotti principali erano beni durevoli, per i quali non è necessariamente ragionevole aspettarsi riacquisti frequenti dello stesso dispositivo.
 
-Il caso segue le regole implementate; contatto ed esito descrivono le azioni che puoi provare nella demo, non risultati commerciali reali.
+**Conclusione:** lo storico degli ordini era utile per conoscere i clienti e i prodotti posseduti, ma non offriva evidenze sufficienti per costruire un motore di raccomandazione basato principalmente sui comportamenti di riacquisto.
 
-## Anteprima della dashboard
+## 3. Il cambio di approccio: partire dai prodotti
 
-Le schermate mostrano la demo con dati sintetici. Clicca sulle immagini per visualizzarle a dimensione intera.
+Ho quindi invertito il ragionamento.
 
-### Overview
+Invece di chiedermi soltanto *«Che cosa hanno acquistato successivamente i clienti?»*, ho iniziato a chiedermi:
 
-Indicatori, ricavi verificati e panoramica delle attività commerciali.
+**«Considerando il prodotto acquistato, quale proposta commerciale potrebbe avere senso per quel cliente?»**
 
-![Overview della demo: indicatori, grafico dei ricavi e gruppi di attività](project-docs/screenshots/overview.png)
+Ho analizzato il catalogo Laifen identificando compatibilità tecniche, accessori non inclusi, prodotti complementari, ricambi e possibili espansioni di categoria.
 
-### Retention
+Da questa analisi sono nate cinque strategie commerciali.
 
-Ricerca, filtri e opportunità ordinate per urgenza, con proposte e motivazioni.
+| Strategia | Logica |
+|---|---|
+| Completamenti funzionali | Accessori compatibili non inclusi o non ancora acquistati |
+| Complementi d'uso | Prodotti che possono arricchire l'esperienza d'utilizzo |
+| Espansione di categoria | Introduzione a categorie non presenti nello storico acquisti |
+| Ricambi | Componenti soggetti a sostituzione periodica |
+| Upgrade | Passaggio a modelli successivi o superiori |
 
-![Retention della demo: filtri, priorità e lista delle opportunità commerciali](project-docs/screenshots/retention.png)
+Le proposte sono state distinte tra opportunità con una motivazione funzionale specifica e ipotesi commerciali da validare.
 
-### Scheda cliente
+Questa distinzione è importante: **la compatibilità di un prodotto può essere verificata tecnicamente, mentre la probabilità che un cliente lo acquisti deve essere dimostrata commercialmente.**
 
-Proposta consigliata, alternative compatibili, calendario e registrazione del contatto.
+## 4. Dalle strategie alle regole operative
 
-![Scheda cliente sintetico: proposta, alternative, prossime opportunità e contatto](project-docs/screenshots/customer-detail.png)
+Una volta definite le strategie, le ho trasformate in regole commerciali deterministiche.
+
+Ogni regola identifica:
+
+- Il prodotto o la categoria di partenza.
+- Il prodotto potenzialmente proponibile.
+- Le condizioni di compatibilità e le esclusioni.
+- La soglia temporale minima di attivazione.
+- Le condizioni relative a consenso, acquisti e contatti precedenti.
+- La motivazione della proposta.
+
+### Esempio: percorso di retention per gli asciugacapelli
+
+Il sistema prevede differenti opportunità nel tempo.
+
+| Fase | Soglia / finestra | Proposta |
+|---|---|---|
+| Completamento | Da 15 giorni | Accessori compatibili e complementi |
+| Cross-selling | Da 45 giorni | Laifen AutoCurl |
+| Espansione | Da 75 giorni | Spazzolino Wave Pro o rasoio P3/P3 Pro |
+| Stagionale | Finestre definite | Laifen Mini per viaggi e mobilità |
+
+Le soglie rappresentano ipotesi commerciali iniziali, non intervalli di acquisto statisticamente dimostrati. Non corrispondono a invii automatici. Per i nuovi ordini decorrono dall’acquisto reale; per gli ordini vecchi da recuperare, AutoCurl ed espansione maturano rispettivamente dopo 45 e 75 giorni dal primo contatto accessori registrato. Ogni fase resta soggetta alla conclusione delle precedenti applicabili e ai limiti di contatto.
+
+Per ciascun cliente il sistema verifica le condizioni applicabili, tiene conto delle attività già registrate e rivaluta le opportunità quando arrivano nuovi ordini.
+
+Il risultato non è un calendario di email generiche, ma un insieme di proposte contestualizzate e motivate.
+
+## 5. Dal modello commerciale al software
+
+Definite le regole, rimaneva un problema operativo: come renderle utilizzabili quotidianamente senza analizzare manualmente ogni cliente?
+
+La segmentazione standard di Shopify poteva coprire parte dei criteri, ma non offriva da sola il flusso operativo integrato che volevo ottenere.
+
+Ho quindi progettato **Retention Revenue Engine**, un'applicazione che trasforma gli ordini Shopify in opportunità commerciali gestibili.
+
+Il sistema permette di:
+
+- Analizzare i clienti secondo le regole commerciali definite.
+- Individuare opportunità applicabili e motivazioni delle proposte.
+- Organizzare e filtrare i clienti da contattare.
+- Consultare lo storico degli acquisti e dei contatti.
+- Registrare attività, risposte ed esiti commerciali.
+- Distinguere il valore nominale delle proposte dai ricavi associati ad acquisti verificati.
+
+Le decisioni commerciali sono gestite da un motore deterministico nel backend. La dashboard rende le informazioni comprensibili e utilizzabili dagli operatori.
+
+L'obiettivo non è sostituire il giudizio commerciale, ma ridurre il lavoro manuale necessario per individuare, valutare e gestire le opportunità.
+
+### Overview: leggere la situazione
+
+Opportunità contattabili, valore nominale, attività registrate e ricavi verificati, con accesso ai gruppi Da seguire, Nuove opportunità e Storico da recuperare.
+
+![Overview della demo: indicatori, ricavi e panoramica delle attività](project-docs/screenshots/overview.png)
+
+### Retention: scegliere chi contattare
+
+Ricerca e filtri permettono di consultare le opportunità ordinate per urgenza, con proposta principale e motivazione della priorità.
+
+![Retention della demo: filtri, priorità e opportunità commerciali](project-docs/screenshots/retention.png)
+
+### Scheda cliente: dalla proposta all’azione
+
+Il cliente sintetico DEMO-01842 ha acquistato un Neo a due ugelli. La scheda propone il concentratore compatibile non incluso, mostra alternative e calendario e permette di registrare il contatto effettuato fuori dal sistema.
+
+![Scheda cliente della demo: proposta motivata, alternative, calendario e registrazione del contatto](project-docs/screenshots/customer-detail.png)
+
+*Tutti gli screenshot utilizzano dati sintetici; i valori mostrati non rappresentano risultati aziendali reali.*
+
+## 6. Validazione e sviluppi
+
+Il progetto è attualmente un prototipo operativo con demo interattiva basata su dati sintetici.
+
+La logica di compatibilità e i flussi applicativi possono essere verificati, ma l'efficacia delle strategie commerciali non è ancora stata dimostrata su risultati reali.
+
+La fase successiva consiste nel raccogliere e analizzare gli esiti dei contatti per comprendere:
+
+- Quali strategie generano maggiore interesse.
+- Quali proposte si traducono in acquisti.
+- Quali intervalli temporali risultano più efficaci.
+- Quali regole richiedono modifiche o devono essere eliminate.
+
+La valutazione dovrà distinguere le vendite associate ai contatti da quelle effettivamente incrementali.
+
+**Il progetto segue quindi un processo iterativo: osservazione del problema, analisi dei dati, formulazione di ipotesi commerciali, sviluppo della soluzione e successiva validazione attraverso gli esiti reali.**
+
+---
 
 ## Avvia la demo in locale
 
