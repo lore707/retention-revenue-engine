@@ -716,6 +716,14 @@ def commercial_category(rule, definitions):
             definitions["operational_views"]["targeted_rule_types"] else "test")
 
 
+def contact_sequence_delay(rule, definitions):
+    """Distanza dalla fase accessori, mantenendo il ritmo standard dall'acquisto."""
+    timing = rule.get("timing", {})
+    if timing.get("reference") != "first_accessory_contact_or_source_purchase_without_applicable_accessories":
+        return None
+    return timing["minimum_days_inclusive"] - definitions["shared_policies"]["accessory_timing"]["minimum_days_inclusive"]
+
+
 def evaluate(customer, evaluation_date, rule_id="magnetic_concentrator_completion"):
     """Diagnostica commerciale della regola, con blocco consenso per ogni canale."""
     events = _visible_events(customer, evaluation_date)
@@ -970,7 +978,7 @@ def evaluate_portfolio(customer, evaluation_date, *, catalog=None, definitions=N
                          *plan["other_available_opportunities"]]:
             proposal["contact_timing"] = {"reference_date": anchor, "awaiting_first_contact": pending}
             if anchor:
-                days = rules_by_id[proposal["rule_id"]]["timing"]["minimum_days_inclusive"]
+                days = contact_sequence_delay(rules_by_id[proposal["rule_id"]], definitions)
                 eligible = max(_day(proposal["eligible_from_date"]), _day(anchor) + timedelta(days=days))
                 if plan["contact_count"] and _day(plan["first_contact_date"]) < eligible:
                     # Invio storico già avvenuto: non applicare il nuovo ritardo retroattivamente.

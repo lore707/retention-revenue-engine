@@ -100,6 +100,20 @@ function renderProfiles() {
   $('#profile-table').replaceChildren(scroll);
   $('#profile-note').textContent = rulebook.profile_note;
 }
+function renderCalendar() {
+  const headers = ['Fase', 'Percorso standard', 'Primo contatto in ritardo / ordine vecchio'];
+  const {scroll, body} = rulesTable(headers, 'Calendario standard e recupero ordini'); scroll.classList.add('rules-calendar-table');
+  for (const phase of rulebook.contact_calendar.rows) {
+    const row = element('tr'), title = element('th'); title.scope = 'row'; title.dataset.label = headers[0];
+    title.append(element('strong', phase.label)); row.append(title);
+    for (const [index, text] of [phase.standard, phase.delayed].entries()) {
+      const cell = element('td', text); cell.dataset.label = headers[index + 1]; row.append(cell);
+    }
+    body.append(row);
+  }
+  $('#calendar-table').replaceChildren(scroll);
+  $('#calendar-note').textContent = rulebook.contact_calendar.note;
+}
 async function loadRules() {
   try {
     const data = await api('/api/rules');
@@ -124,7 +138,7 @@ async function loadRules() {
         rulePickers.forEach(picker => {picker.select.value = ''; picker.update();}); renderRules();
       }); $('#rule-flow-tabs').append(button);
     }
-    rulePickers.forEach(picker => picker.update()); renderStrategies(); renderProfiles(); renderRules();
+    rulePickers.forEach(picker => picker.update()); renderStrategies(); renderProfiles(); renderCalendar(); renderRules();
   } catch (error) {if (disposed) return; $('#notice').hidden = false; $('#notice').textContent = error.message;}
 }
 $('#rule-filters').addEventListener('submit', event => event.preventDefault());

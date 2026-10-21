@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from src.engine import commercial_category, evaluate_portfolio
+from src.engine import commercial_category, contact_sequence_delay, evaluate_portfolio
 from src.shopify_orders import import_orders, sanitize_local_data
 from src.storage import Store
 
@@ -987,10 +987,11 @@ def _rule_timing(rule, definitions, opportunity=None):
         label = f"Da {days} gg"
         description = f"Da {days} giorni dall'acquisto di partenza."
     contact_timing = (opportunity or {}).get("contact_timing")
-    is_sequence = timing.get("reference") == "first_accessory_contact_or_source_purchase_without_applicable_accessories"
-    if is_sequence:
-        label = f"{days} gg dal contatto accessori"
-        description = (f"Da {days} giorni dal primo contatto accessori salvato, senza anticipare la soglia dall’acquisto reale. "
+    delay = contact_sequence_delay(rule, definitions)
+    if delay is not None:
+        label = f"{delay} gg dal contatto accessori"
+        description = (f"Da {days} giorni dall’acquisto nel percorso standard; se il primo contatto accessori slitta, "
+                       f"la fase matura dopo {delay} giorni da quell’invio, senza anticipare la soglia dall’acquisto reale. "
                        "Attende la conclusione delle fasi precedenti applicabili, senza obbligo di acquisto. "
                        "Se non esistono accessori applicabili né contatti accessori, resta la soglia dall’acquisto.")
     result = {"label": label, "days": days, "description": description,
@@ -1085,7 +1086,10 @@ def rules_summary():
                               "Accessori e complementi" if len(strategies) > 1 else
                               members[0]["strategy_label"] if len(members) > 1 else
                               " / ".join(dict.fromkeys(target["name"] for target in members[0]["targets"])))
-            stage["when"] = "Finestre stagionali" if stage["seasonal"] else _rule_timing(next(rule for rule in definitions["rules"] if rule["id"] == members[0]["id"]), definitions)["label"]
+            stage_rule = next(rule for rule in definitions["rules"] if rule["id"] == members[0]["id"])
+            stage["when"] = ("Finestre stagionali" if stage["seasonal"] else
+                             f"Giorno {stage['days']} · percorso standard" if contact_sequence_delay(stage_rule, definitions) is not None else
+                             _rule_timing(stage_rule, definitions)["label"])
             stage["description"] = (members[0]["timing"] if len(members) == 1 else
                                     "Una mail con le proposte applicabili al modello acquistato, escluse quelle già presenti. " + members[0]["timing"])
         supported = {source["product_key"] for item in family_rules for source in item["sources"]}
@@ -1125,7 +1129,18 @@ def rules_summary():
         {"key": "recent_activity", "label": "Alta attività recente",
          "criterion": f"Almeno {signals['recent_activity_minimum_orders']} ordini interamente validi negli ultimi {signals['recent_activity_calendar_days']} giorni, oggi incluso."},
     ]
+    accessory_days = shared["accessory_timing"]["minimum_days_inclusive"]
+    calendar_rows = [{"label": "Accessori e complementi", "standard": f"Da {accessory_days} giorni dall’acquisto",
+                      "delayed": "Primo contatto appena possibile, senza retrodatare l’acquisto"}]
+    for stage in shared["hair_dryer_contact_sequence"]["stages"][1:]:
+        rule = next(rule for rule in definitions["rules"] if rule["id"] == stage[0])
+        days = rule["timing"]["minimum_days_inclusive"]
+        calendar_rows.append({"label": "AutoCurl" if rule["relationship_type"] == "USE_CASE_COMPLEMENT" else "Espansione di categoria",
+                              "standard": f"Giorno {days} del percorso, se gli accessori sono stati comunicati al giorno {accessory_days}",
+                              "delayed": f"Dopo {contact_sequence_delay(rule, definitions)} giorni dal primo contatto accessori registrato"})
     return {"version": definitions["version"], "rules": rules, "flows": flows, "strategies": strategies,
+            "contact_calendar": {"rows": calendar_rows,
+                "note": "Un solo percorso: se il primo contatto accessori arriva in ritardo, slittano insieme le fasi successive mantenendo le stesse distanze. Le date degli acquisti restano reali. Ogni fase attende la conclusione delle precedenti applicabili, senza obbligo di acquisto. Il secondo tentativo non riavvia il calendario. Restano consenso e distanza minima fra contatti. Se non esistono accessori applicabili né contatti accessori, restano le soglie dall’acquisto."},
             "profiles": profiles,
             "profile_note": "I profili possono sovrapporsi e descrivono soltanto gli acquisti importati. Non cambiano la categoria commerciale e non autorizzano da soli un contatto.",
             "proposal_change": {"title": "Perché la proposta può cambiare?",
