@@ -274,10 +274,12 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if os.environ.get("DATABASE_URL") and os.environ.get("DATABASE_PATH"):
         parser.error("Configurare DATABASE_URL oppure DATABASE_PATH, non entrambi.")
+    if args.demo and args.database:
+        parser.error("La demo usa solo dati sintetici: rimuovere DATABASE_URL e DATABASE_PATH.")
     username, password = os.environ.get("RRE_USERNAME"), os.environ.get("RRE_PASSWORD")
     if bool(username) != bool(password) or (username and ":" in username):
         parser.error("Impostare RRE_USERNAME (senza due punti) e RRE_PASSWORD insieme.")
-    if (os.environ.get("RENDER") or args.host not in ("127.0.0.1", "localhost", "::1")) and not username:
+    if not args.demo and (os.environ.get("RENDER") or args.host not in ("127.0.0.1", "localhost", "::1")) and not username:
         parser.error("L'accesso remoto richiede RRE_USERNAME e RRE_PASSWORD.")
     if os.environ.get("RENDER") and not args.demo and not args.database:
         parser.error("Su Render impostare DATABASE_URL (PostgreSQL) oppure DATABASE_PATH sul disco persistente.")

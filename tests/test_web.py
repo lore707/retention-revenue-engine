@@ -1243,9 +1243,26 @@ class HostedServerTests(unittest.TestCase):
         finally:
             reopened.close()
 
+    def test_public_demo_startup_uses_only_synthetic_store_without_login(self):
+        with patch.dict("os.environ", {"RENDER": "true", "PORT": "10000"}, clear=True), \
+                patch("src.web.demo_store") as synthetic, patch("src.web.Store") as real_store, \
+                patch("src.web.make_handler", wraps=make_handler) as handler, \
+                patch("src.web.ThreadingHTTPServer") as server:
+            main(["--demo"])
+            synthetic.assert_called_once()
+            real_store.assert_not_called()
+            self.assertTrue(handler.call_args.kwargs["demo"])
+            self.assertIsNone(handler.call_args.kwargs["credentials"])
+            self.assertEqual(server.call_args.args[0], ("0.0.0.0", 10000))
+            server.return_value.serve_forever.assert_called_once()
+            synthetic.return_value.close.assert_called_once()
+
     def test_remote_startup_rejects_missing_login_or_missing_render_storage(self):
         for environment, arguments in [
             ({"RENDER": "true"}, []),
+            ({"RENDER": "true", "DATABASE_PATH": "synthetic.sqlite3"}, []),
+            ({"RENDER": "true", "DATABASE_URL": "postgresql://example.invalid/test"}, ["--demo"]),
+            ({"DATABASE_PATH": "synthetic.sqlite3"}, ["--demo"]),
             ({"RENDER": "true", "RRE_USERNAME": "synthetic", "RRE_PASSWORD": "password"}, []),
             ({}, ["--host", "0.0.0.0"]),
             ({"RRE_USERNAME": "synthetic"}, []),

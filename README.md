@@ -311,4 +311,6 @@ Sostituire la data con quella scelta per l'attivazione; non eseguire il comando 
 
 Test PostgreSQL reali: impostare `RRE_TEST_DATABASE_URL` su un database dedicato vuoto, mai quello operativo, ed eseguire `python -m unittest discover -s tests`. Il test copia dati sintetici e verifica nuovi import in una transazione annullata; senza questa variabile il test viene saltato esplicitamente.
 
-Per una sola prova gratuita con dati sintetici usare `python -m src.web --demo`, mantenendo `RRE_USERNAME` e `RRE_PASSWORD` e omettendo `DATABASE_PATH` e `DATABASE_URL`. I dati della demo e le sue registrazioni sono temporanei e vengono ricreati a ogni riavvio. Non usare questa modalità per l'operatività reale.
+Per una sola prova gratuita con dati sintetici usare `python -m src.web --demo`, omettendo `RRE_USERNAME`, `RRE_PASSWORD`, `DATABASE_PATH` e `DATABASE_URL` per una demo pubblica senza login. I dati della demo e le sue registrazioni sono temporanei e vengono ricreati a ogni riavvio. Non usare questa modalità per l'operatività reale.
+
+La modalità `--demo` può essere pubblicata senza autenticazione perché usa esclusivamente il database sintetico temporaneo. L’avvio rifiuta `DATABASE_URL` o `DATABASE_PATH` configurati insieme alla demo. La modalità operativa con dati reali continua a richiedere username e password per l’accesso remoto. Le credenziali restano facoltative per proteggere una demo se desiderato.
