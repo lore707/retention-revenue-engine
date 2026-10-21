@@ -183,8 +183,9 @@ class OverviewTests(unittest.TestCase):
         self.assertEqual(detail["event_templates"]["contact"]["date"], "2026-10-21")
         by_rule = {p["rule_id"]: plan for plan in detail["operator_timeline"] for p in plan["proposals"]}
         auto = by_rule["autocurl_cross_sell"]
-        self.assertEqual(auto["timing"]["label"], "Da 45 gg")
-        self.assertEqual(auto["eligible_from_date"], "2026-10-22")
+        self.assertEqual(auto["timing"]["label"], "45 gg dal contatto accessori")
+        self.assertTrue(auto["timing"]["awaiting_first_contact"])
+        self.assertIsNone(auto["timing"]["eligible_from_date"])
         self.assertIsNone(auto["next_contact_date"])
         self.assertEqual(by_rule["hair_dryer_to_shavers_category_expansion"]["timing"]["days"], 75)
         mini = by_rule["mini_travel_cross_sell"]
@@ -197,6 +198,17 @@ class OverviewTests(unittest.TestCase):
         record_event(self.store, "CUST_000001", {**detail["event_templates"]["contact"], "id": "ACTUAL-DATE"})
         saved = plan_detail(self.store, "CUST_000001", detail["plan_key"], "2026-10-21")
         self.assertEqual(saved["contacts"][0]["date"], "2026-10-21")
+        auto = next(p for p in saved["operator_timeline"] if p["timing"]["days"] == 45)
+        self.assertEqual(auto["timing"]["reference_date"], "2026-10-21")
+        self.assertEqual(auto["timing"]["eligible_from_date"], "2026-12-05")
+        self.assertIn("do_not_contact", saved["event_templates"])
+        with self.assertRaises(ValueError):
+            record_event(self.store, "CUST_000001", {**detail["event_templates"]["contact"], "date": "2026-10-22", "id": "EARLY"})
+        record_event(self.store, "CUST_000001", {**saved["event_templates"]["do_not_contact"], "id": "STOP"})
+        blocked = plan_detail(self.store, "CUST_000001", detail["plan_key"], "2026-10-21")
+        self.assertFalse(blocked["contact_permission"]["allowed"])
+        self.assertNotIn("contact", blocked["event_templates"])
+
 
     def test_repeat_head_timing_references_replacement_purchase_instead_of_initial_device(self):
         state = self.store.load_state()
@@ -411,7 +423,9 @@ class OverviewTests(unittest.TestCase):
         after_close = retention_summary(self.store, "2026-10-01")
         self.assertEqual(filter_retention(after_close, activity="today"), [])
         self.assertNotEqual(after_close["customers"][0]["plan_key"], original_plan)
-        self.assertEqual(after_close["customers"][0]["activity"], "opportunities")
+        self.assertIsNone(after_close["customers"][0]["activity"])
+        self.assertFalse(after_close["customers"][0]["contactable"])
+        self.assertEqual(retention_summary(self.store, "2026-10-30")["customers"][0]["activity"], "opportunities")
         self.assertEqual(after_close["customers"][0]["contact_count"], 0)
         self.assertEqual(sum(view["count"] for view in after_close["activity_views"])
                          + after_close["activity_unassigned_customers"], after_close["analyzed_customers"])
@@ -491,14 +505,14 @@ class OverviewTests(unittest.TestCase):
         plan, _ = self.first_contact()
         record_event(self.store, "CUST_000001", {"id": "CLOSE", "type": "plan_rejection",
                      "date": "2026-10-02", "plan_key": plan["plan_key"]})
-        data = retention_summary(self.store, "2026-10-20")
+        data = retention_summary(self.store, "2026-11-20")
         self.assertEqual(data["customers"][0]["category"], "test")
         self.assertEqual(data["customers"][0]["urgency"]["key"], "first_test")
         self.assertFalse(data["customers"][0]["urgency"]["mixed_plan"])
         self.assertEqual(filter_retention(data, category="test", state="closed", strategy="completion"), [])
         self.assertEqual(len(filter_retention(data, category="test", state="closed", strategy="completion", scope="all_plans")), 1)
         self.assertEqual(filter_retention(data, state="closed", strategy="expansion"), [])
-        self.assertEqual(len(filter_retention(data, state="open", strategy="expansion", scope="all_plans")), 1)
+        self.assertEqual(len(filter_retention(data, state="suspended", strategy="expansion", scope="all_plans")), 1)
         self.assertEqual(filter_retention(data, category="none", state="closed"), [])
         self.assertEqual(len(filter_retention(data)), 1)
 

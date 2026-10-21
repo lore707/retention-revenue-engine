@@ -1,5 +1,5 @@
 {
-  "version": 33,
+  "version": 34,
   "overview_activity": {
     "recent_days": 30
   },
@@ -71,7 +71,6 @@
       "keep_contacted_opportunity_primary_until_resolved": true,
       "operator_response_blocks_other_proposals": true,
       "queue_other_opportunities": true,
-      "promotion_precedes_uncontacted_prerequisites": true,
       "contact_plan_grouping": [
         "source_order_id",
         "commercial_track",
@@ -90,7 +89,7 @@
         "oldest_source_purchase",
         "rule_id_asc"
       ],
-      "approval": "Una sola raccomandazione per cliente. Piani già contattati e risposte mantengono precedenza; fra nuovi piani maturi mirate prima dei test anche in promozione, poi promozione, finestra stagionale e criteri economici esistenti. Le promozioni superano solo prerequisiti da testare mai contattati. Almeno 15 giorni tra contatti."
+      "approval": "Una sola raccomandazione per cliente. Piani contattati e risposte mantengono precedenza; fra nuovi piani maturi e consentiti mirate prima dei test anche in promozione. Il percorso asciugacapelli attende le fasi precedenti applicabili senza deroghe promozionali. Almeno 15 giorni tra contatti."
     },
     "marketing_consent": {
       "required": true,
@@ -98,6 +97,26 @@
       "accepted_status": "subscribed",
       "missing_or_unknown": "blocked",
       "recheck": "before_every_contact"
+    },
+    "hair_dryer_contact_sequence": {
+      "stages": [
+        [
+          "magnetic_concentrator_completion",
+          "se_lite_diffuser_completion",
+          "mini_wall_mount_completion",
+          "neo_wall_mount_completion",
+          "storage_pouch_cross_sell",
+          "brush_complement"
+        ],
+        [
+          "autocurl_cross_sell"
+        ],
+        [
+          "hair_dryer_to_wave_pro_category_expansion",
+          "hair_dryer_to_shavers_category_expansion"
+        ]
+      ],
+      "approval": "Accessori dal giorno 15 dell’acquisto reale; AutoCurl dopo 45 giorni e espansione dopo 75 giorni dal primo contatto accessori salvato. Ogni fase attende la conclusione delle precedenti applicabili, senza obbligo di acquisto e senza deroga promozionale. Se non esiste un piano accessori né un suo contatto, restano le soglie dall’acquisto; le fasi non applicabili vengono saltate. Piani già contattati conservano eventi e identità."
     }
   },
   "rules": [
@@ -271,7 +290,7 @@
     },
     {
       "id": "autocurl_cross_sell",
-      "version": 5,
+      "version": 6,
       "status": "approved_for_manual_pilot",
       "relationship_type": "USE_CASE_COMPLEMENT",
       "commercial_track": "category_expansion",
@@ -343,22 +362,14 @@
       ],
       "plan_rank": 100,
       "plan_rank_reason": "Complemento di styling ad alto valore nominale.",
-      "approval": "Confermato dal business: AutoCurl resta complemento da testare dal giorno 45, in una mail dedicata separata dalle espansioni del giorno 75. Attende i piani accessori applicabili dello stesso ordine; restano precedenze, promozioni e almeno 15 giorni fra contatti.",
+      "approval": "Fase del percorso asciugacapelli: soglia dall’acquisto reale e attesa dal primo contatto accessori, con chiusura dei piani precedenti applicabili; nessun acquisto obbligatorio. Mail dedicata AutoCurl, complemento da testare.",
       "timing": {
-        "reference": "source_hair_dryer_purchase_date",
+        "reference": "first_accessory_contact_or_source_purchase_without_applicable_accessories",
         "minimum_days_inclusive": 45,
         "maximum_days": null,
         "day_count": "calendar_days",
         "timezone": "Europe/Rome"
-      },
-      "wait_for_rules": [
-        "magnetic_concentrator_completion",
-        "se_lite_diffuser_completion",
-        "mini_wall_mount_completion",
-        "neo_wall_mount_completion",
-        "storage_pouch_cross_sell",
-        "brush_complement"
-      ]
+      }
     },
     {
       "id": "mini_travel_cross_sell",
@@ -449,7 +460,7 @@
     },
     {
       "id": "hair_dryer_to_wave_pro_category_expansion",
-      "version": 4,
+      "version": 5,
       "status": "approved_for_manual_pilot",
       "relationship_type": "CATEGORY_EXPANSION",
       "commercial_track": "category_expansion",
@@ -479,7 +490,7 @@
         "meaning": "Valore nominale prudenziale della variante Wave Pro; non revenue attribuita."
       },
       "timing": {
-        "reference": "source_hair_dryer_purchase_date",
+        "reference": "first_accessory_contact_or_source_purchase_without_applicable_accessories",
         "minimum_days_inclusive": 75,
         "maximum_days": null,
         "day_count": "calendar_days",
@@ -532,11 +543,11 @@
       ],
       "plan_rank": 100,
       "plan_rank_reason": "Espansione verso una categoria Laifen non ancora posseduta.",
-      "approval": "Confermato dal business: dal giorno 75 dopo il phon, Wave Pro e rasoi condividono una mail di espansione. Esclusioni di categoria indipendenti; P3 Pro e P3 sono alternative. AutoCurl appartiene al piano separato del giorno 45. Ordine interno secondo priorità del motore, senza imporre Wave Pro come primo."
+      "approval": "Fase del percorso asciugacapelli: soglia dall’acquisto reale e attesa dal primo contatto accessori, con chiusura dei piani precedenti applicabili; nessun acquisto obbligatorio. Wave Pro e rasoi nella stessa mail; esclusioni delle categorie indipendenti e priorità interne invariate."
     },
     {
       "id": "hair_dryer_to_shavers_category_expansion",
-      "version": 3,
+      "version": 4,
       "status": "approved_for_manual_pilot",
       "relationship_type": "CATEGORY_EXPANSION",
       "commercial_track": "category_expansion",
@@ -564,7 +575,7 @@
         "meaning": "Prezzo minimo delle alternative P3/P3 Pro, non somma dei prezzi e non revenue attribuita."
       },
       "timing": {
-        "reference": "source_hair_dryer_purchase_date",
+        "reference": "first_accessory_contact_or_source_purchase_without_applicable_accessories",
         "minimum_days_inclusive": 75,
         "maximum_days": null,
         "day_count": "calendar_days",
@@ -617,7 +628,7 @@
       ],
       "plan_rank": 100,
       "plan_rank_reason": "Espansione verso una categoria Laifen non ancora posseduta.",
-      "approval": "Confermato dal business: dal giorno 75 dopo il phon, Wave Pro e rasoi condividono una mail di espansione. Esclusioni di categoria indipendenti; P3 Pro e P3 sono alternative. AutoCurl appartiene al piano separato del giorno 45. Ordine interno secondo priorità del motore, senza imporre Wave Pro come primo."
+      "approval": "Fase del percorso asciugacapelli: soglia dall’acquisto reale e attesa dal primo contatto accessori, con chiusura dei piani precedenti applicabili; nessun acquisto obbligatorio. Wave Pro e rasoi nella stessa mail; esclusioni delle categorie indipendenti e priorità interne invariate."
     },
     {
       "id": "toothbrush_to_neo_category_expansion",

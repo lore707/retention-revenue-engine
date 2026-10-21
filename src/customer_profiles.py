@@ -441,7 +441,7 @@ def plan_detail(store, customer_id, plan_key, as_of):
         if reference:
             templates["contact"]["cycle_reference_purchase_id"] = reference
     if contacts:
-        for kind in ("reply", "product_interest", "product_rejection", "plan_rejection", "conversation_closed"):
+        for kind in ("reply", "product_interest", "product_rejection", "plan_rejection", "conversation_closed", "do_not_contact"):
             templates[kind] = {**base, "type": kind}
         templates["reply"]["rule_id"] = contacts[-1]["rule_id"]
         if contacts[-1].get("cycle_reference_purchase_id"):
@@ -537,7 +537,7 @@ def record_event(store, customer_id, event):
     kind = event.get("type")
     allowed = {"contact", "reply", "rejection", "product_interest",
                "product_rejection", "plan_rejection", "conversation_closed",
-               "verified_purchase", "revenue_correction"}
+               "verified_purchase", "revenue_correction", "do_not_contact"}
     if kind not in allowed or not isinstance(event.get("plan_key"), list):
         raise ValueError("Tipo evento o plan_key non valido.")
     if kind in {"verified_purchase", "revenue_correction"}:
@@ -986,10 +986,26 @@ def _rule_timing(rule, definitions, opportunity=None):
         days = timing.get("minimum_days_inclusive", timing.get("after_calendar_days"))
         label = f"Da {days} gg"
         description = f"Da {days} giorni dall'acquisto di partenza."
-    return {"label": label, "days": days, "description": description,
+    contact_timing = (opportunity or {}).get("contact_timing")
+    is_sequence = timing.get("reference") == "first_accessory_contact_or_source_purchase_without_applicable_accessories"
+    if is_sequence:
+        label = f"{days} gg dal contatto accessori"
+        description = (f"Da {days} giorni dal primo contatto accessori salvato, senza anticipare la soglia dall’acquisto reale. "
+                       "Attende la conclusione delle fasi precedenti applicabili, senza obbligo di acquisto. "
+                       "Se non esistono accessori applicabili né contatti accessori, resta la soglia dall’acquisto.")
+    result = {"label": label, "days": days, "description": description,
             "reference_label": "Acquisto ricambio" if repeat else "Acquisto di riferimento",
             "reference_date": (opportunity.get("cycle_reference_purchase_date") if repeat else opportunity.get("source_purchase_date")) if opportunity else None,
             "eligible_from_date": opportunity.get("eligible_from_date") if opportunity else None}
+    if contact_timing:
+        result.update(reference_label="Primo contatto accessori" if contact_timing["reference_date"] else "Acquisto di riferimento",
+                      reference_date=contact_timing["reference_date"] or result["reference_date"],
+                      awaiting_first_contact=contact_timing["awaiting_first_contact"])
+        if contact_timing["awaiting_first_contact"]:
+            result.update(reference_date=None, eligible_from_date=None)
+        elif not contact_timing["reference_date"]:
+            result["label"] = f"Da {days} gg"
+    return result
 
 
 def rules_summary():
@@ -1036,7 +1052,9 @@ def rules_summary():
                                    "variant_label": " · ".join(variants[sku][field] for field in ("material", "color") if variants[sku].get(field)),
                                    "value_minor": variants[sku]["observed_price_minor"]} for sku in targets],
                       "rationale": rule["rationale"], "timing": when, "exclusions": conditions,
-                      "wait_for_rules": rule.get("wait_for_rules", []),
+                      "wait_for_rules": [previous for i, stage in enumerate(shared["hair_dryer_contact_sequence"]["stages"])
+                                         if rule["id"] in stage for previous_stage in shared["hair_dryer_contact_sequence"]["stages"][:i]
+                                         for previous in previous_stage],
                       "compatibility": [f"{target_product['name']}: {item['model']} — "
                                         + ("compatibile" if item["compatible"] else "non compatibile")
                                         for target_product in products.values()
@@ -1067,9 +1085,9 @@ def rules_summary():
                               "Accessori e complementi" if len(strategies) > 1 else
                               members[0]["strategy_label"] if len(members) > 1 else
                               " / ".join(dict.fromkeys(target["name"] for target in members[0]["targets"])))
-            stage["when"] = "Finestre stagionali" if stage["seasonal"] else f"Da {stage['days']} giorni"
+            stage["when"] = "Finestre stagionali" if stage["seasonal"] else _rule_timing(next(rule for rule in definitions["rules"] if rule["id"] == members[0]["id"]), definitions)["label"]
             stage["description"] = (members[0]["timing"] if len(members) == 1 else
-                                    "Una mail con le proposte applicabili al modello acquistato, escluse quelle già presenti.")
+                                    "Una mail con le proposte applicabili al modello acquistato, escluse quelle già presenti. " + members[0]["timing"])
         supported = {source["product_key"] for item in family_rules for source in item["sources"]}
         flows.append({"id": family, "label": label, "rule_ids": [item["id"] for item in family_rules],
                       "models": [product["name"] for product in products.values() if product["category"] == family],
@@ -1111,7 +1129,7 @@ def rules_summary():
             "profiles": profiles,
             "profile_note": "I profili possono sovrapporsi e descrivono soltanto gli acquisti importati. Non cambiano la categoria commerciale e non autorizzano da soli un contatto.",
             "proposal_change": {"title": "Perché la proposta può cambiare?",
-                "description": "Se matura una nuova espansione, il sistema può passare dalla pochette al rasoio, secondo le priorità previste. Di conseguenza cambia anche il valore potenziale.",
+                "description": "Quando il piano precedente si conclude e matura la fase successiva, il sistema può cambiare proposta principale. Di conseguenza cambia anche il valore potenziale. Le fasi successive non richiedono un acquisto: valgono anche rifiuto del piano o tentativi esauriti. Le date degli acquisti restano reali.",
                 "caveat": "Il valore nominale non è una probabilità di acquisto."}}
 
 

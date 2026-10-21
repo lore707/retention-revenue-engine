@@ -225,7 +225,7 @@ class EngineTests(unittest.TestCase):
         result = evaluate_portfolio(snapshot, "2026-10-12")
         expansion = next(plan for plan in [result["primary_contact_plan"],
                                          *result["queued_contact_plans"]]
-                         if plan["commercial_track"] == "category_expansion")
+                         if plan["primary_opportunity"]["rule_id"] == HAIR_TO_SHAVERS_RULE)
         shavers = expansion["primary_opportunity"]
         self.assertEqual(shavers["rule_id"], HAIR_TO_SHAVERS_RULE)
         self.assertEqual(shavers["nominal_value_minor"], 13999)
@@ -239,7 +239,7 @@ class EngineTests(unittest.TestCase):
         excluded = evaluate_portfolio(snapshot, "2026-10-12")
         remaining = next(plan for plan in [excluded["primary_contact_plan"],
                                          *excluded["queued_contact_plans"]]
-                         if plan["commercial_track"] == "category_expansion")
+                         if plan["primary_opportunity"]["rule_id"] == HAIR_TO_WAVE_RULE)
         self.assertEqual(remaining["primary_opportunity"]["rule_id"], HAIR_TO_WAVE_RULE)
 
     def test_mature_replenishment_beats_promoted_expansion_but_immature_does_not(self):
@@ -250,6 +250,7 @@ class EngineTests(unittest.TestCase):
             purchase("POUCH", "CL51809", "2026-01-01"),
             purchase("BRUSH", "30101-000041", "2026-01-01"),
             purchase("WAVE", "CR95008", "2026-05-16", order_id="WAVE"))
+        snapshot["purchases"].append(purchase("AUTO_OWNED", "1HC51-P-EU-BL-001", "2026-01-10"))
         before = evaluate_portfolio(snapshot, "2026-10-12")
         self.assertEqual(before["primary_contact_plan"]["primary_opportunity"]["rule_id"], HAIR_TO_SHAVERS_RULE)
         mature = evaluate_portfolio(snapshot, "2026-10-13")
@@ -262,7 +263,7 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(locked["primary_contact_plan"]["plan_key"], key)
         self.assertEqual(locked["portfolio_status"], "deferred")
 
-    def test_promotion_changes_priority_only_inside_its_window(self):
+    def test_promotion_does_not_bypass_uncontacted_autocurl_phase(self):
         snapshot = customer(
             purchase(day="2026-06-01", order_id="HAIR_ORDER"),
             purchase("POUCH", "CL51809", "2026-06-10"),
@@ -275,9 +276,9 @@ class EngineTests(unittest.TestCase):
                          ["primary_contact_plan"]["primary_opportunity"]["rule_id"], AUTOCURL_RULE)
         promoted = evaluate_portfolio(snapshot, "2026-10-12")
         self.assertEqual(promoted["primary_contact_plan"]["primary_opportunity"]["rule_id"],
-                         HAIR_TO_WAVE_RULE)
+                         AUTOCURL_RULE)
         self.assertEqual(promoted["primary_contact_plan"]["primary_opportunity"]["nominal_value_minor"],
-                         8499)
+                         9999)
         self.assertEqual(evaluate_portfolio(snapshot, "2026-10-19")
                          ["primary_contact_plan"]["primary_opportunity"]["rule_id"], AUTOCURL_RULE)
 
@@ -306,7 +307,7 @@ class EngineTests(unittest.TestCase):
                          ["primary_contact_plan"]["primary_opportunity"]["rule_id"], POUCH_RULE)
         self.assertEqual(evaluate_portfolio(snapshot, "2026-10-13")
                          ["primary_contact_plan"]["primary_opportunity"]["rule_id"],
-                         HAIR_TO_SHAVERS_RULE)
+                         POUCH_RULE)
         snapshot["purchases"].extend([
             purchase("SHAVER", "CP96308", "2026-09-01"),
             purchase("WAVE", "CR95008", "2026-09-01"),
@@ -329,7 +330,7 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["next_contact_date"], "2026-10-22")
         expansion = next(plan for plan in result["queued_contact_plans"]
                          if plan["commercial_track"] == "category_expansion")
-        self.assertEqual(expansion["raw_status"], "deferred")
+        self.assertEqual(expansion["raw_status"], "waiting_for_plan")
         snapshot["events"].append({**event("REPLY", "reply", "2026-10-08", POUCH_RULE),
                                    "plan_key": key})
         result = evaluate_portfolio(snapshot, "2026-10-12")
@@ -344,6 +345,7 @@ class EngineTests(unittest.TestCase):
             purchase("MOUNT", "30101-000092", "2026-01-10"),
             purchase("BRUSH", "30101-000041", "2026-01-10"),
         )
+        snapshot["purchases"].append(purchase("AUTO_OWNED", "1HC51-P-EU-BL-001", "2026-01-10"))
         self.assertEqual(evaluate_portfolio(snapshot, "2026-05-14")
                          ["primary_contact_plan"]["primary_opportunity"]["rule_id"],
                          HAIR_TO_SHAVERS_RULE)
@@ -386,6 +388,68 @@ class EngineTests(unittest.TestCase):
                              key, [POUCH_RULE, RULE, NEO_WALL_MOUNT_RULE, BRUSH_RULE])]
         return snapshot, key
 
+    def test_old_order_sequence_starts_at_actual_contact_and_keeps_plan_identity(self):
+        snapshot = customer(purchase(day="2026-01-01", order_id="OLD"),
+                            purchase("OWNED_CONCENTRATOR", "CP34473", "2026-01-02"),
+                            purchase("OWNED_MINI", "CP34448", "2026-01-02"),
+                            purchase("OWNED_MINI_MOUNT", "CP34501", "2026-01-02"))
+        original = copy.deepcopy(snapshot)
+        initial = evaluate_portfolio(snapshot, "2026-10-21")
+        accessory = initial["primary_contact_plan"]
+        self.assertEqual(accessory["primary_opportunity"]["rule_id"], NEO_WALL_MOUNT_RULE)
+        self.assertEqual(accessory["eligible_from_date"], "2026-01-16")
+        later = {p["primary_opportunity"]["rule_id"]: p for p in initial["queued_contact_plans"]}
+        self.assertTrue(later[AUTOCURL_RULE]["primary_opportunity"]["contact_timing"]["awaiting_first_contact"])
+        self.assertEqual(later[HAIR_TO_SHAVERS_RULE]["raw_status"], "waiting_for_plan")
+        self.assertEqual(snapshot, original)
+        snapshot["events"] = [plan_event("START", "contact", "2026-10-21", NEO_WALL_MOUNT_RULE,
+                                 accessory["plan_key"], [NEO_WALL_MOUNT_RULE, POUCH_RULE, BRUSH_RULE])]
+        for day, closure in (("2026-10-22", "plan_rejection"), ("2026-11-05", "contact"),
+                             ("2026-10-22", "verified_purchase")):
+            with self.subTest(closure=closure):
+                current = copy.deepcopy(snapshot)
+                current["events"].append(plan_event("CLOSE", closure, day, NEO_WALL_MOUNT_RULE,
+                                            accessory["plan_key"], [NEO_WALL_MOUNT_RULE, POUCH_RULE, BRUSH_RULE]))
+                before = evaluate_portfolio(current, "2026-12-04")
+                auto = before["primary_contact_plan"]
+                self.assertEqual(auto["primary_opportunity"]["rule_id"], AUTOCURL_RULE)
+                self.assertEqual(auto["eligible_from_date"], "2026-12-05")
+                self.assertEqual(auto["plan_key"], later[AUTOCURL_RULE]["plan_key"])
+                self.assertEqual(before["portfolio_status"], "deferred")
+                ready = evaluate_portfolio(current, "2026-12-05")
+                self.assertEqual(ready["portfolio_status"], "contact_review")
+                # A mature expansion still waits for the uncontacted AutoCurl phase.
+                waiting = evaluate_portfolio(current, "2027-01-04")
+                expansion = next(p for p in waiting["queued_contact_plans"]
+                                 if p["primary_opportunity"]["rule_id"] == HAIR_TO_SHAVERS_RULE)
+                self.assertEqual(expansion["eligible_from_date"], "2027-01-04")
+                self.assertEqual(expansion["raw_status"], "waiting_for_plan")
+                current["events"].extend([
+                    plan_event("AUTO", "contact", "2026-12-05", AUTOCURL_RULE, auto["plan_key"], [AUTOCURL_RULE]),
+                    {"id": "AUTO_NO", "type": "plan_rejection", "date": "2026-12-06", "plan_key": auto["plan_key"]}])
+                self.assertEqual(evaluate_portfolio(current, "2027-01-03")["portfolio_status"], "deferred")
+                released = evaluate_portfolio(current, "2027-01-04")
+                self.assertEqual(released["portfolio_status"], "contact_review")
+                self.assertEqual(released["primary_contact_plan"]["plan_key"], expansion["plan_key"])
+                self.assertEqual(released, evaluate_portfolio(current, "2027-01-04"))
+        # A first contact with no closure never releases the subsequent phases.
+        waiting = evaluate_portfolio(snapshot, "2027-01-04")
+        self.assertEqual(waiting["primary_contact_plan"]["plan_key"], accessory["plan_key"])
+        self.assertTrue(all(p["raw_status"] == "waiting_for_plan" for p in waiting["queued_contact_plans"]
+                            if p["primary_opportunity"]["rule_id"] in {AUTOCURL_RULE, HAIR_TO_SHAVERS_RULE}))
+
+    def test_sequence_purchase_and_opt_out_have_distinct_effects(self):
+        snapshot, key = self.accessory_snapshot()
+        snapshot["purchases"].append(purchase("BOUGHT_BRUSH", "30101-000041", "2026-01-20"))
+        ready = evaluate_portfolio(snapshot, "2026-03-02")
+        self.assertEqual(ready["primary_contact_plan"]["primary_opportunity"]["rule_id"], AUTOCURL_RULE)
+        snapshot["events"].append({"id": "STOP", "type": "do_not_contact", "date": "2026-03-03", "plan_key": key})
+        self.assertTrue(evaluate_portfolio(snapshot, "2026-03-02")["contact_permission"]["allowed"])
+        blocked = evaluate_portfolio(snapshot, "2026-03-03")
+        self.assertFalse(blocked["contact_permission"]["allowed"])
+        self.assertEqual(blocked["portfolio_status"], "blocked_consent")
+        self.assertFalse(evaluate(snapshot, "2026-03-03", AUTOCURL_RULE)["contact_permission"]["allowed"])
+
     def test_day_45_plan_waits_for_accessories_and_second_contact_cooldown(self):
         snapshot, key = self.accessory_snapshot()
         open_plan = evaluate_portfolio(snapshot, "2026-01-31")
@@ -396,8 +460,8 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(before["primary_contact_plan"]["primary_opportunity"]["rule_id"],
                          AUTOCURL_RULE)
         self.assertEqual(before["portfolio_status"], "deferred")
-        self.assertEqual(before["next_contact_date"], "2026-02-15")
-        ready = evaluate_portfolio(snapshot, "2026-02-15")
+        self.assertEqual(before["next_contact_date"], "2026-03-02")
+        ready = evaluate_portfolio(snapshot, "2026-03-02")
         self.assertEqual(ready["portfolio_status"], "contact_review")
         self.assertEqual({key[1] for key in ready["primary_contact_plan"]["included_opportunity_keys"]},
                          {AUTOCURL_RULE})
@@ -407,7 +471,7 @@ class EngineTests(unittest.TestCase):
     def test_purchase_of_presented_secondary_closes_shared_contact_plan(self):
         snapshot, key = self.accessory_snapshot()
         snapshot["purchases"].append(purchase("BRUSH", "30101-000041", "2026-01-20"))
-        result = evaluate_portfolio(snapshot, "2026-02-15")
+        result = evaluate_portfolio(snapshot, "2026-03-02")
         self.assertEqual(result["primary_contact_plan"]["primary_opportunity"]["rule_id"],
                          AUTOCURL_RULE)
         self.assertEqual({item["rule_id"] for item in result["suppressed_opportunities"]},
@@ -424,13 +488,13 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["portfolio_status"], "contact_review")
         self.assertEqual(result["primary_contact_plan"]["contact_count"], 1)
 
-    def test_plan_rejection_releases_day_45_plan_after_contact_gap(self):
+    def test_plan_rejection_releases_autocurl_after_contact_relative_maturity(self):
         snapshot, key = self.accessory_snapshot()
         snapshot["events"].append({"id": "NO", "type": "plan_rejection", "date": "2026-01-17", "plan_key": key})
         result = evaluate_portfolio(snapshot, "2026-02-14")
         self.assertEqual(result["primary_contact_plan"]["primary_opportunity"]["rule_id"],
                          AUTOCURL_RULE)
-        self.assertEqual(result["next_contact_date"], "2026-02-15")
+        self.assertEqual(result["next_contact_date"], "2026-03-02")
         self.assertEqual(len(result["suppressed_opportunities"]), 4)
 
     def test_product_rejection_does_not_close_other_accessories(self):
@@ -503,7 +567,8 @@ class EngineTests(unittest.TestCase):
             self.assertEqual(evaluate(snapshot, "2026-03-16", rule)["status"], "deferred")
             self.assertEqual(evaluate(snapshot, "2026-03-17", rule)["status"], "first_contact_review")
         result = evaluate_portfolio(snapshot, "2026-03-17")
-        plan = result["primary_contact_plan"]
+        plan = next(p for p in result["queued_contact_plans"] if p["primary_opportunity"]["rule_id"] == HAIR_TO_SHAVERS_RULE)
+        self.assertEqual(plan["raw_status"], "waiting_for_plan")
         self.assertEqual(plan["eligible_from_date"], "2026-03-17")
         self.assertEqual(plan["primary_opportunity"]["rule_id"], HAIR_TO_SHAVERS_RULE)
         self.assertEqual(plan["primary_opportunity"]["nominal_value_minor"], 16999)
@@ -511,7 +576,7 @@ class EngineTests(unittest.TestCase):
                          ["laifen_p3_pro", "laifen_p3_pro", "laifen_p3", "laifen_p3"])
         self.assertEqual({o["rule_id"] for o in plan["secondary_opportunities"]}, {HAIR_TO_WAVE_RULE})
         self.assertTrue(any(p["primary_opportunity"]["rule_id"] == AUTOCURL_RULE
-                            for p in result["queued_contact_plans"]))
+                            for p in [result["primary_contact_plan"], *result["queued_contact_plans"]]))
         self.assertEqual(result, evaluate_portfolio(snapshot, "2026-03-17"))
         for owned, expected in (("CR95008", {HAIR_TO_SHAVERS_RULE}),
                                 ("CL97510", {HAIR_TO_SHAVERS_RULE}),
@@ -553,7 +618,7 @@ class EngineTests(unittest.TestCase):
         auto = next(p for p in plans if p["primary_opportunity"]["rule_id"] == AUTOCURL_RULE)
         expansion = next(p for p in plans if p["eligible_from_date"] == "2026-03-17")
         self.assertEqual(auto["raw_status"], "waiting_for_plan")
-        self.assertEqual(expansion["raw_status"], "first_contact_review")
+        self.assertEqual(expansion["raw_status"], "waiting_for_plan")
 
     def test_shaver_purchase_closes_combined_plan_without_wave_sequence(self):
         for sku in ("CP96308", "CP96436", "1ER91-P-XX-BL-002", "1ER91-P-XX-WH-002", "CR95008"):
@@ -1447,6 +1512,7 @@ class EngineTests(unittest.TestCase):
             purchase("MOUNT", "30101-000092", "2026-01-10"),
             purchase("BRUSH", "30101-000041", "2026-01-10"),
         )
+        snapshot["purchases"].append(purchase("AUTO_OWNED", "1HC51-P-EU-BL-001", "2026-01-10"))
         result = evaluate_portfolio(snapshot, "2026-10-19")
         primary = result["primary_contact_plan"]["primary_opportunity"]
         self.assertEqual(primary["rule_id"], HAIR_TO_SHAVERS_RULE)
@@ -1888,7 +1954,7 @@ class EngineTests(unittest.TestCase):
             self.assertIn("| Dal | Stato | Prossimo contatto |", view)
             self.assertIn("Consenso: subscribed", view)
             self.assertIn("AutoCurl", view)
-            self.assertIn("Attendere la chiusura del piano accessori", view)
+            self.assertIn("Attendere la conclusione dei piani precedenti", view)
             self.assertEqual(list(Path(folder).iterdir()), [input_file])
 
 

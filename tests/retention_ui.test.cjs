@@ -510,7 +510,7 @@ test('Rules preserves product flows and replaces old guides with the five strate
       assert.deepEqual(row.children.map(cell => cell.dataset.label), labels);
     }
   }
-  assert(h.$('#proposal-change').textContent.includes('dalla pochette al rasoio'));
+  assert(h.$('#proposal-change').textContent.includes('piano precedente si conclude'));
   assert.equal(h.$('#proposal-change').querySelector('strong').textContent, h.data.proposal_change.caveat);
 });
 
@@ -596,6 +596,12 @@ test('future plans show backend day thresholds and keep seasonal windows distinc
   assert.equal(section.querySelectorAll('.customer-timing-label').map(node => node.textContent).join(','), 'Da 45 gg,Stagionale');
   assert(section.textContent.includes('Data di contatto da rivalutare'));
   assert(section.querySelector('.customer-next-date').title.includes('non data di invio'));
+  h.context.timingDetail.operator_timeline[0].timing = {label: '45 gg dal contatto accessori',
+    description: 'Dopo il primo contatto accessori', awaiting_first_contact: true, eligible_from_date: null};
+  const pending = vm.runInContext('nextOpportunities(timingDetail)', h.context);
+  assert(pending.textContent.includes('Dopo il primo contatto accessori'));
+  assert(!pending.textContent.includes('22 ott 2026'));
+
 });
 
 test('internal navigation reuses the document, restores URLs on Back and cleans page listeners', async () => {

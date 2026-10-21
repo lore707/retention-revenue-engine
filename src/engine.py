@@ -652,7 +652,7 @@ def _visible_events(customer, evaluation_date):
         if event["type"] not in {
             "contact", "reply", "rejection", "product_interest", "product_rejection",
             "plan_rejection", "conversation_closed", "verified_purchase",
-            "revenue_correction",
+            "revenue_correction", "do_not_contact",
         }:
             raise ValueError("Tipo evento non riconosciuto.")
         if event["type"] in {"product_interest", "product_rejection",
@@ -679,7 +679,8 @@ def _commercial_snapshot(customer, events):
         if event["type"] == "reply" and day <= closed.get(tuple(event.get("plan_key", [])), date.min):
             continue
         retained.append(event)
-    return {**customer, "events": retained}
+    return {**customer, "events": retained,
+            "do_not_contact": customer.get("do_not_contact", False) or any(event["type"] == "do_not_contact" for _, event in events)}
 
 
 def _contact_permission(customer, *, definitions=None):
@@ -718,10 +719,8 @@ def commercial_category(rule, definitions):
 def evaluate(customer, evaluation_date, rule_id="magnetic_concentrator_completion"):
     """Diagnostica commerciale della regola, con blocco consenso per ogni canale."""
     events = _visible_events(customer, evaluation_date)
-    return _apply_permission(
-        _evaluate(_commercial_snapshot(customer, events), evaluation_date, rule_id),
-        _contact_permission(customer),
-    )
+    snapshot = _commercial_snapshot(customer, events)
+    return _apply_permission(_evaluate(snapshot, evaluation_date, rule_id), _contact_permission(snapshot))
 
 
 def _contact_plan_closure(plan_events, contact_count, presented_results, maximum_contacts):
@@ -948,25 +947,50 @@ def evaluate_portfolio(customer, evaluation_date, *, catalog=None, definitions=N
             "blocking_plan_keys": [],
         })
 
+    # La chiave resta quella originale: cambiare calendario non crea un nuovo piano.
+    sequence = definitions["shared_policies"]["hair_dryer_contact_sequence"]["stages"]
     for plan in plans:
-        waits_for = {
-            rule_id for key in plan["included_opportunity_keys"]
-            for rule_id in rules_by_id[key[1]].get("wait_for_rules", [])
-        }
+        ids = {key[1] for key in plan["included_opportunity_keys"]}
+        stage = next((i for i, members in enumerate(sequence) if ids.intersection(members)), None)
+        if stage is None or stage == 0:
+            continue
+        preceding = set(rule_id for members in sequence[:stage] for rule_id in members)
         blockers = [other for other in plans if other is not plan
                     and other["source_order_id"] == plan["source_order_id"]
-                    and any(key[1] in waits_for for key in other["included_opportunity_keys"])]
-        if (policy["promotion_precedes_uncontacted_prerequisites"]
-                and plan["primary_opportunity"]["promotion_active"]):
-            blockers = [other for other in blockers if other["contact_count"] or
-                        other["primary_opportunity"]["commercial_category"] == "targeted"]
+                    and any(key[1] in preceding for key in other["included_opportunity_keys"])]
+        anchor_contacts = [day for day, event in visible_events if event["type"] == "contact"
+                           and event.get("plan_key", [None])[0] == plan["source_order_id"]
+                           and any(key[1] in sequence[0] for key in
+                                   event.get("included_opportunity_keys", [[None, event.get("rule_id")]]))]
+        accessory_pending = any(any(key[1] in sequence[0] for key in other["included_opportunity_keys"])
+                                for other in blockers)
+        anchor = min(anchor_contacts).isoformat() if anchor_contacts else None
+        pending = not anchor and accessory_pending and not plan["contact_count"]
+        for proposal in [plan["primary_opportunity"], *plan["secondary_opportunities"],
+                         *plan["other_available_opportunities"]]:
+            proposal["contact_timing"] = {"reference_date": anchor, "awaiting_first_contact": pending}
+            if anchor:
+                days = rules_by_id[proposal["rule_id"]]["timing"]["minimum_days_inclusive"]
+                eligible = max(_day(proposal["eligible_from_date"]), _day(anchor) + timedelta(days=days))
+                if plan["contact_count"] and _day(plan["first_contact_date"]) < eligible:
+                    # Invio storico già avvenuto: non applicare il nuovo ritardo retroattivamente.
+                    proposal["contact_timing"]["reference_date"] = None
+                else:
+                    proposal["eligible_from_date"] = eligible.isoformat()
+        plan["eligible_from_date"] = plan["primary_opportunity"]["eligible_from_date"]
+        if plan["contact_count"]:
+            continue
+        if anchor and today < _day(plan["eligible_from_date"]):
+            plan["raw_status"] = "deferred"
+            plan["raw_next_contact_date"] = plan["eligible_from_date"]
+            plan["primary_opportunity"].update(status="deferred", next_contact_date=plan["eligible_from_date"],
+                reason="Attendere la maturazione dal primo contatto accessori effettivamente registrato.")
         if blockers:
             plan["raw_status"] = "waiting_for_plan"
             plan["raw_next_contact_date"] = None
             plan["blocking_plan_keys"] = [other["plan_key"] for other in blockers]
-            plan["primary_opportunity"]["status"] = "waiting_for_plan"
-            plan["primary_opportunity"]["reason"] = "Attendere la chiusura del piano accessori prima del contatto commerciale."
-            plan["primary_opportunity"]["next_contact_date"] = None
+            plan["primary_opportunity"].update(status="waiting_for_plan", next_contact_date=None,
+                reason="Attendere la conclusione dei piani precedenti del percorso; non è obbligatorio un acquisto.")
 
     def contact_day(plan):
         return _day(plan["first_contact_date"]) if plan["first_contact_date"] else date.max
@@ -1035,7 +1059,7 @@ def evaluate_portfolio(customer, evaluation_date, *, catalog=None, definitions=N
     queued.sort(key=queue_key)
     for plan in queued:
         plan["plan_status"] = "queued"
-        plan["plan_reason"] = ("Attendere la chiusura del piano accessori." if plan["blocking_plan_keys"]
+        plan["plan_reason"] = ("Attendere la conclusione dei piani precedenti del percorso." if plan["blocking_plan_keys"]
                                else "Un altro piano di contatto ha la precedenza per questo cliente.")
 
     primary_output = primary_plan.copy() if primary_plan else None
@@ -1089,7 +1113,7 @@ def evaluate_portfolio(customer, evaluation_date, *, catalog=None, definitions=N
         primary_output["plan_status"] = portfolio_status
         primary_output["plan_next_contact_date"] = next_contact_date
 
-    permission = _contact_permission(customer, definitions=definitions)
+    permission = _contact_permission(snapshot, definitions=definitions)
     if not permission["allowed"]:
         portfolio_status = "blocked_consent"
         next_contact_date = None
@@ -1163,10 +1187,11 @@ def evaluate_portfolio(customer, evaluation_date, *, catalog=None, definitions=N
                               "currency": item["currency"], "price_basis": item["price_basis"],
                               "promotion_active": item["promotion_active"]} for item in proposals],
             }
+        awaiting_anchor = plan["primary_opportunity"].get("contact_timing", {}).get("awaiting_first_contact", False)
         timeline.append({
             "plan_key": plan["plan_key"], "state": state,
-            "reason": plan["plan_reason"], "eligible_from_date": plan["eligible_from_date"],
-            "earliest_contact_date": earliest.isoformat(), "next_contact_date": known_date,
+            "reason": plan["plan_reason"], "eligible_from_date": None if awaiting_anchor else plan["eligible_from_date"],
+            "earliest_contact_date": None if awaiting_anchor else earliest.isoformat(), "next_contact_date": known_date,
             "blocking_plan_keys": blockers,
             "presentation": plan.get("presentation"),
             "proposals": [{"rule_id": item["rule_id"], "role": item["contact_role"],
@@ -1176,7 +1201,7 @@ def evaluate_portfolio(customer, evaluation_date, *, catalog=None, definitions=N
                            "promotion_active": item["promotion_active"],
                            "operator_checks": item["operator_checks"]} for item in proposals],
         })
-    timeline.sort(key=lambda item: (item["eligible_from_date"], item["plan_key"]))
+    timeline.sort(key=lambda item: (item["eligible_from_date"] or item["plan_key"][2], item["plan_key"]))
     for result in results + suppressed_opportunities:
         _apply_permission(result, permission)
     contacted_plans = []
@@ -1241,7 +1266,7 @@ def format_operator_view(portfolio):
             labels = list(dict.fromkeys(option.get("product_name", option["sku"])
                                        for option in proposal["target_options"]))
             names.append(f"{proposal['role']}: {', '.join(labels) or proposal['target_product_name']}")
-        cells = [item["eligible_from_date"], item["state"],
+        cells = [item["eligible_from_date"] or "in attesa del primo contatto accessori", item["state"],
                  item["next_contact_date"] or "da rivalutare", "; ".join(names), item["reason"]]
         lines.append("| " + " | ".join(str(cell).replace("|", "/").replace("\n", " ") for cell in cells) + " |")
     for item in portfolio["operator_timeline"]:

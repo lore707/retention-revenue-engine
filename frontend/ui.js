@@ -361,7 +361,7 @@ async function api(url, options) {
 
 const eventLabels = {
   contact: 'Email già inviata', reply: 'Risposta ricevuta', product_interest: 'Interesse per un prodotto',
-  product_rejection: 'Rifiuto di un prodotto', plan_rejection: 'Rifiuto dell’intera proposta',
+  product_rejection: 'Rifiuto di un prodotto', plan_rejection: 'Rifiuto dell’intera proposta', do_not_contact: 'Non vuole più comunicazioni commerciali',
   rejection: 'Rifiuto della proposta', conversation_closed: 'Conversazione gestita',
   verified_purchase: 'Acquisto verificato in Shopify', revenue_correction: 'Correzione del ricavo',
 };
@@ -538,9 +538,9 @@ function nextOpportunities(data) {
     const image = productThumbnail(data.product_images[product?.target_sku]); if (image) summary.append(image);
     summary.append(element('span', [...new Set(plan.proposals.map(product => product.target_product_name))].join(' / '), 'customer-next-name'), customerBadge(states[plan.state] || plan.state));
     const threshold = element('span', plan.timing.label, 'customer-timing-label'); threshold.title = plan.timing.description; summary.append(threshold);
-    const timing = element('span', undefined, 'customer-next-date'); timing.append(customerIcon('calendar'), element('span', dateLabel(plan.eligible_from_date, true))); summary.append(timing, customerIcon('chevron'));
+    const timing = element('span', undefined, 'customer-next-date'); timing.append(customerIcon('calendar'), element('span', plan.timing.awaiting_first_contact ? 'Dopo il primo contatto accessori' : dateLabel(plan.timing.eligible_from_date || plan.eligible_from_date, true))); summary.append(timing, customerIcon('chevron'));
     timing.title = 'Data di maturazione della proposta, non data di invio';
-    details.append(summary, element('p', plan.timing.description, 'customer-small'), element('p', plan.reason, 'customer-small'), element('p', `Ordine ${plan.order_number} · Maturazione ${dateLabel(plan.eligible_from_date, true)}`, 'customer-small'));
+    details.append(summary, element('p', plan.timing.description, 'customer-small'), element('p', plan.reason, 'customer-small'), element('p', `Ordine ${plan.order_number} · ${plan.timing.awaiting_first_contact ? 'In attesa del primo contatto accessori' : 'Maturazione ' + dateLabel(plan.timing.eligible_from_date || plan.eligible_from_date, true)}`, 'customer-small'));
     details.append(element('p', plan.next_contact_date ? `Contatto non prima del ${dateLabel(plan.next_contact_date, true)}, da rivalutare.` : 'Data di contatto da rivalutare dopo la gestione dei piani precedenti.', 'customer-small'));
     if (plan.blocking_plan_keys.length) {
       const names = plan.blocking_plan_keys.map(key => { const blocker = data.operator_timeline.find(other => JSON.stringify(other.plan_key) === JSON.stringify(key)); return blocker ? [...new Set(blocker.proposals.map(product => product.target_product_name))].join(' / ') : key[0]; });
@@ -587,7 +587,7 @@ function nextAction(data, row) {
   if (data.timing) {
     const timing = element('div', undefined, 'customer-plan-timing');
     if (data.timing.reference_date) timing.append(element('span', `${data.timing.reference_label}: ${dateLabel(data.timing.reference_date, true)}`));
-    timing.append(element('strong', `Piano maturo dal ${dateLabel(data.timing.eligible_from_date, true)} · ${data.timing.label}`));
+    timing.append(element('strong', data.timing.awaiting_first_contact ? 'In attesa del primo contatto accessori' : `Maturazione ${dateLabel(data.timing.eligible_from_date, true)} · ${data.timing.label}`));
     timing.append(element('small', 'La maturazione indica quando la proposta diventa valutabile; l’invio resta soggetto ai controlli del piano.'));
     body.append(timing);
   }
@@ -602,7 +602,7 @@ function nextAction(data, row) {
   counter.append(customerIcon('contact'), element('span', `${data.event_templates.contact ? count === 0 ? 'Primo contatto' : 'Secondo contatto' : 'Contatti registrati'} · ${count} / ${data.maximum_contacts}`));
   const consent = element('span', undefined, `customer-consent tone-${data.contact_permission.allowed ? 'green' : 'neutral'}`);
   if (data.contact_permission.allowed) consent.append(customerIcon('consent'));
-  consent.append(element('span', {subscribed: 'Consenso valido', unsubscribed: 'Non iscritto', unknown: 'Consenso da verificare'}[data.contact_permission.consent_status] || 'Consenso da verificare'));
+  consent.append(element('span', !data.contact_permission.allowed && data.contact_permission.consent_status === 'subscribed' ? 'Contatti bloccati' : {subscribed: 'Consenso valido', unsubscribed: 'Non iscritto', unknown: 'Consenso da verificare'}[data.contact_permission.consent_status] || 'Consenso da verificare'));
   stats.append(counter, consent); body.append(stats);
   if (data.event_templates.contact) {
     body.append(eventForm(data, row, ['contact']));

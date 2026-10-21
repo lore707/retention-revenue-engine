@@ -60,9 +60,9 @@ function renderRules() {
       target.append(rulesDetails('Varianti, SKU e prezzi', rule.targets.map(item => [item.variant_label, item.sku, money(item.value_minor)].filter(Boolean).join(' · '))));
       const why = element('td'); why.append(rulesBadge(rule.category === 'targeted' ? 'Mirata' : 'Da testare', rule.category === 'targeted' ? 'green' : 'purple'), element('p', rule.rationale));
       const conditions = element('td');
-      if (rule.wait_for_rules.length) conditions.append(rulesBadge('Attende gli accessori', 'amber'));
+      if (rule.wait_for_rules.length) conditions.append(rulesBadge('Attende le fasi precedenti', 'amber'));
       const details = [rule.timing, ...rule.exclusions, ...rule.compatibility];
-      if (rule.wait_for_rules.length) details.push('Attende i piani accessori applicabili dello stesso ordine. Una promozione può superare solo quelli da testare mai contattati.');
+      if (rule.wait_for_rules.length) details.push('Attende la conclusione delle fasi precedenti applicabili dello stesso ordine, anche in promozione. Non è obbligatorio un acquisto.');
       conditions.append(rulesDetails('Esclusioni, compatibilità e tempi', details));
       conditions.append(element('small', rule.id, 'rules-reference'));
       [source, target, why, conditions].forEach((cell, index) => {cell.dataset.label = ['Modello acquistato', 'Prodotto da proporre', 'Perché / strategia', 'Condizioni e dettagli'][index]; row.append(cell);}); body.append(row);
