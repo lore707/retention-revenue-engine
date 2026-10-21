@@ -6,6 +6,8 @@ Il progetto combina un motore di regole commerciali deterministiche con una dash
 
 **Stato:** prototipo operativo con demo interattiva. L’efficacia commerciale delle regole resta da validare sui risultati reali.
 
+**[Apri la demo online](https://retention-revenue-engine-demo.onrender.com)** — accesso libero, senza registrazione, con dati sintetici.
+
 ## Cosa fa
 
 | Area | Funzionalità |
@@ -17,7 +19,29 @@ Il progetto combina un motore di regole commerciali deterministiche con una dash
 
 Il motore coordina i piani in base ad acquisti, dotazioni, compatibilità, consenso, maturazione e contatti già registrati. Le decisioni commerciali vivono nel backend; il frontend ne presenta risultati e motivazioni.
 
-## Prova la demo
+## Anteprima della dashboard
+
+Le schermate mostrano la demo con dati sintetici. Clicca sulle immagini per visualizzarle a dimensione intera.
+
+### Overview
+
+Indicatori, ricavi verificati e panoramica delle attività commerciali.
+
+![Overview della demo: indicatori, grafico dei ricavi e gruppi di attività](project-docs/screenshots/overview.png)
+
+### Retention
+
+Ricerca, filtri e opportunità ordinate per urgenza, con proposte e motivazioni.
+
+![Retention della demo: filtri, priorità e lista delle opportunità commerciali](project-docs/screenshots/retention.png)
+
+### Scheda cliente
+
+Proposta consigliata, alternative compatibili, calendario e registrazione del contatto.
+
+![Scheda cliente sintetico: proposta, alternative, prossime opportunità e contatto](project-docs/screenshots/customer-detail.png)
+
+## Avvia la demo in locale
 
 Richiede **Python 3.12**. Dalla cartella del progetto:
 
