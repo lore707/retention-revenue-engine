@@ -71,21 +71,22 @@ function renderRules() {
   }
   if (!rows.length) list.append(element('p', 'Nessuna regola corrisponde ai filtri. Prova ad azzerarli.', 'card rules-empty'));
 }
-function renderRuleGuides() {
-  for (const guide of rulebook.guides) {
-    const section = element('section', undefined, 'card rules-group');
-    const heading = element('div', undefined, 'rules-group-heading'); heading.append(element('h3', guide.title)); section.append(heading);
-    if (guide.note) section.append(element('p', guide.note, 'rules-note'));
-    const {scroll, body} = rulesTable(guide.columns, guide.title);
-    for (const item of guide.rows) {
-      const row = element('tr'), title = element('th'); title.scope = 'row';
-      title.append(item.tone ? rulesBadge(item.label, item.tone) : element('strong', item.label)); row.append(title);
-      title.dataset.label = guide.columns[0];
-      for (const [index, text] of item.cells.entries()) {const cell = element('td'); cell.dataset.label = guide.columns[index + 1]; cell.append(element('p', text)); row.append(cell);}
-      body.append(row);
+function renderStrategies() {
+  const headers = ['Strategia', 'Significato semplice', 'Esempi presenti nel sistema', 'Categoria'];
+  const {scroll, body} = rulesTable(headers, 'Le cinque strategie commerciali'); scroll.classList.add('rules-strategy-table');
+  for (const strategy of rulebook.strategies) {
+    const row = element('tr'), title = element('th'); title.scope = 'row'; title.dataset.label = headers[0];
+    title.append(element('strong', strategy.label)); row.append(title);
+    for (const [index, text] of [strategy.meaning, strategy.examples].entries()) {
+      const cell = element('td', text); cell.dataset.label = headers[index + 1]; row.append(cell);
     }
-    section.append(scroll); $(`#${guide.section}-tables`).append(section);
+    const category = element('td'); category.dataset.label = headers[3];
+    category.append(rulesBadge(strategy.category === 'targeted' ? 'Mirata' : 'Da testare', strategy.category === 'targeted' ? 'green' : 'purple'));
+    row.append(category); body.append(row);
   }
+  $('#strategy-table').replaceChildren(scroll);
+  const note = rulebook.proposal_change, title = element('h3', note.title); title.id = 'proposal-change-title';
+  $('#proposal-change').replaceChildren(title, element('p', note.description), element('strong', note.caveat));
 }
 async function loadRules() {
   try {
@@ -111,7 +112,7 @@ async function loadRules() {
         rulePickers.forEach(picker => {picker.select.value = ''; picker.update();}); renderRules();
       }); $('#rule-flow-tabs').append(button);
     }
-    rulePickers.forEach(picker => picker.update()); renderRuleGuides(); renderRules();
+    rulePickers.forEach(picker => picker.update()); renderStrategies(); renderRules();
   } catch (error) {if (disposed) return; $('#notice').hidden = false; $('#notice').textContent = error.message;}
 }
 $('#rule-filters').addEventListener('submit', event => event.preventDefault());

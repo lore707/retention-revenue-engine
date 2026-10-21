@@ -515,10 +515,16 @@ class OverviewTests(unittest.TestCase):
         self.assertNotIn("email", book)
         self.assertNotIn("policies", book)
         self.assertNotIn("profiles", book)
-        self.assertEqual({guide["section"] for guide in book["guides"]}, {"retention", "plans", "contacts"})
-        for guide in book["guides"]:
-            self.assertTrue(guide["rows"])
-            self.assertTrue(all(len(row["cells"]) + 1 == len(guide["columns"]) for row in guide["rows"]))
+        self.assertNotIn("guides", book)
+        self.assertEqual(len(book["strategies"]), 5)
+        self.assertEqual({key for strategy in book["strategies"] for key in strategy["rule_ids"]},
+                         {rule["id"] for rule in book["rules"]})
+        for strategy in book["strategies"]:
+            members = [rule for rule in book["rules"] if rule["id"] in strategy["rule_ids"]]
+            self.assertTrue(strategy["meaning"] and strategy["examples"])
+            self.assertEqual({rule["strategy"] for rule in members}, {strategy["key"]})
+            self.assertEqual({rule["category"] for rule in members}, {strategy["category"]})
+        self.assertIn("non è una probabilità", book["proposal_change"]["caveat"])
 
     def test_rulebook_flows_cover_rules_and_keep_seasonal_and_unsupported_models_separate(self):
         book = rules_summary()
@@ -533,24 +539,6 @@ class OverviewTests(unittest.TestCase):
         self.assertEqual(hair[-1]["rule_ids"], ["mini_travel_cross_sell"])
         self.assertTrue(any("T1 Pro" in name for name in flows["electric_shaver"]["models_without_rules"]))
         self.assertEqual(flows["electric_toothbrush"]["models_without_rules"], [])
-
-    def test_rulebook_guide_thresholds_follow_canonical_settings(self):
-        original = json.loads
-        def changed_settings(value, *args, **kwargs):
-            data = original(value, *args, **kwargs)
-            if isinstance(data, dict) and "shared_policies" in data:
-                data["shared_policies"]["follow_up"]["maximum_contacts"] = 4
-                data["shared_policies"]["follow_up"]["retry_after_calendar_days"] = 21
-                data["shared_policies"]["cross_opportunity_coordination"]["minimum_days_between_contacts"] = 28
-                data["customer_signals"]["recent_activity_minimum_orders"] = 5
-            return data
-        with patch("src.customer_profiles.json.loads", side_effect=changed_settings):
-            guides = rules_summary()["guides"]
-        rows = {row["label"]: row["cells"] for guide in guides for row in guide["rows"]}
-        self.assertIn("4 contatti", rows["Tentativi per piano"][0])
-        self.assertIn("21 giorni", rows["Follow-up"][0])
-        self.assertIn("28 giorni", rows["Fra piani diversi"][0])
-        self.assertIn("5 ordini", rows["Alta attività recente"][0])
 
     def test_product_images_follow_catalog_skus_and_distinguish_p3_from_p3_pro(self):
         data = retention_summary(self.store, "2026-10-05")

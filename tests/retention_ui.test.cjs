@@ -470,7 +470,7 @@ test('Overview still opens client detail and expands the backend queue', async (
   assert(!h.$('#customers').textContent.includes('Attuabile oggi'));
 });
 
-test('Rules renders all backend relations and guides as accessible tables without old cards', async () => {
+test('Rules preserves product flows and replaces old guides with the five strategies and value explanation', async () => {
   const h = harness('', 'rules'); await h.settle();
   assert.equal(h.$('#notice').hidden, true);
   const seen = new Set();
@@ -487,8 +487,14 @@ test('Rules renders all backend relations and guides as accessible tables withou
   }
   assert.equal(seen.size, 15);
   assert.equal(h.$('#rule-list').querySelectorAll('.rule-card').length, 0);
-  const guideCount = ['retention', 'plans', 'contacts'].reduce((n, id) => n + h.$(`#${id}-tables`).children.length, 0);
-  assert.equal(guideCount, h.data.guides.length);
+  assert.equal(h.$('#strategy-table').querySelector('tbody').children.length, 5);
+  for (const strategy of h.data.strategies) {
+    assert(h.$('#strategy-table').textContent.includes(strategy.meaning));
+    assert(h.$('#strategy-table').textContent.includes(strategy.examples));
+  }
+  assert.equal(h.$('#retention-tables'), null);
+  assert.equal(h.$('#plans-tables'), null);
+  assert.equal(h.$('#contacts-tables'), null);
   for (const table of h.document.querySelectorAll('.rules-table')) {
     assert(table.querySelector('caption').textContent.length);
     assert(table.querySelectorAll('th').every(th => ['col', 'row'].includes(th.scope)));
@@ -497,8 +503,8 @@ test('Rules renders all backend relations and guides as accessible tables withou
       assert.deepEqual(row.children.map(cell => cell.dataset.label), labels);
     }
   }
-  assert(h.$('#retention-tables').textContent.includes('stato e strategia sullo stesso piano'));
-  assert(h.$('#contacts-tables').textContent.includes('15 giorni'));
+  assert(h.$('#proposal-change').textContent.includes('dalla pochette al rasoio'));
+  assert.equal(h.$('#proposal-change').querySelector('strong').textContent, h.data.proposal_change.caveat);
 });
 
 test('Rules combines product and strategy filters, reports empty results and resets shared popovers', async () => {

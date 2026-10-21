@@ -27,11 +27,11 @@ body[data-page="rules"] .workspace {min-width:0}
 .rule-filters select {width:100%;height:48px;border:1px solid var(--border);border-radius:12px;padding:10px;font:inherit;background:#fff}
 .rule-filters .floating-filter-trigger {min-height:52px}
 .rules-reset {min-height:48px;background:transparent;border:0;color:var(--blue);font-weight:500}
-.rule-list,.rules-guide-tables {display:grid;gap:16px;min-width:0}
+.rule-list {display:grid;gap:16px;min-width:0}
 .rules-group {overflow:hidden;background:#fff}
 .rules-group-heading {display:flex;align-items:center;gap:12px;padding:18px 20px;border-bottom:1px solid var(--border)}
 .rules-group-heading h3 {margin:0;font-size:15px;line-height:22px;font-weight:600}
-.rules-table-scroll {overflow-x:auto;overscroll-behavior-x:contain}
+.rules-table-scroll {position:relative;overflow-x:auto;overscroll-behavior-x:contain}
 .rules-table {width:100%;border-collapse:collapse;table-layout:fixed;min-width:1080px;text-align:left}
 .rules-table th,.rules-table td {padding:17px 18px;border-bottom:1px solid #eaf0f6;vertical-align:top;font-size:12px;line-height:20px;overflow-wrap:anywhere;white-space:normal}
 .rules-table thead th {background:#f6f8fc;color:#61728c;font-size:11px;line-height:18px;font-weight:600}
@@ -53,10 +53,6 @@ body[data-page="rules"] .workspace {min-width:0}
 .rules-details summary {color:var(--blue);cursor:pointer;font-weight:500;border-radius:3px}
 .rules-details ul {margin:8px 0 0;padding-left:16px;display:grid;gap:6px}
 .rules-reference {display:block;font-size:10px;line-height:16px;color:#7d8ba1;margin-top:12px}
-.rules-note {padding:12px 20px;background:#eff6ff;color:#235a96;border-bottom:1px solid var(--border);font-size:12px;line-height:20px;margin:0}
-.rules-guide-tables .rules-table {min-width:640px;table-layout:auto}
-.rules-guide-tables .rules-table th {width:25%}
-.rules-guide-tables .rules-table thead th:not(:first-child) {width:auto}
 .rules-empty {padding:24px;color:var(--secondary)}
 .rules-main :focus-visible {outline:3px solid #387be64d;outline-offset:3px}
 .rules-flow-tabs {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
@@ -118,3 +114,14 @@ body[data-page="rules"] .workspace {min-width:0}
   .rules-product {align-items:flex-start}
   .rules-stage-description {overflow-wrap:anywhere}
 }
+
+.rules-strategy-table .rules-table {min-width:840px}
+.rules-strategy-table .rules-table thead th:nth-child(1) {width:20%}
+.rules-strategy-table .rules-table thead th:nth-child(2) {width:34%}
+.rules-strategy-table .rules-table thead th:nth-child(3) {width:32%}
+.rules-strategy-table .rules-table thead th:nth-child(4) {width:14%}
+.rules-proposal-change {display:grid;gap:10px;padding:22px;background:linear-gradient(120deg,#f0f7ff,white)}
+.rules-proposal-change h3 {margin:0;font-size:16px;line-height:24px;color:var(--ink)}
+.rules-proposal-change p {font-size:13px;line-height:22px;color:var(--secondary);max-width:960px}
+.rules-proposal-change>strong {font-size:13px;line-height:22px;color:var(--ink)}
+@media(max-width:900px) {.rules-section {scroll-margin-top:84px}.rules-strategy-table .rules-table {min-width:0}.rules-proposal-change {padding:18px}}

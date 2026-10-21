@@ -1076,92 +1076,30 @@ def rules_summary():
                       "models_without_rules": [product["name"] for product in products.values()
                                                if product["category"] == family and product["key"] not in supported],
                       "stages": ordered})
-    # Testi di consultazione: descrivono i responsabili canonici, non rivalutano clienti.
-    coordination = shared["cross_opportunity_coordination"]
-    follow_up = shared["follow_up"]
-    signals = definitions["customer_signals"]
-    categories = _operational_views([])
-
-    def guide(section, title, columns, entries, note=None):
-        return {"section": section, "title": title, "columns": columns, "note": note,
-                "rows": [{"label": label, "tone": tone, "cells": cells}
-                         for label, tone, *cells in entries]}
-
-    guides = [
-        guide("retention", "Come funzionano i filtri", ["Filtro", "Che cosa seleziona", "Da ricordare"], [
-            ("Gruppo di attività", "blue", "Da gestire, Nuove opportunità, Storico da recuperare oppure Tutti i clienti.", "I conteggi precedono gli altri filtri; In lavorazione resta raggiungibile dall'Overview."),
-            ("Priorità", "blue", "La categoria commerciale attuale del cliente.", "Mirata, da testare o nessuna azione immediata: nessun nuovo punteggio di urgenza."),
-            ("Prodotto acquistato", "blue", "Un prodotto riconosciuto negli acquisti validi osservati fino alla data di valutazione.", "Comprende gli ordini precedenti, non soltanto la fonte della proposta; le varianti restano nello stesso prodotto."),
-            ("Stato del piano", "blue", "Lo stato del piano principale, oppure dei piani corrispondenti nell'ambito avanzato Tutti i piani.", "Lo stato riguarda il piano, non l'intero cliente."),
-            ("Strategia commerciale", "purple", "La strategia della proposta principale mostrata, nell'ambito predefinito.", "Tutti i piani include alternative, piani secondari e chiusi; le corrispondenze sono esplicitate senza cambiare la raccomandazione."),
-            ("Profilo cliente", "slate", "Un segnale alla volta fra quelli osservati negli acquisti.", "I segnali possono sovrapporsi, ma il selettore attuale è singolo."),
-            ("Ricerca", None, "ID cliente, ordine fonte, prodotti acquistati validi e proposte nei piani corrispondenti.", "Non cerca l'email o tutti i numeri d'ordine storici."),
-            ("Filtri combinati", None, "Tutti i filtri devono essere soddisfatti; stato e strategia sullo stesso piano.", "I conteggi delle categorie sono globali, prima degli altri filtri.")],
-            "La lista e i conteggi includono solo clienti con consenso email valido. I filtri non ricalcolano la raccomandazione e non autorizzano un contatto bloccato."),
-        guide("retention", "Le tre categorie cliente", ["Categoria", "Quando viene assegnata"], [
-            (item["label"], {"targeted": "green", "test": "purple", "none": "slate"}[item["key"]], item["description"])
-            for item in categories], "Conta il piano principale lavorabile oggi, comprese le sue proposte secondarie. Nessuna azione non significa nessuna opportunità futura."),
-        guide("retention", "Gli stati del piano", ["Stato", "Significato", "Azione possibile"], [
-            ("Aperti", "green", "Mai contattati e lavorabili oggi.", "Primo contatto, dopo le verifiche richieste."),
-            ("In corso", "blue", "Già contattati e non conclusi.", "Attesa, gestione della risposta o secondo contatto, se consentito."),
-            ("In attesa / sospesi", "amber", "Mai contattati e non lavorabili: futuri, in coda o bloccati.", "Consulta motivo e data; maturazione e data di contatto possono differire."),
-            ("Chiusi", "slate", "Piani contattati conclusi per acquisto, rifiuto, tentativi o non più proponibili.", "Consulta lo storico e registra eventuali esiti ammessi.")]),
-        guide("retention", "Esempi di combinazione", ["Selezione", "Risultato"], [
-            ("Espansione", "purple", "Anche clienti con un'espansione futura o in attesa e un concentratore come proposta principale."),
-            ("Espansione + Aperti", "green", "Clienti con un piano aperto lavorabile che contiene un'espansione. Non include i follow-up già in corso."),
-            ("Espansione + In corso", "blue", "Un piano già contattato contiene un'espansione; può essere ancora in attesa."),
-            ("Mirate + Espansione", None, "Clienti oggi classificati come mirati con un'espansione anche fra gli altri piani.")]),
-        guide("retention", "Segnali del profilo", ["Profilo", "Criterio osservato"], [
-            ("Primo acquisto", None, f"Esattamente {signals['first_purchase_order_count']} ordine interamente valido."),
-            ("Ricorrente", "green", f"Almeno {signals['recurring_minimum_orders']} ordini interamente validi."),
-            ("Alta attività recente", "amber", f"Almeno {signals['recent_activity_minimum_orders']} ordini interamente validi negli ultimi {signals['recent_activity_calendar_days']} giorni, oggi incluso."),
-            ("Multicategoria", "purple", f"Almeno {signals['multicategory_minimum_categories']} categorie principali da righe valide: cura capelli, igiene orale, rasatura. Accessori e ricambi non aggiungono categorie."),
-            ("B2B / Alto valore", "slate", "Non valutabili: dati o criteri non disponibili; opzioni disabilitate.")],
-            "I segnali descrivono il cliente: non creano opportunità né autorizzano contatti."),
-        guide("plans", "Composizione delle comunicazioni", ["Situazione", "Comportamento"], [
-            ("Stesso ordine + percorso + maturazione", "blue", "Una comunicazione con primaria e proposte secondarie. Date o percorsi diversi mantengono piani separati."),
-            ("Accessori del phon", None, "Concentratore, diffusore, supporto, pochette e spazzola si uniscono quando applicabili alla stessa fonte e con la stessa maturazione."),
-            ("AutoCurl", "purple", "Mail dedicata, separata dalle espansioni. È un complemento da testare; tempi e fonti sono indicati nella regola commerciale."),
-            ("Wave Pro + rasoi", "purple", "Mail di espansione con maturazione comune successiva ad AutoCurl. Le esclusioni delle due categorie sono indipendenti; P3 è alternativa a P3 Pro. L'ordine segue le priorità del motore."),
-            ("Dipendenza AutoCurl", "amber", "Attende i piani accessori applicabili dello stesso ordine. Questo prerequisito appartiene al piano AutoCurl; non si estende al piano separato delle espansioni. Restano le priorità e la distanza globale fra contatti."),
-            ("Mini stagionale", None, "Percorso separato dagli accessori e dalle espansioni anche con la stessa data."),
-            ("Promozione", None, "Non anticipa la maturazione e non crea relazioni. Può superare solo prerequisiti da testare mai contattati; non mirate o piani contattati.")]),
-        guide("plans", "Scelta del piano principale", ["Precedenza", "Criterio"], [
-            ("1 · Conversazioni e contatti avviati", "blue", "Prima risposte da gestire, poi piani già contattati aperti; precede il primo contatto più vecchio."),
-            ("2 · Nuovi piani maturi", "green", "Prima mirate, poi promozione, finestra stagionale, valore nominale maggiore, maturazione più vecchia, rango e spareggi."),
-            ("3 · Piani futuri", "slate", "Se manca un piano maturo, precede la prossima data utile. Gli altri restano in coda."),
-            ("Primaria dentro il piano", None, "Interesse espresso, poi primaria già contattata ancora disponibile; per nuove proposte: mirata, promozione, valore, rango e ID regola."),
-            ("Ordine lista Retention", None, "Risposte, follow-up dovuti, primi contatti con Mirate, primi contatti solo Da testare, nessuna azione oggi. Fra primi contatti si alternano i prodotti principali, dal piano più vecchio per ciascun prodotto. L'ordine è ricalcolato dopo i filtri, prima della paginazione."),
-            ("Piani misti", None, "Una Mirata attuabile rende il piano prioritario anche con complementi Da testare nella stessa mail. Proposte e tentativi restano uniti; l'ordine della lista non cambia il piano principale.")],
-            "Un solo piano principale per cliente. Valore nominale non significa probabilità di acquisto, margine o ricavo atteso."),
-        guide("contacts", "Condizioni e frequenza", ["Regola", "Comportamento"], [
-            ("Canale email", "blue", "Invio manuale fuori dal sistema. Qui si registra il contatto effettuato."),
-            ("Consenso e dati", "green", "Storico attivo, consenso email valido e nessun caso di revisione bloccante. Ordini annullati/resi ignorati; righe dubbie e SKU ignoti richiedono verifica."),
-            ("Verifiche prima dell'invio", None, " ".join(shared["operator_checks"])),
-            ("Interesse preventivo", None, "Non richiesto: proposta proattiva." if not shared["customer_interest_required"] else "Richiesto dalla politica comune."),
-            ("Tentativi per piano", "blue", f"Massimo {follow_up['maximum_contacts']} contatti, condivisi da primaria e secondarie."),
-            ("Follow-up", "blue", f"Secondo contatto dopo almeno {follow_up['retry_after_calendar_days']} giorni, senza risposta o acquisto che imponga gestione/chiusura."),
-            ("Fra piani diversi", "amber", f"Almeno {coordination['minimum_days_between_contacts']} giorni fra qualsiasi contatto registrato del cliente."),
-            ("Mini stagionale", None, "Anche il secondo contatto deve cadere nella finestra. I tentativi non ripartono ogni anno."),
-            ("Newsletter esterne", "slate", "Storico invii non integrato: non è incluso nel conteggio automatico dei contatti.")]),
-        guide("contacts", "Dopo contatto, risposta o acquisto", ["Evento", "Effetto"], [
-            ("Primo contatto", "blue", "Il piano mantiene precedenza; iniziano attesa e conteggio comune dei tentativi."),
-            ("Risposta", "amber", "Gestione manuale; altri piani attendono finché la conversazione viene chiusa."),
-            ("Interesse prodotto", "green", "La conversazione si concentra sul prodotto, senza azzerare i tentativi."),
-            ("Rifiuto prodotto", None, "Esclude solo il prodotto; gli altri possono restare disponibili. Richiede gestione della conversazione."),
-            ("Chiusura conversazione", None, "Segna risposta gestita e rivaluta il piano. Non equivale al rifiuto dell'intero piano."),
-            ("Chiusura piano", "slate", f"Acquisto verificato, rifiuto piano, {follow_up['maximum_contacts']} contatti o proposta presentata non più idonea. Il limite chiude il piano appena raggiunto."),
-            ("Proposte secondarie", None, "Quelle presentate in un piano chiuso non aprono sequenze autonome. Nessuna riapertura automatica delle opportunità esaurite."),
-            ("Nuovo ricambio acquistato", "green", "Apre un nuovo ciclo con la maturazione prevista dalla relativa regola.")]),
-        guide("contacts", "Valore nominale e ricavi", ["Misura", "Come funziona"], [
-            ("Valore nominale", "blue", "Prezzo rappresentativo della proposta principale; non somma delle alternative. Non è ricavo previsto."),
-            ("Acquisto importato", None, "Può escludere la proposta e chiudere un piano contattato. Non genera automaticamente revenue attribuita."),
-            ("Ricavo verificato", "green", "Registrazione manuale con contatto, SKU presentato, ordine Shopify, data e importo EUR verificati dall'operatore."),
-            ("Attribuzione", None, "Acquisto dalla data contatto in poi, non oltre la verifica; nessuna finestra massima. Lo stesso ordine si attribuisce una sola volta."),
-            ("Correzione importo", None, "L'ultima correzione sostituisce il totale della vendita; non aggiunge un secondo ricavo."),
-            ("Limiti", "slate", "Nessuna verifica Shopify live o misura causale. Margine e probabilità non calcolati; prezzi e disponibilità da confermare.")])]
-    return {"version": definitions["version"], "rules": rules,
-            "guides": guides, "categories": categories, "flows": flows}
+    # Testi descrittivi approvati; appartenenza e categoria derivano dalle regole correnti.
+    strategies = []
+    for key, meaning, examples in (
+        ("completion", "Proporre un accessorio compatibile che completa il dispositivo e non risulta già incluso o acquistato.",
+         "Concentratore per Neo a due ugelli; supporto Neo; diffusore SE Lite; supporto Mini."),
+        ("complement", "Proporre un prodotto aggiuntivo legato all’esperienza d’uso, senza presumere che il cliente ne abbia bisogno.",
+         "Pochette, spazzola, AutoCurl, Mini da viaggio, astuccio per rasoi."),
+        ("expansion", "Proporre l’ingresso in una categoria che non risulta già posseduta nello storico disponibile.",
+         "Da phon a spazzolino o rasoio; da spazzolino a Neo."),
+        ("replenishment", "Proporre il rinnovo di un componente secondo un intervallo commerciale prestabilito.",
+         "Testine Wave/Wave Pro; testina P3 Pro."),
+        ("replacement", "Proporre il passaggio da un modello precedente a quello previsto dalla regola.",
+         "Da Wave precedente a Wave Pro."),
+    ):
+        members = [item for item in rules if item["strategy"] == key]
+        if not members:
+            continue
+        strategies.append({"key": key, "label": members[0]["strategy_label"], "meaning": meaning,
+                           "examples": examples, "category": members[0]["category"],
+                           "rule_ids": [item["id"] for item in members]})
+    return {"version": definitions["version"], "rules": rules, "flows": flows, "strategies": strategies,
+            "proposal_change": {"title": "Perché la proposta può cambiare?",
+                "description": "Se matura una nuova espansione, il sistema può passare dalla pochette al rasoio, secondo le priorità previste. Di conseguenza cambia anche il valore potenziale.",
+                "caveat": "Il valore nominale non è una probabilità di acquisto."}}
 
 
 def overview_summary(store, as_of, period="30d", *, evaluation=None):
