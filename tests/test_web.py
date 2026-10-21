@@ -265,7 +265,7 @@ class OverviewTests(unittest.TestCase):
         catalog = json.loads((Path(__file__).resolve().parents[1] / "src/catalog.json").read_text(encoding="utf-8"))
         expected = {
             "laifen_neo": {"neo_wall_mount_completion"},
-            "laifen_neo_special": {"magnetic_concentrator_completion"},
+            "laifen_neo_special": {"magnetic_concentrator_completion", "neo_wall_mount_completion"},
             "laifen_swift_premium": {"magnetic_concentrator_completion"},
             "laifen_se_lite": {"se_lite_diffuser_completion"},
             "laifen_mini": {"mini_wall_mount_completion"},

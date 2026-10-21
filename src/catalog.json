@@ -1,5 +1,5 @@
 {
-  "version": 38,
+  "version": 39,
   "sources": {
     "neo_shopify_screenshots": "Schermate Shopify fornite in conversazione: identità, varianti, SKU, EAN, prezzi e descrizione Neo.",
     "neo_business_confirmation": "Conferma utente: dispositivo identico nelle due configurazioni; entrambe includono ugello classico e diffusore, solo la versione 3 ugelli include il concentratore.",
@@ -23,7 +23,7 @@
     "air_shopify_screenshots": "Schermate Shopify fornite in conversazione: caratteristiche, tre varianti, SKU, EAN, prezzi e contenuto della confezione Air.",
     "air_business_confirmation": "Conferma utente: Air è una gamma corrente destinata al riassortimento. La compatibilità con il concentratore venduto separatamente non è ancora confermata.",
     "magnetic_wall_mount_shopify_screenshots": "Schermate Shopify fornite in conversazione: identità, variante, SKU, EAN, prezzo e funzione del supporto magnetico da parete Laifen.",
-    "magnetic_wall_mount_business_confirmation": "Conferma utente: il supporto è compatibile con Laifen Neo. La compatibilità con gli altri modelli resta da verificare.",
+    "magnetic_wall_mount_business_confirmation": "Conferma utente: il supporto è compatibile con Laifen Neo e Neo Special. La compatibilità con gli altri modelli resta da verificare.",
     "brush_shopify_screenshots": "Schermate Shopify fornite in conversazione: identità, descrizione, due varianti, SKU, EAN e prezzi della Spazzola Laifen.",
     "brush_business_confirmation": "Conferma utente: entrambe le varianti sono correnti e riassortibili; la spazzola può essere proposta a chi ha acquistato qualsiasi asciugacapelli Laifen.",
     "wave_pro_shopify_screenshots": "Schermate Shopify fornite in conversazione: descrizione, contenuto della confezione e sei varianti Wave Pro con materiali, colori, SKU, EAN e prezzi.",
@@ -1059,6 +1059,11 @@
           "model": "Neo",
           "compatible": true,
           "source": "magnetic_wall_mount_business_confirmation"
+        },
+        {
+          "model": "Neo Special",
+          "compatible": true,
+          "source": "magnetic_wall_mount_business_confirmation"
         }
       ]
     },
@@ -1958,10 +1963,11 @@
       "kind": "compatibility",
       "accessory_product": "laifen_magnetic_wall_mount",
       "confirmed_compatible_models": [
-        "laifen_neo"
+        "laifen_neo",
+        "laifen_neo_special"
       ],
-      "question": "Confermare quali modelli Laifen diversi da Neo siano compatibili con il supporto 30101-000092.",
-      "commercial_effect": "La regola del supporto resta attiva solo per Neo fino a nuove conferme."
+      "question": "Confermare quali modelli Laifen diversi da Neo e Neo Special siano compatibili con il supporto 30101-000092.",
+      "commercial_effect": "La regola del supporto resta attiva solo per Neo e Neo Special fino a nuove conferme."
     },
     {
       "id": "se_lite_dark_gray_diffuser_identifiers",

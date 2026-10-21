@@ -1,5 +1,5 @@
 {
-  "version": 32,
+  "version": 33,
   "overview_activity": {
     "recent_days": 30
   },
@@ -225,19 +225,19 @@
     },
     {
       "id": "neo_wall_mount_completion",
-      "version": 3,
+      "version": 4,
       "status": "approved_for_manual_pilot",
       "relationship_type": "ACCESSORY_COMPLETION",
       "commercial_track": "hair_care",
       "target_sku": "30101-000092",
-      "rationale": "Aggiunge il supporto magnetico da parete compatibile, non incluso nelle configurazioni Neo.",
+      "rationale": "Aggiunge il supporto magnetico da parete compatibile, non incluso nelle configurazioni Neo e Neo Special.",
       "benefit_product_key": "laifen_magnetic_wall_mount",
       "exclusions": {
         "target_sku_in_purchase_history": true,
         "target_component_in_known_purchased_configuration": "laifen_magnetic_wall_mount"
       },
       "evidence": {
-        "compatibility": "business_confirmed_for_neo",
+        "compatibility": "business_confirmed_for_neo_and_neo_special",
         "customer_interest": "unknown",
         "purchase_probability": "not_estimated",
         "source_configuration_lacks_wall_mount": "business_confirmed"
@@ -260,6 +260,10 @@
         {
           "product": "laifen_neo",
           "configuration": "three_nozzles"
+        },
+        {
+          "product": "laifen_neo_special",
+          "configuration": "nourishing_kit"
         }
       ],
       "plan_rank": 200,

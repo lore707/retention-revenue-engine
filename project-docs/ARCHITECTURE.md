@@ -2,7 +2,7 @@
 
 Questo documento è la mappa corrente delle responsabilità del codice.
 
-Il motore è implementato in Python 3.12. Valuta completamenti accessorio, complementi d'uso, espansioni di categoria, ricambi e sostituzioni su dati normalizzati. Le relazioni attive sono Neo 2 ugelli / Neo Special / Swift Premium → concentratore, Neo → supporto magnetico da parete, SE Lite → diffusore a incastro, Mini → supporto magnetico da parete, qualsiasi asciugacapelli diverso da Mini → Mini come secondo phon da viaggio, qualsiasi asciugacapelli Laifen → AutoCurl, Wave Pro e rasoi, pochette salvo Swift Premium e spazzola, Wave / Wave Pro → Neo, P3 / P3 Pro → astuccio da viaggio, P3 Pro → testina di ricambio, Wave / Wave Pro → testine di ricambio e precedente Wave → Wave Pro. L'export ordini alimenta profili persistenti e la valutazione giornaliera; è disponibile l’Overview desktop locale.
+Il motore è implementato in Python 3.12. Valuta completamenti accessorio, complementi d'uso, espansioni di categoria, ricambi e sostituzioni su dati normalizzati. Le relazioni attive sono Neo 2 ugelli / Neo Special / Swift Premium → concentratore, Neo / Neo Special → supporto magnetico da parete, SE Lite → diffusore a incastro, Mini → supporto magnetico da parete, qualsiasi asciugacapelli diverso da Mini → Mini come secondo phon da viaggio, qualsiasi asciugacapelli Laifen → AutoCurl, Wave Pro e rasoi, pochette salvo Swift Premium e spazzola, Wave / Wave Pro → Neo, P3 / P3 Pro → astuccio da viaggio, P3 Pro → testina di ricambio, Wave / Wave Pro → testine di ricambio e precedente Wave → Wave Pro. L'export ordini alimenta profili persistenti e la valutazione giornaliera; è disponibile l’Overview desktop locale.
 
 ## Mappa corrente
 

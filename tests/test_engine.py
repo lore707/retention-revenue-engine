@@ -1471,7 +1471,8 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(oral_plan["eligible_from_date"], "2026-05-31")
 
     def test_neo_wall_mount_all_configs_calendar_boundary_and_exclusion(self):
-        for sku in ("CQ15839", "CQ15841", "CQ15840", "CR05272", "CR05186", "CR05227"):
+        for sku in ("CQ15839", "CQ15841", "CQ15840", "CR05272", "CR05186", "CR05227",
+                    "CR68941", "CR68943", "CR68942"):
             with self.subTest(sku=sku):
                 snapshot = customer(purchase(sku=sku, day="2026-09-08"))
                 self.assertEqual(evaluate(snapshot, "2026-09-22", NEO_WALL_MOUNT_RULE)["status"],
