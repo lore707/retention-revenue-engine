@@ -60,6 +60,7 @@ function restoreRetentionFilters() {
   const params = new URLSearchParams(location.search);
   selectedView = params.get('view') || params.get('category') || '';
   selectedActivity = params.get('activity') || '';
+  if (selectedActivity === 'working') selectedActivity = 'today';
   for (const filter of floatingFilters) {
     const value = params.get(filter.definition.param) || '';
     if (filter.definition.param === 'product' && value && ![...filter.select.options].some(option => option.value === value)) filter.select.append(new Option(value, value));
@@ -151,8 +152,7 @@ async function loadRetention() {
 }
 
 function renderActivityTabs() {
-  const tabs = retention.activity_views.filter(view => ['today', 'opportunities', 'history'].includes(view.key))
-    .map(view => ({...view, label: view.key === 'today' ? 'Da gestire' : view.label}));
+  const tabs = retention.activity_views.filter(view => ['today', 'opportunities', 'history'].includes(view.key));
   tabs.push({key: '', label: 'Tutti i clienti', count: retention.analyzed_customers});
   const signature = JSON.stringify([tabs, selectedActivity]);
   if ($('#activity-tabs').dataset.signature === signature) return;

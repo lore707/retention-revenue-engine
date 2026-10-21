@@ -85,7 +85,7 @@ class OverviewTests(unittest.TestCase):
         self.assertEqual(retention["metrics"], data["metrics"])
         self.assertEqual(retention["profile_counts"]["ready"]["first_purchase"], 1)
         self.assertIsNone(retention["profile_counts"]["ready"]["possible_b2b"])
-        self.assertEqual(data["activity_views"], [v for v in retention["activity_views"] if v["key"] != "working"])
+        self.assertEqual(data["activity_views"], retention["activity_views"])
         self.assertEqual(data["analyzed_customers"], 1)
         self.assertEqual({view["key"]: view["count"] for view in data["activity_views"]},
                          {"today": 0, "opportunities": 0, "history": 1})
@@ -170,6 +170,47 @@ class OverviewTests(unittest.TestCase):
         self.assertIn("contact", mature["event_templates"])
         self.assertEqual([r["label"] for r in mature["proposals"][0]["reasons"]],
                          ["Ricambio previsto", "Timing maturo"])
+
+    def test_customer_timing_separates_purchase_maturity_contact_and_seasonal_windows(self):
+        state = self.store.load_state()
+        order = state["profiles"]["CUST_000001"]["orders"]["1"]
+        order["date"] = order["lines"][0]["date"] = "2026-09-07"
+        self.store.save_state(state)
+        detail = plan_detail(self.store, "CUST_000001", None, "2026-10-21")
+        self.assertEqual(detail["timing"]["reference_date"], "2026-09-07")
+        self.assertEqual(detail["timing"]["eligible_from_date"], "2026-09-22")
+        self.assertEqual(detail["timing"]["days"], 15)
+        self.assertEqual(detail["event_templates"]["contact"]["date"], "2026-10-21")
+        by_rule = {p["rule_id"]: plan for plan in detail["operator_timeline"] for p in plan["proposals"]}
+        auto = by_rule["autocurl_cross_sell"]
+        self.assertEqual(auto["timing"]["label"], "Da 45 gg")
+        self.assertEqual(auto["eligible_from_date"], "2026-10-22")
+        self.assertIsNone(auto["next_contact_date"])
+        self.assertEqual(by_rule["hair_dryer_to_shavers_category_expansion"]["timing"]["days"], 75)
+        mini = by_rule["mini_travel_cross_sell"]
+        self.assertEqual(mini["timing"]["label"], "Stagionale")
+        self.assertIsNone(mini["timing"]["days"])
+        self.assertEqual(mini["eligible_from_date"], "2026-12-15")
+        before = plan_detail(self.store, "CUST_000001", detail["plan_key"], "2026-09-21")
+        self.assertNotIn("contact", before["event_templates"])
+        self.assertEqual(before["timing"], detail["timing"])
+        record_event(self.store, "CUST_000001", {**detail["event_templates"]["contact"], "id": "ACTUAL-DATE"})
+        saved = plan_detail(self.store, "CUST_000001", detail["plan_key"], "2026-10-21")
+        self.assertEqual(saved["contacts"][0]["date"], "2026-10-21")
+
+    def test_repeat_head_timing_references_replacement_purchase_instead_of_initial_device(self):
+        state = self.store.load_state()
+        orders = state["profiles"]["CUST_000001"]["orders"]
+        orders["1"]["date"] = orders["1"]["lines"][0]["date"] = "2026-01-01"
+        orders["1"]["lines"][0]["sku"] = "CR95008"
+        orders["2"] = {"id": "2", "number": "#SYNTHETIC-HEADS", "date": "2026-02-01", "marketing_signal": "yes",
+                       "lines": [{"id": "HEADS", "order_id": "2", "sku": "CP38422", "date": "2026-02-01", "validity": "valid", "quantity": 1}]}
+        self.store.save_state(state)
+        detail = plan_detail(self.store, "CUST_000001", None, "2026-10-21")
+        self.assertEqual(detail["timing"]["days"], 240)
+        self.assertEqual(detail["timing"]["reference_date"], "2026-02-01")
+        self.assertEqual(detail["timing"]["reference_label"], "Acquisto ricambio")
+        self.assertEqual(detail["timing"]["eligible_from_date"], "2026-09-29")
 
     def test_categories_are_exclusive_and_secondary_strategy_is_searchable(self):
         data = retention_summary(self.store, "2026-10-05")
@@ -326,7 +367,7 @@ class OverviewTests(unittest.TestCase):
                 self.assertEqual(sum(view["count"] for view in data["operational_views"]), expected)
                 self.assertEqual(len(self.store.load_state()["profiles"]), 1)
                 self.assertEqual(overview_summary(self.store, "2026-10-05")["activity_views"],
-                                 [v for v in data["activity_views"] if v["key"] != "working"])
+                                 data["activity_views"])
 
     def test_activity_cards_follow_maturity_actual_contacts_waiting_and_due_followup(self):
         customer = "CUST_000001"
@@ -343,9 +384,13 @@ class OverviewTests(unittest.TestCase):
         original_plan = detail["plan_key"]
         record_event(self.store, customer, {**detail["event_templates"]["contact"], "id": "SYNTHETIC-START"})
         waiting = retention_summary(self.store, "2026-09-29")
-        self.assertEqual(waiting["customers"][0]["activity"], "working")
+        self.assertEqual(waiting["customers"][0]["activity"], "today")
         self.assertEqual(waiting["customers"][0]["urgency"]["key"], "waiting")
-        self.assertEqual(filter_retention(waiting, activity="today"), [])
+        self.assertEqual(len(filter_retention(waiting, activity="today")), 1)
+        self.assertEqual(filter_retention(waiting, activity="working"), filter_retention(waiting, activity="today"))
+        self.assertEqual(waiting["customers"][0]["urgency"]["date"], "2026-09-30")
+        self.assertEqual(waiting["customers"][0]["urgency"]["date_label"], "Attendi fino al")
+        self.assertEqual(filter_retention(waiting, activity="history"), [])
         due = retention_summary(self.store, "2026-09-30")
         self.assertEqual(due["customers"][0]["activity"], "today")
         self.assertEqual(due["customers"][0]["urgency"]["key"], "follow_up")
@@ -364,6 +409,7 @@ class OverviewTests(unittest.TestCase):
         detail = plan_detail(self.store, customer, original_plan, "2026-10-01")
         record_event(self.store, customer, {**detail["event_templates"]["plan_rejection"], "id": "SYNTHETIC-CLOSE"})
         after_close = retention_summary(self.store, "2026-10-01")
+        self.assertEqual(filter_retention(after_close, activity="today"), [])
         self.assertNotEqual(after_close["customers"][0]["plan_key"], original_plan)
         self.assertEqual(after_close["customers"][0]["activity"], "opportunities")
         self.assertEqual(after_close["customers"][0]["contact_count"], 0)
@@ -575,8 +621,8 @@ class OverviewTests(unittest.TestCase):
         waiting = check("2026-10-02", "waiting")
         self.assertEqual(waiting["metrics"]["ready_customers"], 0)
         self.assertEqual({v["key"]: v["count"] for v in waiting["activity_views"]},
-                         {"today": 0, "opportunities": 0, "history": 0})
-        self.assertEqual(waiting["activity_unassigned_customers"], 1)
+                         {"today": 1, "opportunities": 0, "history": 0})
+        self.assertEqual(waiting["activity_unassigned_customers"], 0)
         self.assertEqual(len(waiting["rows"]), 1)
         check("2026-10-16", "follow_up")
         record_event(self.store, "CUST_000001", {"id": "REPLY", "type": "reply", "date": "2026-10-16",

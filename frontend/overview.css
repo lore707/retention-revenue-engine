@@ -553,6 +553,10 @@ dialog::backdrop {
 .customer-next-summary > .product-thumbnail {width:28px;height:28px;flex-basis:28px;border:0}
 .customer-next-name {flex:1;min-width:0;font-size:12px;line-height:18px;font-weight:500}
 .customer-next-date {display:flex;align-items:center;gap:8px;font-size:12px;line-height:18px;color:var(--secondary);white-space:nowrap}
+.customer-timing-label {flex:none;padding:4px 7px;border:1px solid var(--border);border-radius:7px;background:var(--canvas);color:var(--secondary);font-size:11px;line-height:16px;font-weight:500;white-space:nowrap}
+.customer-plan-timing {display:grid;gap:5px;padding:12px;border:1px solid #dceaf8;border-radius:10px;background:#f5faff;font-size:12px;line-height:18px;color:var(--secondary)}
+.customer-plan-timing strong {color:var(--ink);font-weight:600}
+.customer-plan-timing small {font-size:11px;line-height:17px}
 .customer-next-plan[open] > summary > .customer-icon:last-child {transform:rotate(180deg)}
 .customer-next-plan > p {padding:0 12px;margin:8px 0}
 .customer-history table {table-layout:fixed;min-width:0;width:100%;font-size:12px;line-height:18px}
@@ -906,6 +910,7 @@ body[data-page="overview"] .workspace {min-width:0}
   .customer-presented-product>span {flex-basis:calc(100% - 48px)}
   .customer-presented-product>strong {margin-left:40px}
   .customer-next-date {white-space:normal;margin-left:0;flex-basis:100%}
+  .customer-next-name {flex-basis:calc(100% - 48px)}
   .customer-summary {min-height:44px}
   .customer-history table .product-with-image {align-items:flex-start}
 }

@@ -118,9 +118,8 @@ function harness(search = '', page = 'retention') {
       {rank: 5, label: 'Nessuna azione oggi', tone: 'slate'}],
     purchased_product_options: [{value: 'synthetic_product', label: 'Prodotto acquistato sintetico'}],
     activity_views: [
-      {key: 'today', label: 'Da gestire oggi', description: 'Risposte e follow-up dovuti', count: 2},
+      {key: 'today', label: 'Da seguire', description: 'Risposte, solleciti e attese', count: 5},
       {key: 'opportunities', label: 'Nuove opportunità', description: 'Clienti pronti da contattare', count: 4},
-      {key: 'working', label: 'In lavorazione', description: 'Piani commerciali già avviati', count: 3},
       {key: 'history', label: 'Storico da recuperare', description: 'Clienti ancora da rivalutare', count: 1}],
     activity_unassigned_customers: 3,
     metrics: {ready_customers: 8}, unassigned_review_orders: 0, rows: [], product_images: {},
@@ -130,8 +129,6 @@ function harness(search = '', page = 'retention') {
       {key: 'none', label: 'Nessuna azione immediata', description: 'Attese o blocchi', tone: 'amber', count: 5}
     ]};
   if (page === 'overview') {
-    data.activity_unassigned_customers += data.activity_views.find(view => view.key === 'working').count;
-    data.activity_views = data.activity_views.filter(view => view.key !== 'working');
     Object.assign(data.metrics, {potential_value_minor: 14995, registered_contacts: 6, attributed_revenue_minor: 2400, verified_orders: 1});
     Object.assign(data, {period: '30d', starts_on: '2026-09-16', chart: {attributed_revenue_minor: 2400, verified_orders: 1,
       series: [{date: '2026-09-16', amount_minor: 0}, {date: '2026-10-15', amount_minor: 2400}]}});
@@ -344,8 +341,8 @@ test('Retention matches activity cards and advanced controls, preserving product
   const h = harness('?activity=history&product=synthetic_product&strategy=completion&scope=all_plans&state=closed&source=overview#lista'); await h.settle();
   const tabs = h.$('#activity-tabs').children;
   assert.equal(tabs.length, 4);
-  assert.equal(tabs.map(tab => tab.querySelector('strong').textContent).join(','), 'Da gestire,Nuove opportunità,Storico da recuperare,Tutti i clienti');
-  assert.equal(tabs.map(tab => tab.querySelector('small').textContent).join(','), '2 clienti,4 clienti,1 cliente,13 clienti');
+  assert.equal(tabs.map(tab => tab.querySelector('strong').textContent).join(','), 'Da seguire,Nuove opportunità,Storico da recuperare,Tutti i clienti');
+  assert.equal(tabs.map(tab => tab.querySelector('small').textContent).join(','), '5 clienti,4 clienti,1 cliente,13 clienti');
   assert.equal(tabs.map(tab => tab.attributes['aria-pressed']).join(','), 'false,false,true,false');
   assert.equal(h.$('#advanced-filters').hidden, false);
   assert.equal(h.$('#advanced-toggle').attributes['aria-expanded'], 'true');
@@ -377,9 +374,9 @@ test('Overview displays backend KPI, three activity cards, consent base and char
   assert.equal(h.$('#chart-total').textContent, '€ 24,00');
   const cards = h.$('#operational-views').children;
   assert.equal(cards.map(card => card.href).join(','), '/retention?activity=today,/retention?activity=opportunities,/retention?activity=history');
-  assert.equal(cards.map(card => card.querySelector('strong').textContent).join(','), '2,4,1');
+  assert.equal(cards.map(card => card.querySelector('strong').textContent).join(','), '5,4,1');
   assert.equal(h.$('#operational-note').textContent, '13 clienti con consenso email valido');
-  assert(h.$('#retention-base-other').textContent.includes('6 altri clienti'));
+  assert(h.$('#retention-base-other').textContent.includes('3 altri clienti'));
   assert.equal(h.$('#customers').children[0].children[0].colSpan, 8);
   const points = h.$('#chart').querySelectorAll('.hit'); assert.equal(points.length, 2);
   h.fire(points[1], 'focus'); assert(h.$('#chart-tooltip').textContent.includes('€ 24,00'));
@@ -398,7 +395,7 @@ test('Overview activity links remain visible and removable when combining Retent
   assert.equal(h.location.searchParams.get('activity'), null);
   assert.equal(h.location.searchParams.get('view'), 'targeted'); assert.equal(h.location.searchParams.get('source'), 'overview');
   h.location.search = '?activity=working'; h.fire(h.window, 'popstate'); await h.settle();
-  assert(h.$('#active-filters').textContent.includes('In lavorazione'));
+  assert(h.$('#active-filters').textContent.includes('Da seguire'));
   h.fire(h.$('#filters'), 'reset'); await h.settle(); assert.equal(h.location.searchParams.get('activity'), null);
   h.location.search = '?activity=invalid'; h.fire(h.window, 'popstate'); await h.settle();
   assert.equal(h.location.searchParams.get('activity'), null);
@@ -568,6 +565,24 @@ test('mobile drawer traps focus, closes accessibly and resets when returning to 
   h.fire(toggle, 'click'); h.document.documentElement.clientWidth = 1440; h.fire(h.window, 'resize');
   assert.equal(sidebar.inert, false); assert.equal(workspace.inert, false);
   assert.equal(toggle.attributes['aria-expanded'], 'false'); assert.equal(sidebar.attributes['role'], undefined);
+});
+
+test('future plans show backend day thresholds and keep seasonal windows distinct from contact dates', async () => {
+  const h = harness(); await h.settle();
+  h.context.timingDetail = {plan_key: ['CURRENT'], product_images: {}, operator_timeline: [
+    {plan_key: ['AUTO'], proposals: [{role: 'primary', target_sku: 'AUTO', target_product_name: 'AutoCurl'}],
+      blocking_plan_keys: [['CURRENT']], state: 'queued', reason: 'Attende il piano attuale', order_number: '#SYNTHETIC',
+      eligible_from_date: '2026-10-22', next_contact_date: null,
+      timing: {label: 'Da 45 gg', description: 'Da 45 giorni dall’acquisto di partenza.'}},
+    {plan_key: ['MINI'], proposals: [{role: 'primary', target_sku: 'MINI', target_product_name: 'Mini'}],
+      blocking_plan_keys: [], state: 'deferred', reason: 'Attende la finestra', order_number: '#SYNTHETIC',
+      eligible_from_date: '2026-12-15', next_contact_date: null,
+      timing: {label: 'Stagionale', description: 'Solo nelle finestre annuali approvate.'}}
+  ]};
+  const section = vm.runInContext('nextOpportunities(timingDetail)', h.context);
+  assert.equal(section.querySelectorAll('.customer-timing-label').map(node => node.textContent).join(','), 'Da 45 gg,Stagionale');
+  assert(section.textContent.includes('Data di contatto da rivalutare'));
+  assert(section.querySelector('.customer-next-date').title.includes('non data di invio'));
 });
 
 test('internal navigation reuses the document, restores URLs on Back and cleans page listeners', async () => {

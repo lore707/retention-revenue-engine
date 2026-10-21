@@ -475,6 +475,8 @@ def plan_detail(store, customer_id, plan_key, as_of):
     names = {sku: item["product_name"] for sku, item in variants.items()}
     rules = {rule["id"]: rule for rule in definitions["rules"]}
     source = _plan_row(state, customer_id, current, date.fromisoformat(as_of), names, rules) if current else None
+    timing_by_plan = {tuple(plan["plan_key"]): _rule_timing(rules[plan["primary_opportunity"]["rule_id"]], definitions, plan["primary_opportunity"])
+                      for plan in [portfolio["primary_contact_plan"], *portfolio["queued_contact_plans"]] if plan}
     source_purchase = next((item for item in purchases if current and item["id"] == current[
         "primary_opportunity"].get("cycle_reference_purchase_id", current["primary_opportunity"]["source_purchase_id"])), None)
     return {"customer_id": customer_id, "plan_key": plan_key, "date": as_of,
@@ -495,6 +497,7 @@ def plan_detail(store, customer_id, plan_key, as_of):
                           for item in [current["primary_opportunity"], *current["secondary_opportunities"]]] if current else [],
             "presentation": current.get("presentation") if current else None,
             "source": source, "source_purchase": source_purchase,
+            "timing": timing_by_plan.get(tuple(plan_key)) if plan_key else None,
             "current_plan": {key: current[key] for key in ("raw_status", "contact_count", "plan_next_contact_date")} if current else None,
             "tracked_plan": {key: tracked[key] for key in ("state", "outcome", "contact_count", "last_contact_date")} if tracked else None,
             "contact_permission": portfolio["contact_permission"],
@@ -502,7 +505,8 @@ def plan_detail(store, customer_id, plan_key, as_of):
             "active": bool(activation and activation <= as_of),
             "maximum_contacts": definitions["shared_policies"]["follow_up"]["maximum_contacts"],
             "purchases": purchases, "customer_events": visible_events,
-            "operator_timeline": [{**item, "order_number": orders[item["plan_key"][0]]["number"]}
+            "operator_timeline": [{**item, "order_number": orders[item["plan_key"][0]]["number"],
+                                   "timing": timing_by_plan[tuple(item["plan_key"])]}
                                   for item in portfolio["operator_timeline"]],
             "history_scope": "imported_orders_only",
             "attributed_revenue_minor": sum(sale["amount_minor"] for owner, sale in _verified_sales(store, as_of).values()
@@ -761,7 +765,7 @@ def retention_summary(store, as_of):
                 summaries[section].append({"label": "Non più proponibili", "count": sum(row["outcome"] == "not_eligible" for row in rows), "tone": "neutral"})
     operational_sections = {key: [row for row in operational_rows if key == row["category"]]
                             for key in ("targeted", "test", "none")}
-    activity_views = _activity_views(operational_rows, sections, as_of, definitions["overview_activity"]["recent_days"])
+    activity_views = _activity_views(operational_rows, as_of, definitions["overview_activity"]["recent_days"])
     return {"date": as_of, "active": active, "sections": sections, "summaries": summaries,
             "activity_views": activity_views,
             "urgency_legend": list(RETENTION_URGENCY.values()),
@@ -865,6 +869,9 @@ def _operational_row(state, customer_id, as_of, profile, portfolio, active, revi
         urgency_date, date_label = plan["eligible_from_date"], "Maturo dal"
     else:
         urgency_key, urgency_date, date_label = "waiting", None, None
+        if plan and plan["contact_count"] and not reviews and active:
+            urgency_date = plan["plan_next_contact_date"]
+            date_label = "Attendi fino al" if urgency_date else None
     row.update(customer_profile=profile, category=category, reason=reason, plans=entries,
                urgency={**RETENTION_URGENCY[urgency_key], "key": urgency_key,
                         "date": urgency_date, "date_label": date_label,
@@ -873,6 +880,8 @@ def _operational_row(state, customer_id, as_of, profile, portfolio, active, revi
                maximum_contacts=definitions["shared_policies"]["follow_up"]["maximum_contacts"],
                contactable=bool(workable), status_label="Da contattare" if workable else "Nessuna azione immediata",
                tone="blue" if category == "targeted" else "purple" if category == "test" else "amber")
+    if urgency_key == "waiting" and any(entry["state"] == "in_progress" for entry in entries):
+        row["urgency"]["label"] = "In attesa"
     return row
 
 
@@ -888,28 +897,23 @@ def _operational_views(rows):
                 ("none", "Nessuna azione immediata", "Attese, dati da verificare, blocchi o nessuna proposta.", "amber"))]
 
 
-def _activity_views(rows, sections, as_of, recent_days):
+def _activity_views(rows, as_of, recent_days):
     """Riepilogo del lavoro corrente, derivato esclusivamente dai piani valutati."""
-    started = {row["customer_id"] for row in sections["in_progress"]}
     for row in rows:
-        customer = row["customer_id"]
         urgency = row["urgency"]
-        if urgency["key"] in {"reply", "follow_up"}:
+        if urgency["key"] in {"reply", "follow_up"} or any(plan["state"] == "in_progress" for plan in row["plans"]):
             group = "today"
         elif urgency["key"] in {"first_targeted", "first_test"}:
             age = (date.fromisoformat(as_of) - date.fromisoformat(urgency["date"])).days
             group = "opportunities" if age < recent_days else "history"
-        elif customer in started:
-            group = "working"
         else:
             group = None
         row["activity"] = group
     return [{"key": key, "label": label, "description": description,
              "count": sum(row["activity"] == key for row in rows)}
             for key, label, description in (
-                ("today", "Da gestire oggi", "Risposte e follow-up dovuti"),
+                ("today", "Da seguire", "Clienti già contattati con piani aperti: prima risposte, poi solleciti dovuti e attese."),
                 ("opportunities", "Nuove opportunità", "Clienti pronti da contattare"),
-                ("working", "In lavorazione", "Piani commerciali già avviati"),
                 ("history", "Storico da recuperare", "Clienti ancora da rivalutare"))]
 
 
@@ -934,6 +938,8 @@ def _order_retention_rows(rows):
 def filter_retention(data, *, category="", state="", strategy="", profile="", search="", activity="", product="", scope=""):
     """Filtri coerenti sullo stesso piano/opportunità, una riga per cliente."""
     rows = []
+    if activity == "working":
+        activity = "today"
     if activity not in {view["key"] for view in data["activity_views"]}:
         activity = ""
     for row in data["customers"]:
@@ -962,6 +968,30 @@ def filter_retention(data, *, category="", state="", strategy="", profile="", se
     return _order_retention_rows(rows)
 
 
+def _rule_timing(rule, definitions, opportunity=None):
+    """Presentazione delle soglie canoniche, senza ricalcolare la maturazione."""
+    timing = rule.get("timing", definitions["shared_policies"]["accessory_timing"])
+    repeat = bool(opportunity and opportunity.get("cycle_kind") == "repeat")
+    if "annual_windows" in timing:
+        windows = [f"{window['opens'][3:]}/{window['opens'][:2]}–{window['closes'][3:]}/{window['closes'][:2]}"
+                   for window in timing["annual_windows"]]
+        description = "Solo nelle finestre annuali " + " e ".join(windows) + ", estremi inclusi. Nessuna attesa aggiuntiva dall'acquisto."
+        days, label = None, "Stagionale"
+    elif "initial_after_calendar_days" in timing:
+        days = timing["repeat_after_calendar_days" if repeat else "initial_after_calendar_days"]
+        label = f"Da {days} gg"
+        description = (f"Prima proposta dopo {timing['initial_after_calendar_days']} giorni dal dispositivo; "
+                       f"nuovo ciclo dopo {timing['repeat_after_calendar_days']} giorni dall'ultimo ricambio acquistato.")
+    else:
+        days = timing.get("minimum_days_inclusive", timing.get("after_calendar_days"))
+        label = f"Da {days} gg"
+        description = f"Da {days} giorni dall'acquisto di partenza."
+    return {"label": label, "days": days, "description": description,
+            "reference_label": "Acquisto ricambio" if repeat else "Acquisto di riferimento",
+            "reference_date": (opportunity.get("cycle_reference_purchase_date") if repeat else opportunity.get("source_purchase_date")) if opportunity else None,
+            "eligible_from_date": opportunity.get("eligible_from_date") if opportunity else None}
+
+
 def rules_summary():
     """Sezione consultabile derivata dalle definizioni commerciali e dal catalogo."""
     root = Path(__file__).resolve().parent
@@ -977,16 +1007,7 @@ def rules_summary():
         strategy, label = _strategy(rule)
         targets = rule.get("target_skus") or ([rule["target_sku"]] if "target_sku" in rule else
                   [variant["sku"] for variant in products[rule["target_product"]]["variants"]])
-        timing = rule.get("timing", shared["accessory_timing"])
-        if "annual_windows" in timing:
-            windows = [f"{window['opens'][3:]}/{window['opens'][:2]}–{window['closes'][3:]}/{window['closes'][:2]}"
-                       for window in timing["annual_windows"]]
-            when = "Solo nelle finestre annuali " + " e ".join(windows) + ", estremi inclusi. Nessuna attesa aggiuntiva dall'acquisto."
-        elif "initial_after_calendar_days" in timing:
-            when = (f"Prima proposta dopo {timing['initial_after_calendar_days']} giorni dal dispositivo; "
-                    f"nuovo ciclo dopo {timing['repeat_after_calendar_days']} giorni dall'ultimo ricambio acquistato.")
-        else:
-            when = f"Da {timing.get('minimum_days_inclusive', timing.get('after_calendar_days'))} giorni dall'acquisto di partenza."
+        when = _rule_timing(rule, definitions)["description"]
         exclusions = rule.get("exclusions", {})
         conditions = []
         if exclusions.get("target_sku_in_purchase_history") or exclusions.get("any_wave_pro_variant_in_purchase_history"):
@@ -1157,7 +1178,7 @@ def overview_summary(store, as_of, period="30d", *, evaluation=None):
     if evaluation is None:
         evaluation = retention_summary(store, as_of)
     rows = filter_retention(evaluation)
-    activity_views = [view for view in evaluation["activity_views"] if view["key"] != "working"]
+    activity_views = evaluation["activity_views"]
     chart = revenue_summary(store, as_of, starts_on=start.isoformat(), include_series=True,
                             customer_ids={row["customer_id"] for row in evaluation["customers"]})
     if period in {"6m", "12m"}:

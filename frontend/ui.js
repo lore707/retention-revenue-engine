@@ -537,8 +537,10 @@ function nextOpportunities(data) {
     const product = plan.proposals.find(product => product.role === 'primary') || plan.proposals[0];
     const image = productThumbnail(data.product_images[product?.target_sku]); if (image) summary.append(image);
     summary.append(element('span', [...new Set(plan.proposals.map(product => product.target_product_name))].join(' / '), 'customer-next-name'), customerBadge(states[plan.state] || plan.state));
+    const threshold = element('span', plan.timing.label, 'customer-timing-label'); threshold.title = plan.timing.description; summary.append(threshold);
     const timing = element('span', undefined, 'customer-next-date'); timing.append(customerIcon('calendar'), element('span', dateLabel(plan.eligible_from_date, true))); summary.append(timing, customerIcon('chevron'));
-    details.append(summary, element('p', plan.reason, 'customer-small'), element('p', `Ordine ${plan.order_number} · Maturazione ${dateLabel(plan.eligible_from_date, true)}`, 'customer-small'));
+    timing.title = 'Data di maturazione della proposta, non data di invio';
+    details.append(summary, element('p', plan.timing.description, 'customer-small'), element('p', plan.reason, 'customer-small'), element('p', `Ordine ${plan.order_number} · Maturazione ${dateLabel(plan.eligible_from_date, true)}`, 'customer-small'));
     details.append(element('p', plan.next_contact_date ? `Contatto non prima del ${dateLabel(plan.next_contact_date, true)}, da rivalutare.` : 'Data di contatto da rivalutare dopo la gestione dei piani precedenti.', 'customer-small'));
     if (plan.blocking_plan_keys.length) {
       const names = plan.blocking_plan_keys.map(key => { const blocker = data.operator_timeline.find(other => JSON.stringify(other.plan_key) === JSON.stringify(key)); return blocker ? [...new Set(blocker.proposals.map(product => product.target_product_name))].join(' / ') : key[0]; });
@@ -582,6 +584,13 @@ function nextAction(data, row) {
   const section = element('aside', undefined, 'card customer-action');
   section.append(customerHeading('Prossimo passo', 'send'));
   const body = element('div', undefined, 'customer-action-body'); section.append(body);
+  if (data.timing) {
+    const timing = element('div', undefined, 'customer-plan-timing');
+    if (data.timing.reference_date) timing.append(element('span', `${data.timing.reference_label}: ${dateLabel(data.timing.reference_date, true)}`));
+    timing.append(element('strong', `Piano maturo dal ${dateLabel(data.timing.eligible_from_date, true)} · ${data.timing.label}`));
+    timing.append(element('small', 'La maturazione indica quando la proposta diventa valutabile; l’invio resta soggetto ai controlli del piano.'));
+    body.append(timing);
+  }
   const count = data.tracked_plan?.contact_count ?? data.current_plan?.contact_count ?? 0;
   const last = data.tracked_plan?.last_contact_date;
   if (data.event_templates.contact) {
@@ -676,11 +685,16 @@ function eventForm(data, row, kinds) {
   }
   const action = field(form, 'Attività', 'action', 'select', kinds.map(kind => [kind, eventLabels[kind]]));
   if (kinds.length === 1) action.parentElement.hidden = true;
-  const dateInput = field(form, kinds[0] === 'contact' ? 'Data contatto' : 'Data dell’attività', 'date', 'date');
+  const dateInput = field(form, kinds[0] === 'contact' ? 'Data effettiva dell’invio' : 'Data dell’attività', 'date', 'date');
   dateInput.value = data.date; dateInput.max = data.date; dateInput.min = data.minimum_event_date || '';
   if (kinds[0] === 'contact') {
     const label = dateInput.parentElement, wrapper = element('span', undefined, 'customer-date-field');
     wrapper.append(customerIcon('date'), dateInput); label.append(wrapper);
+    const actualDate = element('small', undefined, 'customer-small'); actualDate.setAttribute('role', 'status');
+    const updateDate = () => {actualDate.textContent = dateInput.value && dateInput.validity?.valid !== false
+      ? `Contatto del ${dateLabel(dateInput.value, true)}: indica il giorno in cui hai effettivamente inviato l’email.`
+      : 'Seleziona la data effettiva dell’invio.';};
+    dateInput.addEventListener('input', updateDate); updateDate(); label.append(actualDate);
   }
   const fields = element('div', undefined, 'event-fields'); form.append(fields);
   const notes = field(form, 'Note operative (facoltative)', 'notes', 'textarea'); notes.rows = 2;
