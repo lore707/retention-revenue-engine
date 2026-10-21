@@ -26,7 +26,7 @@
       <div class="page-heading"><div><h1>Regole</h1><p>Prodotti, tempi e contatti. Tutta la logica commerciale, in chiaro.</p></div><span class="rules-readonly">Sola consultazione</span></div>
       <p id="notice" role="status">Caricamento delle regole…</p>
       <div id="rule-stats" class="rules-stats" aria-label="Riepilogo delle regole"></div>
-      <nav class="rules-index" aria-label="Indice delle regole"><a href="#commercial-rules">Flussi di retention</a><a href="#commercial-strategies">Strategie commerciali</a><a href="#customer-profiles">Profilo cliente</a><a href="#contact-calendar">Calendario del percorso</a></nav>
+      <nav class="rules-index" aria-label="Indice delle regole"><a href="#commercial-rules">Flussi di retention</a><a href="#commercial-strategies">Strategie commerciali</a><a href="#customer-profiles">Profilo cliente</a><a href="#contact-calendar">Calendario del percorso</a><a href="#system-limits">Limiti del sistema</a></nav>
       <section id="commercial-rules" class="rules-section" aria-labelledby="commercial-title">
         <div class="rules-section-heading"><div><span class="rules-eyebrow">01 · DALL'ACQUISTO ALLA PROPOSTA</span><h2 id="commercial-title">Scegli il prodotto di partenza</h2><p>Segui il percorso del dispositivo acquistato: prima opportunità, proposte successive e ricambi.</p></div></div>
         <div id="rule-flow-tabs" class="rules-flow-tabs" role="group" aria-label="Famiglia del prodotto iniziale"></div>
@@ -50,6 +50,15 @@
         <div class="rules-section-heading"><div><span class="rules-eyebrow">04 · UN SOLO PERCORSO</span><h2 id="calendar-title">Calendario standard e ordini da recuperare</h2><p>Stesse fasi e stessi tempi: cambia la data da cui decorrono.</p></div></div>
         <div id="calendar-table" class="card rules-group"></div>
         <p id="calendar-note" class="rules-path-note"></p>
+      </section>
+      <section id="system-limits" class="rules-section" aria-labelledby="limits-title">
+        <div class="rules-section-heading"><div><span class="rules-eyebrow">05 · PUNTI DA MONITORARE</span><h2 id="limits-title">Limiti del sistema</h2></div></div>
+        <div class="card rules-proposal-change">
+          <p><strong>Completezza dello storico:</strong> acquisti o comunicazioni mancanti possono rendere una proposta formalmente corretta ma poco appropriata.</p>
+          <p><strong>Registrazione dell’attività:</strong> il calendario dipende dalle date e dagli esiti inseriti dall’operatore. Un invio non registrato lascia il sistema indietro rispetto alla realtà.</p>
+          <p><strong>Rigidità del percorso:</strong> accessori → AutoCurl → espansione è una scelta coerente, ma non sappiamo ancora se sia la sequenza più efficace per ogni cliente.</p>
+          <p><strong>Priorità economica:</strong> il valore nominale aiuta a ordinare alcune proposte, ma non misura interesse, margine o probabilità di conversione.</p>
+        </div>
       </section>
     </main>
   </div>
