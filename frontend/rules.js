@@ -88,6 +88,18 @@ function renderStrategies() {
   const note = rulebook.proposal_change, title = element('h3', note.title); title.id = 'proposal-change-title';
   $('#proposal-change').replaceChildren(title, element('p', note.description), element('strong', note.caveat));
 }
+function renderProfiles() {
+  const headers = ['Profilo', 'Come viene identificato'];
+  const {scroll, body} = rulesTable(headers, 'I profili cliente'); scroll.classList.add('rules-profile-table');
+  for (const profile of rulebook.profiles) {
+    const row = element('tr'), title = element('th'); title.scope = 'row'; title.dataset.label = headers[0];
+    title.append(element('strong', profile.label));
+    const criterion = element('td', profile.criterion); criterion.dataset.label = headers[1];
+    row.append(title, criterion); body.append(row);
+  }
+  $('#profile-table').replaceChildren(scroll);
+  $('#profile-note').textContent = rulebook.profile_note;
+}
 async function loadRules() {
   try {
     const data = await api('/api/rules');
@@ -112,7 +124,7 @@ async function loadRules() {
         rulePickers.forEach(picker => {picker.select.value = ''; picker.update();}); renderRules();
       }); $('#rule-flow-tabs').append(button);
     }
-    rulePickers.forEach(picker => picker.update()); renderStrategies(); renderRules();
+    rulePickers.forEach(picker => picker.update()); renderStrategies(); renderProfiles(); renderRules();
   } catch (error) {if (disposed) return; $('#notice').hidden = false; $('#notice').textContent = error.message;}
 }
 $('#rule-filters').addEventListener('submit', event => event.preventDefault());

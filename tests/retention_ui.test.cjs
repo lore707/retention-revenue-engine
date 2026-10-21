@@ -488,6 +488,13 @@ test('Rules preserves product flows and replaces old guides with the five strate
   assert.equal(seen.size, 15);
   assert.equal(h.$('#rule-list').querySelectorAll('.rule-card').length, 0);
   assert.equal(h.$('#strategy-table').querySelector('tbody').children.length, 5);
+  assert.equal(h.$('#profile-table').querySelector('tbody').children.length, 4);
+  for (const profile of h.data.profiles) {
+    assert(h.$('#profile-table').textContent.includes(profile.label));
+    assert(h.$('#profile-table').textContent.includes(profile.criterion));
+  }
+  assert.equal(h.$('#profile-note').textContent, h.data.profile_note);
+
   for (const strategy of h.data.strategies) {
     assert(h.$('#strategy-table').textContent.includes(strategy.meaning));
     assert(h.$('#strategy-table').textContent.includes(strategy.examples));

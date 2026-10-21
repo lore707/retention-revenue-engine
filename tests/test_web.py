@@ -514,7 +514,7 @@ class OverviewTests(unittest.TestCase):
                             for rule in book["rules"] for target in rule["targets"]))
         self.assertNotIn("email", book)
         self.assertNotIn("policies", book)
-        self.assertNotIn("profiles", book)
+        self.assertTrue(all(set(profile) == {"key", "label", "criterion"} for profile in book["profiles"]))
         self.assertNotIn("guides", book)
         self.assertEqual(len(book["strategies"]), 5)
         self.assertEqual({key for strategy in book["strategies"] for key in strategy["rule_ids"]},
@@ -525,6 +525,25 @@ class OverviewTests(unittest.TestCase):
             self.assertEqual({rule["strategy"] for rule in members}, {strategy["key"]})
             self.assertEqual({rule["category"] for rule in members}, {strategy["category"]})
         self.assertIn("non è una probabilità", book["proposal_change"]["caveat"])
+
+    def test_rulebook_profiles_describe_current_thresholds_without_changing_them(self):
+        book = rules_summary()
+        profiles = {item["key"]: item["criterion"] for item in book["profiles"]}
+        self.assertEqual(set(profiles), {"first_purchase", "recurring", "multicategory", "recent_activity"})
+        self.assertIn("3 ordini", profiles["recent_activity"])
+        self.assertIn("90 giorni", profiles["recent_activity"])
+        original = json.loads
+        def changed_settings(value, *args, **kwargs):
+            data = original(value, *args, **kwargs)
+            if isinstance(data, dict) and "customer_signals" in data:
+                data["customer_signals"]["recent_activity_minimum_orders"] = 5
+                data["customer_signals"]["recent_activity_calendar_days"] = 60
+            return data
+        with patch("src.customer_profiles.json.loads", side_effect=changed_settings):
+            updated = {item["key"]: item["criterion"] for item in rules_summary()["profiles"]}
+        self.assertIn("5 ordini", updated["recent_activity"])
+        self.assertIn("60 giorni", updated["recent_activity"])
+        self.assertNotIn("90 giorni", updated["recent_activity"])
 
     def test_rulebook_flows_cover_rules_and_keep_seasonal_and_unsupported_models_separate(self):
         book = rules_summary()

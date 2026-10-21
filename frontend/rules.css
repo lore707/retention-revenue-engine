@@ -125,3 +125,7 @@ body[data-page="rules"] .workspace {min-width:0}
 .rules-proposal-change p {font-size:13px;line-height:22px;color:var(--secondary);max-width:960px}
 .rules-proposal-change>strong {font-size:13px;line-height:22px;color:var(--ink)}
 @media(max-width:900px) {.rules-section {scroll-margin-top:84px}.rules-strategy-table .rules-table {min-width:0}.rules-proposal-change {padding:18px}}
+
+.rules-profile-table .rules-table {min-width:0}
+.rules-profile-table .rules-table thead th:first-child {width:25%}
+.rules-profile-table .rules-table thead th:last-child {width:75%}

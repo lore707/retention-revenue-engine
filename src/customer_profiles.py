@@ -1096,7 +1096,20 @@ def rules_summary():
         strategies.append({"key": key, "label": members[0]["strategy_label"], "meaning": meaning,
                            "examples": examples, "category": members[0]["category"],
                            "rule_ids": [item["id"] for item in members]})
+    signals = definitions["customer_signals"]
+    profiles = [
+        {"key": "first_purchase", "label": "Primo acquisto",
+         "criterion": f"Esattamente {signals['first_purchase_order_count']} ordine interamente valido nello storico importato."},
+        {"key": "recurring", "label": "Cliente ricorrente",
+         "criterion": f"Almeno {signals['recurring_minimum_orders']} ordini interamente validi nello storico importato."},
+        {"key": "multicategory", "label": "Multicategoria",
+         "criterion": f"Acquisti validi in almeno {signals['multicategory_minimum_categories']} categorie principali: {', '.join(dict.fromkeys(signals['main_categories'].values()))}. Accessori e ricambi non aggiungono categorie."},
+        {"key": "recent_activity", "label": "Alta attività recente",
+         "criterion": f"Almeno {signals['recent_activity_minimum_orders']} ordini interamente validi negli ultimi {signals['recent_activity_calendar_days']} giorni, oggi incluso."},
+    ]
     return {"version": definitions["version"], "rules": rules, "flows": flows, "strategies": strategies,
+            "profiles": profiles,
+            "profile_note": "I profili possono sovrapporsi e descrivono soltanto gli acquisti importati. Non cambiano la categoria commerciale e non autorizzano da soli un contatto.",
             "proposal_change": {"title": "Perché la proposta può cambiare?",
                 "description": "Se matura una nuova espansione, il sistema può passare dalla pochette al rasoio, secondo le priorità previste. Di conseguenza cambia anche il valore potenziale.",
                 "caveat": "Il valore nominale non è una probabilità di acquisto."}}
