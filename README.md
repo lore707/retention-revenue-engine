@@ -126,6 +126,20 @@ Il cliente sintetico DEMO-01842 ha acquistato un Neo a due ugelli. La scheda pro
 
 *Tutti gli screenshot utilizzano dati sintetici; i valori mostrati non rappresentano risultati aziendali reali.*
 
+### Progettazione del repository per lo sviluppo assistito da AI
+
+Il repository è organizzato per fornire a Codex contesto, vincoli e criteri di verifica durante lo sviluppo.
+
+| Scelta | A cosa serve nel lavoro con Codex |
+| --- | --- |
+| **Istruzioni persistenti in `AGENTS.md`** | Definiscono vincoli, controlli e comportamenti attesi, senza doverli riscrivere a ogni richiesta. |
+| **Separazione tra prodotto e architettura** | `PRODUCT.md` spiega le decisioni commerciali; `ARCHITECTURE.md` indica dove sono implementate. Codex può orientarsi prima di modificare. |
+| **Un punto canonico per ogni responsabilità** | Riduce il rischio di creare logiche duplicate o risultati diversi tra Overview e Retention. |
+| **Workflow nella skill `repository-change`** | Organizza il lavoro: lettura del contesto, modifica localizzata, verifiche e revisione del diff. |
+| **Decisioni commerciali esplicite** | Le istruzioni vietano di inventare compatibilità, soglie e formule: le decisioni mancanti devono essere chiarite. |
+| **Test con dati sintetici** | Permettono di verificare casi ammessi, esclusi e confini temporali senza utilizzare dati reali dei clienti. |
+| **Semplicità e pulizia del repository** | Niente copie alternative, funzionalità future o dipendenze superflue: meno ambiguità per chi deve intervenire. |
+
 ## 6. Validazione e sviluppi
 
 Il progetto è attualmente un prototipo operativo con demo interattiva basata su dati sintetici.
