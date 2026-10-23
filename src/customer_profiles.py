@@ -1227,6 +1227,103 @@ def revenue_summary(store, as_of, *, starts_on=None, include_series=False, custo
     return result
 
 
+def analysis_summary(store, as_of, period="90d"):
+    """Risultati osservati dei piani avviati nel periodo, dai soli eventi registrati."""
+    from statistics import median
+
+    today = date.fromisoformat(as_of)
+    if period not in {"30d", "90d", "all"}:
+        raise ValueError("Periodo di analisi non valido.")
+    start = (today - timedelta(days=int(period[:-1]) - 1)).isoformat() if period != "all" else None
+    state = store.load_state()
+    definitions = json.loads((Path(__file__).resolve().parent / "rules.json").read_text(encoding="utf-8"))
+    catalog = json.loads((Path(__file__).resolve().parent / "catalog.json").read_text(encoding="utf-8"))
+    rules = {rule["id"]: rule for rule in definitions["rules"]}
+    names = {product["key"]: product["name"] for product in catalog["products"]}
+    product_by_sku = {variant["sku"]: product["key"] for product in catalog["products"] for variant in product["variants"]}
+    events = store.events_by_customer()
+    sales = _verified_sales(store, as_of)
+    groups = {"strategy": {}, "product": {}, "profile": {}, "path": {}, "attempt": {}}
+    records = []
+
+    def bucket(kind, key, label):
+        return groups[kind].setdefault(key, {"key": key, "label": label, "plans": 0, "customers": set(),
+                                             "replies": set(), "buyers": set(), "revenue_minor": 0})
+
+    for customer_id in sorted(state["profiles"]):
+        history = [event for event in events.get(customer_id, []) if event["date"] <= as_of]
+        plans = {}
+        for event in history:
+            if event.get("plan_key"):
+                plans.setdefault(tuple(event["plan_key"]), []).append(event)
+        for token, plan_events in plans.items():
+            contacts = sorted((event for event in plan_events if event["type"] == "contact"),
+                              key=lambda event: event["date"])
+            if not contacts or (start and contacts[0]["date"] < start):
+                continue
+            first = contacts[0]
+            rule = rules.get(first["rule_id"])
+            if not rule:
+                continue
+            strategy, strategy_label = _strategy(rule)
+            target_skus = rule.get("target_skus") or ([rule["target_sku"]] if "target_sku" in rule else [])
+            product_key = rule.get("target_product") or (product_by_sku.get(target_skus[0]) if target_skus else None)
+            product_label = names.get(product_key, rule["id"])
+            profile = customer_signals(state, customer_id, first["date"], catalog=catalog, definitions=definitions)
+            valid_orders = profile["valid_orders"]
+            profile_key = "first" if valid_orders == 1 else "recurring" if valid_orders >= 2 else "unknown"
+            profile_label = {"first": "Primo acquisto", "recurring": "Ricorrente", "unknown": "Non classificabile"}[profile_key]
+            maturity = date.fromisoformat(token[2])
+            threshold = definitions["overview_activity"]["recent_days"]
+            historical = (date.fromisoformat(first["date"]) - maturity).days >= threshold
+            path_key = "recovery" if historical else "standard"
+            path_label = f"Piano maturo da almeno {threshold} giorni" if historical else f"Piano contattato prima di {threshold} giorni"
+            reply_events = [event for event in plan_events if event["type"] == "reply"]
+            purchase_events = [sale for sale in plan_events if sale["type"] == "verified_purchase" and sale["id"] in sales]
+            source = state["profiles"][customer_id]["orders"].get(token[0])
+            contact_delay = (date.fromisoformat(first["date"]) - date.fromisoformat(source["date"])).days if source else None
+            for kind, key, label in (("strategy", strategy, strategy_label), ("product", product_key or rule["id"], product_label),
+                                     ("profile", profile_key, profile_label), ("path", path_key, path_label)):
+                item = bucket(kind, key, label)
+                item["plans"] += 1
+                item["customers"].add(customer_id)
+                if reply_events:
+                    item["replies"].add(customer_id)
+                if purchase_events:
+                    item["buyers"].add(customer_id)
+                    item["revenue_minor"] += sum(sales[sale["id"]][1]["amount_minor"] for sale in purchase_events)
+            for index, contact in enumerate(contacts[:2]):
+                attempt = bucket("attempt", str(index + 1), "Primo contatto" if index == 0 else "Secondo contatto")
+                attempt["plans"] += 1
+                attempt["customers"].add(customer_id)
+                next_date = contacts[index + 1]["date"] if index + 1 < len(contacts) else None
+                if any(event["date"] >= contact["date"] and (next_date is None or event["date"] < next_date)
+                       for event in reply_events):
+                    attempt["replies"].add(customer_id)
+            purchase_delays = []
+            for sale in purchase_events:
+                linked = next((contact for contact in contacts if contact["id"] == sale["contact_event_id"]), None)
+                if linked:
+                    attempt = groups["attempt"]["1" if linked == contacts[0] else "2"]
+                    attempt["buyers"].add(customer_id)
+                    attempt["revenue_minor"] += sales[sale["id"]][1]["amount_minor"]
+                    purchase_delays.append((date.fromisoformat(sale["purchase_date"]) - date.fromisoformat(linked["date"])).days)
+            records.append({"customer_id": customer_id, "contact_days": contact_delay,
+                            "purchase_days": purchase_delays})
+
+    def present(items):
+        return [{**{key: value for key, value in item.items() if key not in {"customers", "replies", "buyers"}},
+                 "customers": len(item["customers"]), "replies": len(item["replies"]), "buyers": len(item["buyers"])}
+                for item in sorted(items.values(), key=lambda item: item["label"])]
+
+    return {"date": as_of, "period": period, "starts_on": start, "plans": len(records),
+            "customers": len({record["customer_id"] for record in records}),
+            "groups": {key: present(items) for key, items in groups.items()},
+            "timing": {key: {"cases": len(values), "median_days": median(values) if values else None}
+                       for key, values in (("purchase_to_contact", [record["contact_days"] for record in records if record["contact_days"] is not None]),
+                                           ("contact_to_purchase", [day for record in records for day in record["purchase_days"]]))}}
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Import, eventi e lista operativa senza recapiti in output.")
     parser.add_argument("--db", default=os.environ.get("DATABASE_URL") or os.environ.get("DATABASE_PATH") or "local-data/retention.sqlite3")

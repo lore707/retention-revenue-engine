@@ -14,7 +14,7 @@ from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
-from src.customer_profiles import (RETENTION_URGENCY, _order_retention_rows, _product_images, activate_history, evaluate_day, merge_orders, overview_summary,
+from src.customer_profiles import (RETENTION_URGENCY, _order_retention_rows, _product_images, activate_history, analysis_summary, evaluate_day, merge_orders, overview_summary,
                                    record_event, retention_summary, revenue_summary, plan_detail, filter_retention, rules_summary)
 from src.storage import Store
 from src.shopify_orders import MINIMAL_COLUMNS
@@ -67,6 +67,32 @@ class OverviewTests(unittest.TestCase):
     def tearDown(self):
         self.store.close()
         self.directory.cleanup()
+
+    def test_analysis_uses_started_cohort_verified_sales_and_recorded_contact_date(self):
+        day = "2026-10-05"
+        detail = plan_detail(self.store, "CUST_000001", None, day)
+        first = {**detail["event_templates"]["contact"], "id": "ANALYSIS-CONTACT"}
+        record_event(self.store, "CUST_000001", first)
+        before = analysis_summary(self.store, day, "90d")
+        self.assertEqual(before, analysis_summary(self.store, day, "90d"))
+        self.assertEqual(before["plans"], 1)
+        self.assertEqual(before["groups"]["strategy"][0]["buyers"], 0)
+        self.assertEqual(before["groups"]["profile"][0]["key"], "first")
+        self.assertEqual(before["timing"]["purchase_to_contact"]["median_days"], 65)
+        self.assertEqual(analysis_summary(self.store, day, "30d")["plans"], 1)
+        self.assertEqual(analysis_summary(self.store, "2026-09-01", "90d")["plans"], 0)
+        with self.assertRaises(ValueError):
+            analysis_summary(self.store, day, "bad")
+
+        sale = {**plan_detail(self.store, "CUST_000001", detail["plan_key"], day)["event_templates"]["verified_purchase"],
+                "id": "ANALYSIS-SALE", "shopify_order_id": "SYNTHETIC-ANALYSIS-SALE",
+                "purchased_sku": "CP34473", "purchase_date": day, "date": day,
+                "amount_minor": 2499, "contact_event_id": first["id"], "verified_in_shopify": True}
+        record_event(self.store, "CUST_000001", sale)
+        after = analysis_summary(self.store, day, "90d")
+        self.assertEqual(after["groups"]["strategy"][0]["buyers"], 1)
+        self.assertEqual(after["groups"]["attempt"][0]["revenue_minor"], 2499)
+        self.assertEqual(after["timing"]["contact_to_purchase"]["median_days"], 0)
 
     def test_only_certain_contactable_profiles_contribute_to_queue_and_potential(self):
         data = overview_summary(self.store, "2026-10-05")
@@ -1085,8 +1111,13 @@ class OverviewServerTests(unittest.TestCase):
                     with socket.create_connection(("127.0.0.1", server.server_port), timeout=3) as idle:
                         self.assertEqual(urlopen(base + "/", timeout=3).status, 200)
                         self.assertEqual(urlopen(base + "/retention", timeout=3).status, 200)
+                        self.assertIn(b"/analysis.js", urlopen(base + "/analysis", timeout=3).read())
                         self.assertEqual(json.load(urlopen(base + "/api/retention", timeout=3))["counts"]["ready"], 0)
                         self.assertEqual(json.load(urlopen(base + "/api/overview", timeout=3))["demo"], demo)
+                        self.assertEqual(json.load(urlopen(base + "/api/analysis?period=90d", timeout=3))["plans"], 0)
+                        with self.assertRaises(HTTPError) as invalid_period:
+                            urlopen(base + "/api/analysis?period=invalid", timeout=3)
+                        self.assertEqual(invalid_period.exception.code, 400)
                     request = Request(base + "/api/import", data=body,
                                       headers={"Content-Type": "multipart/form-data; boundary=test"})
                     if demo:

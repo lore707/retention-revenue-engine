@@ -18,7 +18,7 @@ from threading import Lock
 from urllib.parse import parse_qs, urlparse
 from zoneinfo import ZoneInfo
 
-from src.customer_profiles import (activate_history, evaluate_day, explain_order, import_into_store,
+from src.customer_profiles import (activate_history, analysis_summary, evaluate_day, explain_order, import_into_store,
                                    merge_orders, overview_summary, retention_summary, record_event, plan_detail, filter_retention, rules_summary)
 from src.shopify_orders import sanitize_export
 from src.storage import Store
@@ -172,12 +172,14 @@ def make_handler(store, *, demo=False, as_of=None, credentials=None, public_orig
                     self.reply(200, data)
                 elif parsed.path == "/api/rules":
                     self.reply(200, rules_summary())
+                elif parsed.path == "/api/analysis":
+                    self.reply(200, {**analysis_summary(self.store, day, query.get("period", ["90d"])[0]), "demo": demo})
                 elif parsed.path == "/api/plan":
                     data = plan_detail(self.store, query["customer"][0], json.loads(query["plan"][0]), day)
                     data["demo"] = demo
                     self.reply(200, data)
                 else:
-                    pages = {"/": "overview.html", "/retention": "retention.html", "/rules": "rules.html"}
+                    pages = {"/": "overview.html", "/retention": "retention.html", "/rules": "rules.html", "/analysis": "analysis.html"}
                     path = FRONTEND / pages.get(parsed.path, parsed.path.lstrip("/"))
                     path = path.resolve()
                     if not path.is_relative_to(FRONTEND.resolve()) or not path.is_file():

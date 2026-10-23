@@ -3,7 +3,7 @@ function urgencyBadge(urgency) {
   return element('span', `${urgency.rank} · ${urgency.label}`, `urgency-badge filter-tone-${urgency.tone}`);
 }
 const pageFactories = new Map(), pageDocuments = new Map(), pageScripts = new Map();
-const pagePaths = {overview: '/', retention: '/retention', rules: '/rules'};
+const pagePaths = {overview: '/', retention: '/retention', analysis: '/analysis', rules: '/rules'};
 const pageLocations = new Map();
 let activePage, activePageName, navigationSequence = 0;
 

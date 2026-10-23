@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analisi · Retention Revenue Engine</title>
+  <link rel="stylesheet" href="/overview.css"><link rel="stylesheet" href="/analysis.css">
+  <script src="/ui.js" defer></script><script src="/analysis.js" defer></script>
+</head>
+<body data-page="analysis">
+  <aside class="sidebar" id="primary-sidebar" aria-label="Menu principale">
+    <button class="navigation-close" type="button" aria-label="Chiudi menu">×</button>
+    <a class="brand" href="/"><span class="brand-mark">R</span><span>Retention<br>Revenue Engine</span></a>
+    <div class="workspace-label">WORKSPACE</div>
+    <nav aria-label="Navigazione principale">
+      <a class="nav-item" href="/"><img src="/assets/dashboard-inactive.svg" alt="">Overview</a>
+      <a class="nav-item" href="/retention"><img src="/assets/retention.svg" alt="">Retention</a>
+      <a class="nav-item selected" href="/analysis" aria-current="page"><img src="/assets/results.svg" alt="">Analisi</a>
+      <a class="nav-item" href="/rules"><img src="/assets/rules.svg" alt="">Regole</a>
+    </nav>
+    <div class="workspace-footer"><span id="workspace-mode">Laifen · Workspace locale</span><small id="data-scope">Storico ordini disponibile</small><small class="deterministic">Motore deterministico</small></div>
+  </aside>
+  <button class="navigation-backdrop" type="button" aria-label="Chiudi menu" tabindex="-1"></button>
+  <div class="workspace">
+    <header class="topbar"><div class="workspace-heading"><button class="navigation-toggle" type="button" aria-label="Apri menu" aria-controls="primary-sidebar" aria-expanded="false"><span aria-hidden="true">☰</span></button><span class="workspace-breadcrumb">Workspace / Analisi</span></div><div class="context"><span class="badge" id="mode">Caricamento…</span><time id="evaluation-date"></time><span class="avatar">OP</span></div></header>
+    <main class="analysis-main">
+      <div class="page-heading"><div><h1>Analisi</h1><p>Cosa sta funzionando, per chi e con quali tempi.</p></div><label class="analysis-period">Piani avviati <select id="analysis-period"><option value="30d">Ultimi 30 giorni</option><option value="90d" selected>Ultimi 90 giorni</option><option value="all">Tutto lo storico</option></select></label></div>
+      <p id="analysis-notice" role="status">Caricamento dell’analisi…</p>
+      <div id="analysis-content" hidden>
+        <section class="analysis-intro card"><strong id="analysis-scope"></strong><p>I confronti seguono i piani al primo contatto nel periodo scelto. Risposte e acquisti verificati sono osservati fino alla data di aggiornamento; i piani più recenti hanno avuto meno tempo per produrre un esito.</p></section>
+        <section class="analysis-section" aria-labelledby="proposal-title"><div class="analysis-section-heading"><span class="analysis-index">01</span><div><h2 id="proposal-title">Quali proposte generano risultati?</h2><p>Strategia e prodotto della proposta principale al primo contatto. Gli esiti riguardano l’intero piano, anche se il cliente acquista un’alternativa presentata.</p></div></div><div id="strategy-table" class="card analysis-table-wrap"></div><div id="product-table" class="card analysis-table-wrap"></div></section>
+        <section class="analysis-section" aria-labelledby="attempt-title"><div class="analysis-section-heading"><span class="analysis-index">02</span><div><h2 id="attempt-title">Cosa succede dopo i contatti?</h2><p>Risposte e acquisti verificati dopo il primo o il secondo invio. Un acquisto è associato al contatto registrato nella vendita.</p></div></div><div id="attempt-table" class="card analysis-table-wrap"></div></section>
+        <section class="analysis-section" aria-labelledby="segment-title"><div class="analysis-section-heading"><span class="analysis-index">03</span><div><h2 id="segment-title">Per quali clienti funziona?</h2><p>Profilo osservato al primo contatto e giorni trascorsi dalla data originaria di maturazione del piano. I due confronti sono separati: un cliente ricorrente può appartenere allo storico.</p></div></div><div id="profile-table" class="card analysis-table-wrap"></div><div id="path-table" class="card analysis-table-wrap"></div></section>
+        <section class="analysis-section" aria-labelledby="timing-title"><div class="analysis-section-heading"><span class="analysis-index">04</span><div><h2 id="timing-title">Quanto tempo serve?</h2><p>Mediane dei casi con date registrate. Descrivono quanto osservato, non stabiliscono nuove soglie commerciali.</p></div></div><div id="timing-cards" class="analysis-timing"></div></section>
+        <p class="analysis-caveat">Solo contatti e acquisti verificati registrati nel sistema. Ricavi attribuiti secondo le regole attuali; questi confronti non dimostrano vendite incrementali né stimano la probabilità di acquisto.</p>
+      </div>
+    </main>
+  </div>
+</body></html>
